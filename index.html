@@ -186,7 +186,14 @@ section{padding:80px 20px;max-width:1100px;margin:0 auto;}
 
 /* CONTACT / BRIEF */
 #contact{max-width:1100px;text-align:center;}
-.contact-grid{display:grid;grid-template-columns:1fr;gap:48px;text-align:left;margin-top:40px;}
+.contact-module-wrap{max-width:1100px;margin:0 auto;padding:0 40px 60px;}
+.contact-module-inner{background:var(--panel);border:1px solid var(--border);
+  padding:40px;position:relative;overflow:hidden;}
+.contact-module-inner::before{content:'';position:absolute;top:-80px;right:-60px;
+  width:320px;height:320px;background:radial-gradient(circle,rgba(0,255,136,0.05) 0%,transparent 70%);
+  pointer-events:none;}
+.module-label2{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:5px;
+  color:var(--g2);text-transform:uppercase;margin-bottom:28px;}
 /* Brief shared styles */
 .brief-step{margin-bottom:28px;}
 .brief-step-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:4px;
@@ -293,6 +300,8 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
   .brief-cats{gap:6px;}
   .brief-cat{font-size:9px;padding:7px 14px;letter-spacing:1px;}
   .brief-submit{width:100%;}
+  .contact-module-wrap{padding:0 20px 48px;}
+  .contact-module-inner{padding:28px 20px;}
   footer{padding:32px 20px;}
   .footer-logo{font-size:20px;}
 }
@@ -361,7 +370,7 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
 
 <section id="team" style="max-width:1100px;margin:0 auto;">
   <p class="section-label">// 002 — UNITÀ OPERATIVE</p>
-  <h2 class="section-title">SELECT YOUR UNIT</h2>
+  <h2 class="section-title">WHO WE ARE</h2>
   <div class="team-container">
     <div class="sc tl"></div><div class="sc tr"></div>
     <div class="sc bl"></div><div class="sc br"></div>
@@ -405,11 +414,14 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
   </div>
 </section>
 
-<section id="contact">
-  <p class="section-label">// 004 — TRASMETTI SEGNALE</p>
-  <h2 class="section-title">CONTATTI</h2>
-  <div class="contact-grid">
-    <div>
+<section id="contact" style="padding-left:0;padding-right:0;max-width:none;">
+  <div style="max-width:1100px;margin:0 auto;padding:0 40px 12px;text-align:center;">
+    <p class="section-label">// 004 — TRASMETTI SEGNALE</p>
+    <h2 class="section-title">CONTATTI</h2>
+  </div>
+  <div class="contact-module-wrap">
+    <div class="contact-module-inner">
+      <p class="module-label2">// BRIEF.EXE — SELEZIONA E INVIA</p>
       <div class="brief-step">
         <div class="brief-step-label">01 // AREA DI INTERESSE</div>
         <div class="brief-cats">

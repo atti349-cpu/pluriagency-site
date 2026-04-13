@@ -35,6 +35,15 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .nav-links a{font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:2px;
   color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
 .nav-links a:hover{color:var(--g1);}
+.nav-portfolio{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;
+  padding:8px 20px;border:1px solid var(--g2);color:var(--g2);background:transparent;
+  cursor:pointer;text-transform:uppercase;transition:all 0.2s;text-decoration:none;
+  position:relative;overflow:hidden;}
+.nav-portfolio::before{content:'';position:absolute;inset:0;background:var(--g2);
+  transform:translateX(-100%);transition:transform .2s;}
+.nav-portfolio span{position:relative;z-index:1;}
+.nav-portfolio:hover::before{transform:translateX(0);}
+.nav-portfolio:hover span{color:#000;}
 .nav-cta{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;
   padding:8px 20px;border:1px solid var(--g1);color:var(--g1);background:transparent;
   cursor:pointer;text-transform:uppercase;transition:all 0.2s;}
@@ -209,6 +218,7 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
 @media(max-width:768px){
   nav{padding:16px 20px;}
   .nav-links{display:none;}
+  .nav-portfolio{display:none;}
   .hamburger{display:flex;}
   #about{grid-template-columns:1fr;}
   .about-visual{display:none;}
@@ -228,8 +238,10 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
     <li><a href="#services">Moduli</a></li>
     <li><a href="#team">Team</a></li>
     <li><a href="#about">Chi Siamo</a></li>
+    <li><a href="/portfolio" style="color:var(--g2)">Portfolio</a></li>
     <li><a href="#contact">Contatti</a></li>
   </ul>
+  <a class="nav-portfolio" href="/portfolio"><span>&#9656; PORTFOLIO</span></a>
   <button class="nav-cta" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Inizia</button>
   <button class="hamburger" onclick="toggleMenu()">
     <span></span><span></span><span></span>

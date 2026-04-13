@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLURIAGENCY — Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060608; --panel:#0d0d12; --panel2:#111118;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.12);
+  --g1:#00ff88; --g2:#9b5cff; --g3:#00cfff;
+  --text:#e8e8f0; --muted:#6b6b80;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:0.35;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
+  background:repeating-linear-gradient(to bottom,transparent,transparent 2px,rgba(0,0,0,0.08) 3px);}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;
+  justify-content:space-between;padding:16px 40px;background:rgba(6,6,8,0.92);
+  backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;letter-spacing:4px;
+  color:var(--g1);text-shadow:0 0 20px rgba(0,255,136,0.5);text-decoration:none;}
+.nav-back{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;
+  color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color .2s;
+  display:flex;align-items:center;gap:8px;}
+.nav-back:hover{color:var(--g1);}
+
+/* HERO */
+.port-hero{padding:120px 40px 48px;text-align:center;position:relative;
+  background:linear-gradient(180deg,rgba(155,92,255,0.05) 0%,transparent 50%);}
+.port-hero::before{content:'';position:absolute;top:60px;left:50%;transform:translateX(-50%);
+  width:600px;height:300px;background:radial-gradient(ellipse,rgba(155,92,255,0.07) 0%,transparent 70%);
+  pointer-events:none;}
+.port-eyebrow{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:5px;
+  color:var(--g2);margin-bottom:16px;}
+.port-title{font-family:'Orbitron',monospace;font-size:clamp(32px,6vw,64px);font-weight:900;
+  letter-spacing:4px;color:var(--text);}
+.port-title span{color:var(--g2);text-shadow:0 0 30px rgba(155,92,255,0.5);}
+.port-sub{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;
+  color:var(--muted);margin-top:12px;}
+
+/* FILTER */
+.filter-bar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
+  padding:0 40px 40px;position:sticky;top:64px;z-index:50;
+  background:rgba(6,6,8,0.9);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);padding-top:16px;padding-bottom:16px;}
+.filter-btn{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;
+  padding:7px 18px;border:1px solid var(--border);background:transparent;color:var(--muted);
+  cursor:pointer;text-transform:uppercase;transition:all .2s;outline:none;}
+.filter-btn:hover{color:var(--text);border-color:var(--border2);}
+.filter-btn.active{color:var(--g2);border-color:var(--g2);background:rgba(155,92,255,0.08);
+  box-shadow:0 0 12px rgba(155,92,255,0.2);}
+.filter-btn[data-cat="web"].active{color:var(--g1);border-color:var(--g1);background:rgba(0,255,136,0.06);}
+.filter-btn[data-cat="3d"].active{color:var(--g3);border-color:var(--g3);background:rgba(0,207,255,0.06);}
+
+/* GRID */
+.port-grid-wrap{padding:32px 40px 80px;max-width:1300px;margin:0 auto;}
+.port-grid{columns:4 220px;gap:16px;}
+.port-card{break-inside:avoid;margin-bottom:16px;cursor:pointer;position:relative;
+  border:1px solid var(--border);overflow:hidden;transition:border-color .2s,transform .2s;
+  display:block;background:var(--panel);}
+.port-card:hover{border-color:rgba(155,92,255,0.4);transform:translateY(-2px);}
+.port-card:hover .port-overlay{opacity:1;}
+.port-card:hover .port-img-wrap::after{opacity:1;}
+
+/* IMAGE */
+.port-img-wrap{position:relative;overflow:hidden;width:100%;}
+.port-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s;}
+.port-card:hover .port-img-wrap img{transform:scale(1.04);}
+.port-img-wrap::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 40%,rgba(6,6,8,0.85) 100%);
+  opacity:0.6;transition:opacity .3s;}
+
+/* PLACEHOLDER ART (usato finché non ci sono immagini reali) */
+.port-placeholder{width:100%;display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;}
+.port-placeholder .geo{position:absolute;border-style:solid;border-color:rgba(255,255,255,0.08);opacity:0.5;}
+
+/* OVERLAY */
+.port-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .25s;z-index:2;}
+.overlay-btn{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;
+  padding:10px 24px;border:1px solid var(--g2);color:var(--g2);background:rgba(6,6,8,0.8);
+  text-transform:uppercase;pointer-events:none;}
+
+/* META */
+.port-meta{padding:12px 14px 14px;position:relative;z-index:1;}
+.port-cat{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:3px;
+  text-transform:uppercase;margin-bottom:5px;}
+.port-name{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;
+  letter-spacing:1px;color:var(--text);line-height:1.3;}
+.port-client{font-size:11px;color:var(--muted);margin-top:3px;}
+
+/* LIGHTBOX */
+.lightbox{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.92);
+  display:none;align-items:center;justify-content:center;padding:40px;}
+.lightbox.open{display:flex;}
+.lb-inner{background:var(--panel);border:1px solid var(--border);max-width:900px;width:100%;
+  max-height:90vh;overflow-y:auto;position:relative;}
+.lb-close{position:absolute;top:14px;right:14px;width:32px;height:32px;
+  background:transparent;border:1px solid var(--border);color:var(--muted);
+  font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;z-index:2;}
+.lb-close:hover{border-color:var(--text);color:var(--text);}
+.lb-img{width:100%;display:block;max-height:500px;object-fit:cover;}
+.lb-body{padding:28px 32px 32px;}
+.lb-eyebrow{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:4px;
+  text-transform:uppercase;margin-bottom:10px;}
+.lb-title{font-family:'Orbitron',monospace;font-size:clamp(18px,3vw,28px);font-weight:700;
+  letter-spacing:2px;margin-bottom:6px;color:var(--text);}
+.lb-client{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);
+  letter-spacing:2px;margin-bottom:18px;}
+.lb-desc{font-size:14px;color:var(--muted);line-height:1.9;margin-bottom:20px;}
+.lb-tags{display:flex;flex-wrap:wrap;gap:8px;}
+.lb-tag{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;
+  padding:5px 12px;border:1px solid var(--border);color:var(--muted);}
+
+/* EMPTY STATE */
+.port-empty{display:none;text-align:center;padding:80px 40px;
+  font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:2px;}
+.port-empty.visible{display:block;}
+
+/* CTA */
+.port-cta{text-align:center;padding:40px 40px 80px;}
+.cta-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:4px;
+  color:var(--muted);margin-bottom:16px;}
+.cta-btn{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:11px;
+  letter-spacing:3px;padding:14px 36px;border:1px solid var(--g1);color:var(--g1);
+  background:transparent;cursor:pointer;text-transform:uppercase;text-decoration:none;
+  transition:all .25s;position:relative;overflow:hidden;}
+.cta-btn::before{content:'';position:absolute;inset:0;background:var(--g1);
+  transform:translateX(-100%);transition:transform .25s;}
+.cta-btn span{position:relative;z-index:1;}
+.cta-btn:hover::before{transform:translateX(0);}
+.cta-btn:hover span{color:#000;}
+
+@media(max-width:768px){
+  nav{padding:16px 20px;}
+  .port-hero{padding:100px 20px 32px;}
+  .filter-bar{padding:12px 20px;gap:6px;}
+  .filter-btn{font-size:9px;padding:6px 12px;}
+  .port-grid-wrap{padding:20px 16px 60px;}
+  .port-grid{columns:2 160px;gap:10px;}
+  .port-card{margin-bottom:10px;}
+  .lb-body{padding:20px 20px 24px;}
+  .lightbox{padding:16px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">PLURIAGENCY</a>
+  <a href="/" class="nav-back">&#8592; HOME</a>
+</nav>
+
+<div class="port-hero">
+  <p class="port-eyebrow">// 005 — LAVORI SELEZIONATI</p>
+  <h1 class="port-title">PORT<span>FOLIO</span></h1>
+  <p class="port-sub">design · sviluppo · visual · automazioni</p>
+</div>
+
+<div class="filter-bar" id="filter-bar">
+  <button class="filter-btn active" data-cat="all" onclick="filterCat('all',this)">◈ TUTTI</button>
+  <button class="filter-btn" data-cat="web" onclick="filterCat('web',this)">◈ WEB</button>
+  <button class="filter-btn" data-cat="grafica" onclick="filterCat('grafica',this)">◈ GRAFICA</button>
+  <button class="filter-btn" data-cat="foto" onclick="filterCat('foto',this)">◈ FOTO & VIDEO</button>
+  <button class="filter-btn" data-cat="3d" onclick="filterCat('3d',this)">◈ 3D & VISUAL</button>
+  <button class="filter-btn" data-cat="auto" onclick="filterCat('auto',this)">◈ AUTOMAZIONI</button>
+</div>
+
+<div class="port-grid-wrap">
+  <div class="port-grid" id="port-grid"></div>
+  <div class="port-empty" id="port-empty">&gt; nessun progetto trovato per questa categoria_</div>
+</div>
+
+<div class="port-cta">
+  <p class="cta-label">// HAI UN PROGETTO IN MENTE?</p>
+  <a class="cta-btn" href="/#contact"><span>&#9654; PARLIAMO</span></a>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLB(event)">
+  <div class="lb-inner" id="lb-inner">
+    <button class="lb-close" onclick="closeLightbox()">&#10005;</button>
+    <div id="lb-img-wrap"></div>
+    <div class="lb-body">
+      <div class="lb-eyebrow" id="lb-cat"></div>
+      <div class="lb-title" id="lb-title"></div>
+      <div class="lb-client" id="lb-client"></div>
+      <div class="lb-desc" id="lb-desc"></div>
+      <div class="lb-tags" id="lb-tags"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== PORTFOLIO DATA =====
+// Per aggiungere una vera immagine: imposta img: 'assets/portfolio/nomefile.jpg'
+// Se img è vuoto, viene generata una placeholder con CSS art
+
+const projects = [
+  {
+    id:1, cat:'web', h:'tall',
+    name:'Digital Showroom Industriale',
+    client:'Settore Manifatturiero',
+    desc:'Sito aziendale con prodotti in 3D interattivo, gestione catalogo e form B2B. Ottimizzazione SEO tecnica e performance Core Web Vitals >90.',
+    tags:['Three.js','Next.js','SEO','B2B'],
+    color:'#00ff88', img:'',
+    pattern:'grid'
+  },
+  {
+    id:2, cat:'grafica', h:'short',
+    name:'Brand Identity Studio Legale',
+    client:'Settore Professionale',
+    desc:'Logo, palette, tipografia e sistema visivo completo. Dal concept alla brand guide consegnata.',
+    tags:['Logo','Typography','Brand Guide','Print'],
+    color:'#9b5cff', img:'',
+    pattern:'diagonal'
+  },
+  {
+    id:3, cat:'foto', h:'tall',
+    name:'Shooting Team Aziendale',
+    client:'PMI Bologna',
+    desc:'Sessione fotografica professionale per team di 12 persone. Ritratti, ambienti di lavoro e contenuti per LinkedIn e sito.',
+    tags:['Portrait','Corporate','LinkedIn'],
+    color:'#00cfff', img:'',
+    pattern:'dots'
+  },
+  {
+    id:4, cat:'3d', h:'medium',
+    name:'Rendering Prodotto Fotorealistico',
+    client:'Design Product',
+    desc:'Serie di rendering PBR per catalogo digitale e campagna stampa. 12 varianti colore, 3 angoli di ripresa.',
+    tags:['Blender','PBR','Fotorealistico','Print'],
+    color:'#ff6b8a', img:'',
+    pattern:'circles'
+  },
+  {
+    id:5, cat:'web', h:'short',
+    name:'E-commerce Fashion',
+    client:'Retail Abbigliamento',
+    desc:'Piattaforma Shopify custom con integrazioni pagamento, gestione stock e sistema fidelizzazione clienti.',
+    tags:['Shopify','UX','Payment','Analytics'],
+    color:'#00ff88', img:'',
+    pattern:'waves'
+  },
+  {
+    id:6, cat:'auto', h:'medium',
+    name:'Chatbot AI Ristorante',
+    client:'F&B Bologna',
+    desc:'Assistente AI integrato su sito e WhatsApp: gestione prenotazioni, menu, FAQ. Riduzione del 60% delle richieste manuali.',
+    tags:['OpenAI','n8n','WhatsApp','Webhook'],
+    color:'#ffc04d', img:'',
+    pattern:'hex'
+  },
+  {
+    id:7, cat:'grafica', h:'tall',
+    name:'Campagna Visual Social',
+    client:'Brand Lifestyle',
+    desc:'Piano editoriale visivo per 3 mesi: 45 asset tra post, stories e reel. Sistema di template replicabile dal team interno.',
+    tags:['Social','Template','Canva Pro','Content'],
+    color:'#9b5cff', img:'',
+    pattern:'diagonal'
+  },
+  {
+    id:8, cat:'web', h:'medium',
+    name:'Web App Dashboard Analytics',
+    client:'Tech Startup',
+    desc:'Applicazione React con dashboard in tempo reale, gestione utenti, export CSV e integrazione con API terze parti.',
+    tags:['React','API','Dashboard','Auth'],
+    color:'#00ff88', img:'',
+    pattern:'grid'
+  },
+  {
+    id:9, cat:'foto', h:'short',
+    name:'Reel Prodotto — Serie Video',
+    client:'E-commerce Cosmetica',
+    desc:'5 reel da 30" per lancio prodotto. Produzione in studio con lighting cinematografico e post-produzione colore.',
+    tags:['Video','Reels','Studio','Post'],
+    color:'#00cfff', img:'',
+    pattern:'dots'
+  },
+  {
+    id:10, cat:'3d', h:'tall',
+    name:'Animazione Logo 3D',
+    client:'Agenzia Comunicazione',
+    desc:'Animazione intro per video istituzionale. Logo scomposto in particelle con ricostruzione 3D. Consegnato in MP4 e WebM.',
+    tags:['Cinema4D','After Effects','Motion','Logo'],
+    color:'#ff6b8a', img:'',
+    pattern:'circles'
+  },
+  {
+    id:11, cat:'auto', h:'short',
+    name:'Email Automation CRM',
+    client:'B2B Services',
+    desc:'Flussi automatici: lead da form → CRM → sequenza email onboarding → reminder → upsell. 3x tasso di conversione.',
+    tags:['n8n','Supabase','Resend','CRM'],
+    color:'#ffc04d', img:'',
+    pattern:'hex'
+  },
+  {
+    id:12, cat:'grafica', h:'medium',
+    name:'Pitch Deck Startup',
+    client:'Tech Startup',
+    desc:'Presentazione investor-ready da 22 slide. Storytelling visivo, data visualization e layout da conferenza internazionale.',
+    tags:['Keynote','Figma','Investor','Pitch'],
+    color:'#9b5cff', img:'',
+    pattern:'waves'
+  },
+];
+
+// ===== PLACEHOLDER GENERATOR =====
+function makePlaceholder(color, pattern, heightClass){
+  const h = heightClass === 'tall' ? 280 : heightClass === 'short' ? 160 : 220;
+  const c = color;
+  const dim = `rgba(${hexToRgb(c)},0.06)`;
+  const mid = `rgba(${hexToRgb(c)},0.15)`;
+  const bright = `rgba(${hexToRgb(c)},0.35)`;
+
+  const patterns = {
+    grid: `<div style="width:100%;height:${h}px;background:${dim};position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background-image:linear-gradient(${mid} 1px,transparent 1px),linear-gradient(90deg,${mid} 1px,transparent 1px);background-size:30px 30px;"></div>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border:1px solid ${bright};transform:translate(-50%,-50%) rotate(45deg)"></div>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:30px;height:30px;border:1px solid ${c};transform:translate(-50%,-50%) rotate(45deg);opacity:.7"></div>
+    </div>`,
+    diagonal: `<div style="width:100%;height:${h}px;background:${dim};position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,${mid} 0px,${mid} 1px,transparent 1px,transparent 20px)"></div>
+      <div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,${c},transparent)"></div>
+    </div>`,
+    dots: `<div style="width:100%;height:${h}px;background:${dim};position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background-image:radial-gradient(circle,${mid} 1px,transparent 1px);background-size:18px 18px;"></div>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:70px;height:70px;border-radius:50%;border:1px solid ${bright}"></div>
+    </div>`,
+    circles: `<div style="width:100%;height:${h}px;background:${dim};position:relative;overflow:hidden">
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:140px;height:140px;border-radius:50%;border:1px solid ${mid}"></div>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:90px;height:90px;border-radius:50%;border:1px solid ${mid}"></div>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;border:1px solid ${bright}"></div>
+      <div style="position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,${c},transparent)"></div>
+    </div>`,
+    waves: `<div style="width:100%;height:${h}px;background:${dim};position:relative;overflow:hidden">
+      <svg viewBox="0 0 200 ${h}" style="position:absolute;inset:0;width:100%;height:100%" preserveAspectRatio="none">
+        <path d="M0,${h/2} Q50,${h/2-30} 100,${h/2} Q150,${h/2+30} 200,${h/2}" fill="none" stroke="${c}" stroke-width="0.8" opacity="0.4"/>
+        <path d="M0,${h/2-20} Q50,${h/2-50} 100,${h/2-20} Q150,${h/2+10} 200,${h/2-20}" fill="none" stroke="${c}" stroke-width="0.5" opacity="0.2"/>
+        <path d="M0,${h/2+20} Q50,${h/2-10} 100,${h/2+20} Q150,${h/2+50} 200,${h/2+20}" fill="none" stroke="${c}" stroke-width="0.5" opacity="0.2"/>
+      </svg>
+    </div>`,
+    hex: `<div style="width:100%;height:${h}px;background:${dim};position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background-image:url('data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 width%3D%2228%22 height%3D%2232%22%3E%3Cpolygon points%3D%2214%2C2 26%2C9 26%2C23 14%2C30 2%2C23 2%2C9%22 fill%3D%22none%22 stroke%3D%22rgba(255%2C255%2C255%2C0.04)%22 stroke-width%3D%221%22/%3E%3C/svg%3E');background-size:28px 32px;opacity:0.8"></div>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;color:${c};opacity:0.15;font-family:monospace">⬡</div>
+    </div>`
+  };
+  return patterns[pattern] || patterns.grid;
+}
+
+function hexToRgb(hex){
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+
+const CAT_LABELS = {web:'WEB',grafica:'GRAFICA',foto:'FOTO & VIDEO','3d':'3D & VISUAL',auto:'AUTOMAZIONI'};
+const CAT_COLORS = {web:'#00ff88',grafica:'#9b5cff',foto:'#00cfff','3d':'#ff6b8a',auto:'#ffc04d'};
+
+// ===== BUILD GRID =====
+function buildGrid(cat){
+  const grid = document.getElementById('port-grid');
+  const empty = document.getElementById('port-empty');
+  const filtered = cat === 'all' ? projects : projects.filter(p=>p.cat===cat);
+
+  if(!filtered.length){ grid.innerHTML=''; empty.classList.add('visible'); return; }
+  empty.classList.remove('visible');
+
+  grid.innerHTML = filtered.map(p => {
+    const catColor = CAT_COLORS[p.cat]||'#9b5cff';
+    const catLabel = CAT_LABELS[p.cat]||p.cat;
+    const imgHtml = p.img
+      ? `<div class="port-img-wrap" style="${p.h==='tall'?'height:280px':p.h==='short'?'height:160px':'height:220px'}"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>`
+      : `<div class="port-img-wrap">${makePlaceholder(p.color||catColor, p.pattern, p.h)}</div>`;
+    return `<div class="port-card" onclick="openLightbox(${p.id})">
+      ${imgHtml}
+      <div class="port-overlay"><div class="overlay-btn">&#9654; ESPLORA</div></div>
+      <div class="port-meta">
+        <div class="port-cat" style="color:${catColor}">${catLabel}</div>
+        <div class="port-name">${p.name}</div>
+        <div class="port-client">${p.client}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== FILTER =====
+function filterCat(cat, btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  // fade out/in
+  const grid=document.getElementById('port-grid');
+  grid.style.opacity='0';grid.style.transform='translateY(8px)';
+  setTimeout(()=>{ buildGrid(cat); grid.style.transition='opacity .3s,transform .3s'; grid.style.opacity='1';grid.style.transform='translateY(0)'; },180);
+}
+
+// ===== LIGHTBOX =====
+function openLightbox(id){
+  const p = projects.find(x=>x.id===id);
+  if(!p) return;
+  const catColor = CAT_COLORS[p.cat]||'#9b5cff';
+  document.getElementById('lb-cat').textContent = (CAT_LABELS[p.cat]||'').toUpperCase();
+  document.getElementById('lb-cat').style.color = catColor;
+  document.getElementById('lb-title').textContent = p.name;
+  document.getElementById('lb-client').textContent = '> ' + p.client;
+  document.getElementById('lb-desc').textContent = p.desc;
+  document.getElementById('lb-tags').innerHTML = p.tags.map(t=>`<span class="lb-tag" style="border-color:${catColor}33;color:${catColor}">${t}</span>`).join('');
+  const imgWrap = document.getElementById('lb-img-wrap');
+  imgWrap.innerHTML = p.img
+    ? `<img class="lb-img" src="${p.img}" alt="${p.name}">`
+    : makePlaceholder(p.color||catColor, p.pattern, 'tall').replace(`height:280px`, 'height:320px').replace(/<div style="width:100%;height:\d+px;/,'<div style="width:100%;height:320px;');
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow='';
+}
+function closeLB(e){ if(e.target===document.getElementById('lightbox'))closeLightbox(); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeLightbox(); });
+
+// Init
+buildGrid('all');
+</script>
+</body>
+</html>

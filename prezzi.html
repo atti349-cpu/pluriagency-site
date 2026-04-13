@@ -106,12 +106,19 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 .summary-lines{padding:.5rem 1.25rem;min-height:100px;max-height:260px;overflow-y:auto;}
 .summary-empty{font-family:'Share Tech Mono',monospace;font-size:.72rem;color:var(--muted);
   padding:.5rem 0;letter-spacing:.05em;}
-.summary-line{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:.4rem;
+.summary-line{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:.35rem;
   padding:.45rem 0;border-bottom:1px solid rgba(155,92,255,.07);}
 .summary-line:last-child{border-bottom:none;}
 .s-name{font-size:.77rem;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .s-qty{font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--muted);white-space:nowrap;}
-.s-amt{font-family:'Share Tech Mono',monospace;font-size:.8rem;color:var(--v);white-space:nowrap;text-align:right;}
+.s-amt{font-family:'Share Tech Mono',monospace;font-size:.8rem;color:var(--v);white-space:nowrap;text-align:right;cursor:pointer;border-bottom:1px dashed transparent;transition:border-color .15s;}
+.s-amt:hover{border-bottom-color:var(--v);}
+.s-edit-btn{width:16px;height:16px;background:transparent;border:none;color:var(--muted);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;transition:color .15s;font-size:9px;}
+.s-edit-btn:hover{color:var(--v);}
+.s-price-input{font-family:'Share Tech Mono',monospace;font-size:.8rem;color:var(--v);
+  background:transparent;border:none;border-bottom:1px solid var(--v);outline:none;
+  width:60px;text-align:right;padding:0 2px;}
 
 /* SUBTOTAL / DISCOUNT */
 .discount-row{padding:.75rem 1.25rem;border-top:1px solid var(--border);
@@ -480,9 +487,33 @@ function renderSummary(){
     }
     lineEl.innerHTML = `
       <div class="s-name">${item.name}</div>
-      ${qty > 1 ? `<div class="s-qty">×${qty}</div>` : ''}
-      <div class="s-amt">€${lineTotal.toLocaleString('it-IT')}${suffix}</div>`;
+      <div class="s-qty">${qty > 1 ? '×'+qty : ''}</div>
+      <div class="s-amt" title="Clicca per modificare il prezzo" onclick="editPrice('${id}',this)">€${lineTotal.toLocaleString('it-IT')}${suffix}</div>
+      <button class="s-edit-btn" onclick="editPrice('${id}',this.previousElementSibling)" title="Modifica prezzo">✎</button>`;
   });
+}
+
+function editPrice(id, amtEl){
+  if(!selected[id]) return;
+  if(amtEl.querySelector('input')) return; // già in edit
+  const {item, qty, priceUsed} = selected[id];
+  const suffix = item.monthly ? '/mese' : item.yearly ? '/anno' : '';
+  const input = document.createElement('input');
+  input.type = 'number'; input.className = 's-price-input';
+  input.value = priceUsed; input.min = 0;
+  input.style.width = Math.max(50, String(priceUsed).length * 9 + 20) + 'px';
+  amtEl.textContent = '';
+  amtEl.appendChild(input);
+  input.focus(); input.select();
+  const commit = () => {
+    const val = Math.max(0, parseFloat(input.value) || 0);
+    selected[id].priceUsed = val;
+    const total = val * qty;
+    amtEl.textContent = `€${total.toLocaleString('it-IT')}${suffix}`;
+    recalc();
+  };
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', e => { if(e.key==='Enter'){ commit(); input.blur(); } if(e.key==='Escape'){ amtEl.textContent=`€${(priceUsed*qty).toLocaleString('it-IT')}${suffix}`; } });
 }
 
 async function sendQuote(){

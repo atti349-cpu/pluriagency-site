@@ -156,6 +156,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 /* CRD small note */
 .crd-note{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;
   color:var(--muted);opacity:0.5;text-align:center;margin-top:20px;padding-bottom:8px;}
+.crd-disclaimer{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1.5px;
+  color:var(--muted);opacity:0.5;font-style:italic;margin-top:6px;}
 
 /* BRIEF CONTACT MODULE */
 .contact-module-wrap{max-width:1100px;margin:0 auto;padding:0 40px 60px;}
@@ -261,9 +263,20 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
   .sub-tab.active{border-bottom-color:currentColor;}
   .services-main{grid-template-columns:1fr;padding:20px 20px;gap:20px;}
   .svc-3d-wrap{width:min(260px,85vw);height:min(260px,85vw);max-width:none;margin:0 auto;}
-  .svc-nav-btn{display:none;}
   .svc-tags{display:none;}
   .svc-dots{display:none;}
+  /* mobile: mostra nav-btn a destra del badge, stile brief-cat */
+  .crd-nav-row{flex-wrap:wrap;gap:8px;}
+  .crd-badge{order:-1;margin-bottom:0;}
+  .svc-nav-btn{
+    display:flex;width:auto;height:auto;
+    font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;
+    padding:8px 14px;border:1px solid rgba(255,255,255,0.12);
+    background:transparent;color:var(--muted);cursor:pointer;
+    transition:all 0.2s;
+  }
+  .svc-nav-btn:hover{border-color:currentColor;color:var(--text);}
+  .crd-disclaimer{display:block;width:100%;}
   .slogan-bar{padding:8px 20px 6px;font-size:10px;margin-top:4px;}
   .all-services{display:none;}
   .contact-module-wrap{padding:0 20px 48px;}
@@ -321,6 +334,7 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
       </div>
       <button class="svc-nav-btn" id="next-btn" onclick="changeItem(1)">&#8594;</button>
     </div>
+    <p class="crd-disclaimer">* CRD non è una valuta reale — valore esemplificativo</p>
     <div class="svc-tags" id="svc-tags"></div>
     <div class="svc-dots" id="svc-dots"></div>
   </div>

@@ -34,17 +34,17 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .nav-back:hover{color:var(--g1);}
 
 /* HERO */
-.services-hero{padding:120px 40px 0;text-align:center;position:relative;
+.services-hero{padding:80px 40px 16px;text-align:center;position:relative;
   background:linear-gradient(180deg,rgba(0,255,136,0.03) 0%,transparent 40%);}
 .hero-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:5px;
-  color:var(--g2);margin-bottom:12px;}
-.hero-title-svc{font-family:'Orbitron',monospace;font-size:clamp(28px,5vw,52px);
+  color:var(--g2);margin-bottom:8px;}
+.hero-title-svc{font-family:'Orbitron',monospace;font-size:clamp(22px,4vw,40px);
   font-weight:900;letter-spacing:3px;color:var(--text);}
 .hero-sub-svc{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;
-  color:var(--muted);margin-top:12px;}
+  color:var(--muted);margin-top:6px;}
 
 /* TABS */
-.tabs-section{padding:40px 40px 0;position:sticky;top:64px;z-index:50;
+.tabs-section{padding:12px 40px 0;position:sticky;top:64px;z-index:50;
   background:rgba(6,6,8,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
 .tabs-row{display:flex;gap:0;max-width:700px;margin:0 auto;}
 .tab-btn{flex:1;padding:16px 20px;font-family:'Orbitron',monospace;
@@ -65,10 +65,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   font-size:12px;letter-spacing:2px;color:var(--muted);border-bottom:1px solid var(--border);transition:all 0.4s;}
 
 /* MAIN LAYOUT */
-.services-main{max-width:1100px;margin:0 auto;padding:60px 40px;
-  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
-.svc-3d-wrap{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;}
-.svc-3d-wrap canvas{width:100%!important;height:100%!important;}
+.services-main{max-width:1100px;margin:0 auto;padding:32px 40px;
+  display:grid;grid-template-columns:300px 1fr;gap:40px;align-items:center;}
+.svc-3d-wrap{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;max-width:300px;}
+.svc-3d-wrap canvas{display:block;}
 .svc-3d-frame{position:absolute;inset:0;pointer-events:none;border:1px solid var(--border);}
 .sc{position:absolute;width:20px;height:20px;}
 .sc.tl{top:0;left:0;border-top:2px solid currentColor;border-left:2px solid currentColor;}
@@ -105,7 +105,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .tag.active{border-color:currentColor;color:currentColor;background:rgba(0,0,0,0.5);}
 
 /* ALL SERVICES GRID */
-.all-services{max-width:1100px;margin:0 auto;padding:0 40px 80px;}
+.all-services{max-width:1100px;margin:0 auto;padding:0 40px 60px;}
 .all-services-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:4px;
   color:var(--muted);margin-bottom:24px;display:flex;align-items:center;gap:16px;}
 .all-services-label::after{content:'';flex:1;height:1px;background:var(--border);}
@@ -131,12 +131,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 
 @media(max-width:768px){
   nav{padding:16px 20px;}
-  .services-hero{padding:100px 20px 0;}
-  .tabs-section{padding:20px 20px 0;}
-  .slogan-bar{padding:12px 20px;font-size:11px;}
-  .services-main{grid-template-columns:1fr;padding:40px 20px;gap:40px;}
-  .svc-3d-wrap{max-height:280px;}
-  .all-services{padding:0 20px 60px;}
+  .services-hero{padding:80px 20px 12px;}
+  .tabs-section{padding:8px 20px 0;}
+  .slogan-bar{padding:10px 20px;font-size:11px;}
+  .services-main{grid-template-columns:1fr;padding:24px 20px;gap:24px;}
+  .svc-3d-wrap{max-height:220px;max-width:220px;margin:0 auto;}
+  .all-services{padding:0 20px 40px;}
   .svc-cards{grid-template-columns:1fr;}
   .tab-btn{font-size:10px;letter-spacing:1px;padding:14px 8px;}
 }
@@ -196,7 +196,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   <div class="svc-cards" id="svc-cards"></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script>
 const data = {
   web: {
@@ -235,9 +235,9 @@ let dragActive=false, dragPrevX=0, dragVX=0;
 const urlCat=new URLSearchParams(window.location.search).get('cat');
 if(urlCat&&data[urlCat])currentCat=urlCat;
 
-(function init3D(){
+try { (function init3D(){
   const canvas=document.getElementById('svc-canvas');
-  const W=canvas.parentElement.clientWidth||400, H=W;
+  const W=Math.min(canvas.parentElement.clientWidth||300, 300), H=W;
   svcRenderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
   svcRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2)); svcRenderer.setSize(W,H);
   svcScene=new THREE.Scene(); svcCamera=new THREE.PerspectiveCamera(55,1,0.1,100);
@@ -258,9 +258,10 @@ if(urlCat&&data[urlCat])currentCat=urlCat;
     if(window._svcL1){window._svcL1.position.x=Math.sin(t)*2;window._svcL1.position.y=Math.cos(t*0.7)*1.5;}
     svcRenderer.render(svcScene,svcCamera);
   })();
-})();
+})(); } catch(e){ console.warn('Servizi 3D init failed:', e); document.querySelector('.svc-3d-wrap').style.display='none'; }
 
 function buildMesh(){
+  if(!svcScene) return;
   if(svcMesh){svcScene.remove(svcMesh);svcMesh.geometry.dispose();}
   const catIdx=Object.keys(data).indexOf(currentCat);
   const shapes=[

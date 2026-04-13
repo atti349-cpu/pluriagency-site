@@ -95,18 +95,23 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 /* SUMMARY PANEL */
 .summary-panel{position:sticky;top:1.5rem;background:var(--panel);
   border:1px solid var(--border);border-radius:3px;overflow:hidden;}
-.summary-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);
+.summary-header{padding:.9rem 1.25rem;border-bottom:1px solid var(--border);
   font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.2em;
   text-transform:uppercase;color:var(--v);display:flex;align-items:center;gap:.75rem;}
 .summary-header::after{content:'';flex:1;height:1px;background:var(--border);}
-.summary-lines{padding:.75rem 1.25rem;min-height:120px;max-height:280px;overflow-y:auto;}
+.summary-count{font-family:'Share Tech Mono',monospace;font-size:.65rem;
+  background:var(--v);color:#000;padding:.15rem .5rem;font-weight:700;
+  display:none;}
+.summary-count.visible{display:inline;}
+.summary-lines{padding:.5rem 1.25rem;min-height:100px;max-height:260px;overflow-y:auto;}
 .summary-empty{font-family:'Share Tech Mono',monospace;font-size:.72rem;color:var(--muted);
   padding:.5rem 0;letter-spacing:.05em;}
-.summary-line{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;
-  padding:.4rem 0;border-bottom:1px solid rgba(155,92,255,.08);}
-.s-name{font-size:.78rem;color:var(--text);flex:1;}
-.s-qty{font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--muted);}
-.s-amt{font-family:'Share Tech Mono',monospace;font-size:.8rem;color:var(--v);white-space:nowrap;}
+.summary-line{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:.4rem;
+  padding:.45rem 0;border-bottom:1px solid rgba(155,92,255,.07);}
+.summary-line:last-child{border-bottom:none;}
+.s-name{font-size:.77rem;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.s-qty{font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--muted);white-space:nowrap;}
+.s-amt{font-family:'Share Tech Mono',monospace;font-size:.8rem;color:var(--v);white-space:nowrap;text-align:right;}
 
 /* SUBTOTAL / DISCOUNT */
 .discount-row{padding:.75rem 1.25rem;border-top:1px solid var(--border);
@@ -205,7 +210,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
   <!-- SUMMARY + SEND -->
   <div class="summary-panel">
-    <div class="summary-header">PREVENTIVO</div>
+    <div class="summary-header">PREVENTIVO <span class="summary-count" id="summary-count">0</span></div>
     <div class="summary-lines" id="summary-lines">
       <div class="summary-empty" id="summary-empty">&gt; nessun servizio selezionato_</div>
     </div>
@@ -337,17 +342,19 @@ const CATS = [
 
 // State
 const selected = {}; // { id: { item, qty, priceUsed } }
+let _emptyEl = null; // cached after first DOM access
 
 // Build UI
 function buildUI(){
   const tabsEl = document.getElementById('cat-tabs');
   const bodiesEl = document.getElementById('cat-bodies');
 
+  const CAT_ICONS = {web:'◈', grafica:'◉', foto:'◎', treed:'◆', auto:'⬡', pack:'⬣', maint:'⬤'};
   CATS.forEach((cat, ci) => {
     // Tab
     const tab = document.createElement('button');
     tab.className = `cat-tab${ci===0?' active':''}`;
-    tab.textContent = cat.label;
+    tab.textContent = (CAT_ICONS[cat.id]||'◇') + ' ' + cat.label;
     tab.onclick = () => switchTab(cat.id);
     tab.dataset.cat = cat.id;
     tabsEl.appendChild(tab);
@@ -430,33 +437,52 @@ function recalc(){
   } else {
     savedEl.style.display = 'none';
   }
+
+  // Update counter badge
+  const n = Object.keys(selected).length;
+  const countEl = document.getElementById('summary-count');
+  if(countEl){ countEl.textContent = n; countEl.classList.toggle('visible', n > 0); }
 }
 
 function renderSummary(){
   const linesEl = document.getElementById('summary-lines');
-  const emptyEl = document.getElementById('summary-empty');
+  if(!_emptyEl) _emptyEl = document.getElementById('summary-empty');
   const keys = Object.keys(selected);
 
   if(!keys.length){
-    emptyEl.style.display = 'block';
-    linesEl.innerHTML = '';
-    linesEl.appendChild(emptyEl);
+    // Remove all dynamic lines, show empty message
+    Array.from(linesEl.querySelectorAll('.summary-line')).forEach(el=>el.remove());
+    if(_emptyEl && !_emptyEl.parentElement) linesEl.appendChild(_emptyEl);
+    if(_emptyEl) _emptyEl.style.display = 'block';
     return;
   }
-  emptyEl.style.display = 'none';
 
-  let html = '';
+  // Hide empty message without removing it from DOM
+  if(_emptyEl) _emptyEl.style.display = 'none';
+
+  // Sync DOM lines with selected state
+  // Remove lines that are no longer selected
+  Array.from(linesEl.querySelectorAll('.summary-line')).forEach(el => {
+    if(!selected[el.dataset.id]) el.remove();
+  });
+
+  // Add/update lines in order
   keys.forEach(id => {
     const {item, qty, priceUsed} = selected[id];
     const lineTotal = priceUsed * qty;
     const suffix = item.monthly ? '/mese' : item.yearly ? '/anno' : '';
-    html += `<div class="summary-line">
+    let lineEl = linesEl.querySelector(`.summary-line[data-id="${id}"]`);
+    if(!lineEl){
+      lineEl = document.createElement('div');
+      lineEl.className = 'summary-line';
+      lineEl.dataset.id = id;
+      linesEl.appendChild(lineEl);
+    }
+    lineEl.innerHTML = `
       <div class="s-name">${item.name}</div>
       ${qty > 1 ? `<div class="s-qty">×${qty}</div>` : ''}
-      <div class="s-amt">€${lineTotal.toLocaleString('it-IT')}${suffix}</div>
-    </div>`;
+      <div class="s-amt">€${lineTotal.toLocaleString('it-IT')}${suffix}</div>`;
   });
-  linesEl.innerHTML = html;
 }
 
 async function sendQuote(){

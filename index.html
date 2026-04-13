@@ -353,7 +353,7 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
   <div class="footer-sub">MADE WITH <span>&#9829;</span> IN BOLOGNA — 2025</div>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script>
 // ===== SERVICES DATA =====
 const services = [
@@ -441,7 +441,7 @@ function renderPixelArt(canvas, name, hexColor) {
 // ===== HERO 3D =====
 const HERO_GLB = document.querySelector('meta[name="hero-model"]')?.content || '';
 
-(function initHero() {
+try { (function initHero() {
   const canvas = document.getElementById('hero-canvas');
   const W = canvas.clientWidth || 400, H = canvas.clientHeight || 400;
   const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
@@ -511,12 +511,12 @@ const HERO_GLB = document.querySelector('meta[name="hero-model"]')?.content || '
     mesh.scale.setScalar(1+Math.sin(t*0.5)*0.03);
     renderer.render(scene,camera);
   })();
-})();
+})(); } catch(e){ console.warn('Hero 3D init failed:', e); }
 
 // ===== SERVICES 3D =====
 let svcScene, svcRenderer, svcCamera, svcMesh, svcLight1, svcCurrentIdx=0;
 let svcDragging=false, svcPrevX=0, svcVX=0;
-(function initServices(){
+try { (function initServices(){
   const canvas = document.getElementById('services-canvas');
   const W = canvas.clientWidth||280, H=canvas.clientHeight||280;
   svcRenderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
@@ -538,7 +538,7 @@ let svcDragging=false, svcPrevX=0, svcVX=0;
     svcLight1.position.x=Math.sin(t2)*2; svcLight1.position.y=Math.cos(t2*0.8)*1.5;
     svcRenderer.render(svcScene,svcCamera);
   })();
-})();
+})(); } catch(e){ console.warn('Services 3D init failed:', e); }
 
 function buildServiceMesh(idx){
   if(svcMesh){svcScene.remove(svcMesh);svcMesh.geometry.dispose();}
@@ -566,7 +566,7 @@ function setService(idx){
 function changeService(dir){setService((svcCurrentIdx+dir+3)%3);}
 
 // ===== ABOUT 3D =====
-(function initAbout(){
+try { (function initAbout(){
   const canvas=document.getElementById('about-canvas');
   if(!canvas)return;
   const W=canvas.parentElement.clientWidth||400,H=300;
@@ -585,7 +585,7 @@ function changeService(dir){setService((svcCurrentIdx+dir+3)%3);}
   (function anim(){requestAnimationFrame(anim);t+=0.005;
     points.rotation.y+=0.003; points.rotation.x=Math.sin(t)*0.2;
     renderer.render(scene,camera);})();
-})();
+})(); } catch(e){ console.warn('About 3D init failed:', e); }
 
 // ===== TEAM =====
 let teamIdx=0, skillTimeout=null;

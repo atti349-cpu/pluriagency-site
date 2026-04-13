@@ -427,49 +427,98 @@ const team = [
 ];
 
 // ===== PIXEL ART AVATAR =====
+// Per-character configs: hair, skin, shirt, pants, shoes, hairstyle (0=short 1=long 2=curly 3=spiky)
+const CHAR_CONFIGS = [
+  {hair:'#1a1e3a',skin:'#f2cba8',shirt:'#1a3a7a',pants:'#0d1a38',shoes:'#080810',style:0}, // FILIPPO
+  {hair:'#7a2a0a',skin:'#f0d0a8',shirt:'#7a1a6a',pants:'#2a0a2a',shoes:'#140a14',style:1}, // CATERINA
+  {hair:'#0d0d0d',skin:'#c08050',shirt:'#0d4a2a',pants:'#061a0d',shoes:'#0d0d0d',style:0}, // HICHAME
+  {hair:'#1a1a4a',skin:'#f2cba8',shirt:'#1a508a',pants:'#0d2040',shoes:'#080810',style:3}, // ANDI
+  {hair:'#5a1a9a',skin:'#f2cba8',shirt:'#cc4a10',pants:'#200a30',shoes:'#140a0a',style:2}, // MATTEO
+  {hair:'#6a6a7a',skin:'#e8c0a0',shirt:'#2a2a50',pants:'#14141e',shoes:'#080810',style:0}, // PATRICK
+  {hair:'#4a2a0a',skin:'#d49870',shirt:'#0a3a1a',pants:'#061406',shoes:'#0d0d0d',style:0}, // DAVIDE
+  {hair:'#0d0d0d',skin:'#b87848',shirt:'#5a0a0a',pants:'#1e0606',shoes:'#080810',style:3}, // SALVATORE
+  {hair:'#5a3a0a',skin:'#e0a868',shirt:'#8a5a0a',pants:'#2a1a06',shoes:'#140d0d',style:2}, // MARCO
+  {hair:'#1a0d0a',skin:'#f2cba8',shirt:'#3a0a6a',pants:'#160622',shoes:'#080810',style:3}, // LORENZO
+];
+
 function renderPixelArt(canvas, name, hexColor) {
-  const GRID = 7, PX = 22;
-  canvas.width = GRID * PX;
-  canvas.height = GRID * PX;
+  const idx = team.findIndex(m => m.name === name);
+  const cfg = CHAR_CONFIGS[idx >= 0 ? idx : 0];
+
+  const PX = 7; // px per grid cell
+  canvas.width = 154; canvas.height = 154;
   const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, 154, 154);
 
-  // Seeded RNG
-  let s = 0;
-  for (let i = 0; i < name.length; i++) s = (Math.imul(31, s) + name.charCodeAt(i)) | 0;
-  const rng = () => { s ^= s << 13; s ^= s >> 17; s ^= s << 5; return (s >>> 0) / 0xffffffff; };
+  // Background gradient
+  const bg = ctx.createLinearGradient(0, 0, 0, 154);
+  bg.addColorStop(0, '#0a0614'); bg.addColorStop(1, '#04020a');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, 154, 154);
 
-  // Parse hex color
-  const c = parseInt(hexColor.replace('#',''), 16);
-  const [cr, cg, cb] = [(c>>16)&255, (c>>8)&255, c&255];
-  const dark = `rgba(${Math.round(cr*0.15)},${Math.round(cg*0.15)},${Math.round(cb*0.15)},1)`;
+  // Center 12-col (84px) sprite in 154px canvas
+  const OX = 35, OY = 0;
+  const C = { H:cfg.hair, S:cfg.skin, C:cfg.shirt, P:cfg.pants, A:cfg.shoes,
+               B:'#080810', E:'#120808', m:'#cc5555' };
 
-  // Background fill
-  ctx.fillStyle = dark;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Symmetric pixel art (left half mirrored)
-  const half = Math.ceil(GRID / 2);
-  for (let y = 0; y < GRID; y++) {
-    for (let x = 0; x < half; x++) {
-      if (rng() > 0.45) {
-        const shade = 0.55 + rng() * 0.45;
-        ctx.fillStyle = `rgba(${Math.round(cr*shade)},${Math.round(cg*shade)},${Math.round(cb*shade)},1)`;
-        ctx.fillRect(x * PX, y * PX, PX, PX);
-        if (x < GRID - 1 - x) ctx.fillRect((GRID - 1 - x) * PX, y * PX, PX, PX);
-      }
-    }
+  function drawRow(str, row) {
+    [...str].forEach((ch, col) => {
+      if(C[ch]) { ctx.fillStyle = C[ch]; ctx.fillRect(OX+col*PX, OY+row*PX, PX, PX); }
+    });
   }
-  // Force eyes row 2
-  ctx.fillStyle = `rgba(${cr},${cg},${cb},0.95)`;
-  ctx.fillRect(1*PX, 2*PX, PX, PX); ctx.fillRect(5*PX, 2*PX, PX, PX);
-  ctx.clearRect(2*PX, 2*PX, 3*PX, PX); // eye gap
-  ctx.fillRect(2*PX, 2*PX, PX, PX); ctx.fillRect(4*PX, 2*PX, PX, PX); // pupils
-  // Mouth row 5
-  ctx.fillRect(2*PX, 5*PX, PX, PX); ctx.fillRect(4*PX, 5*PX, PX, PX);
-  // Scanline overlay
-  ctx.fillStyle = 'rgba(0,0,0,0.25)';
-  for (let y = 0; y < GRID*PX; y += 2) ctx.fillRect(0, y, GRID*PX, 1);
+
+  // Hair rows (0-1), 12 chars each
+  const HAIR = [
+    ['00HHHHHHHH00','0HHHHHHHHHH0'], // 0 short
+    ['0HHHHHHHHHH0','HHHHHHHHHHHH'], // 1 long
+    ['HHHHHHHHHHHH','HHHHHHHHHHHH'], // 2 big curly
+    ['000HHHHHH000','00HHHHHHHHH0'], // 3 spiky
+  ];
+
+  // Face rows (2-7), 12 chars each
+  const FACE_N = [
+    '0HSSSSSSSSSH', // head top
+    '0HSSSSSSSSSH',
+    '0HSSESSESSSH', // eyes at col 4 & 7
+    '0HSSSSSSSSSH',
+    '0HSSSSmSSSSH', // mouth at col 6
+    '0HSSSSSSSSSH', // chin
+  ];
+  const FACE_L = [ // long hair — visible on sides
+    'HHSSSSSSSSSH',
+    'HHSSSSSSSSSH',
+    'HHSSESSESSSH',
+    'HHSSSSSSSSSH',
+    'HHSSSSmSSSSH',
+    'HHSSSSSSSSSH',
+  ];
+
+  // Body rows (8-20), 12 chars each
+  const BODY = [
+    '000SSSSSSSS0', // 8  neck
+    '00BCCCCCCCB0', // 9  shirt collar
+    '0BCCCCCCCCCB', // 10
+    '0BCCCCCCCCCB', // 11
+    '0BCCCCCCCCCB', // 12
+    '00BCCCCCCCB0', // 13 shirt bottom
+    '00BPPPPPPB00', // 14 pants
+    '00BPPPPPPB00', // 15
+    '0BPPP00PPPB0', // 16 legs split
+    '0BPPP00PPPB0', // 17
+    '0BPPP00PPPB0', // 18
+    '0BAAA00AAAB0', // 19 shoes
+    '0BAAA00AAAB0', // 20
+  ];
+
+  (HAIR[cfg.style]||HAIR[0]).forEach((r,i) => drawRow(r, i));
+  (cfg.style===1 ? FACE_L : FACE_N).forEach((r,i) => drawRow(r, 2+i));
+  BODY.forEach((r,i) => drawRow(r, 8+i));
+
+  // Scanline + vignette
+  ctx.fillStyle = 'rgba(0,0,0,0.14)';
+  for(let y=0; y<154; y+=2) ctx.fillRect(0, y, 154, 1);
+  const vig = ctx.createRadialGradient(77,77,50,77,77,85);
+  vig.addColorStop(0,'rgba(0,0,0,0)'); vig.addColorStop(1,'rgba(0,0,0,0.35)');
+  ctx.fillStyle = vig; ctx.fillRect(0, 0, 154, 154);
 }
 
 // ===== HERO 3D =====

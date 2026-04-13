@@ -27,11 +27,14 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Nessun destinatario selezionato' });
   }
 
+  const plainText = buildQuotePlain({ agentName, clientName, lines, subtotal, discount, saved, total, notes, today });
+
   const { data, error } = await resend.emails.send({
     from: 'PLURIAGENCY Preventivi <hello@pluriagency.com>',
     to: recipients,
     subject: `Preventivo per ${clientName} — ${today}`,
-    html: htmlBody
+    html: htmlBody,
+    text: plainText
   });
 
   if (error) {
@@ -115,6 +118,30 @@ function buildQuoteHTML({ agentName, clientName, lines, subtotal, discount, save
   </div>
 </body>
 </html>`;
+}
+
+function buildQuotePlain({ agentName, clientName, lines, subtotal, discount, saved, total, notes, today }) {
+  const sep = '─'.repeat(44);
+  const linesText = lines.map(l => `  • ${l}`).join('\n');
+  const discountLine = discount > 0 ? `  Sconto ${discount}%: -€${Math.round(saved).toLocaleString('it-IT')}\n` : '';
+  const notesText = notes ? `\nNOTE\n${sep}\n${notes}\n` : '';
+  return `PLURIAGENCY — PREVENTIVO SERVIZI
+${sep}
+Cliente: ${clientName}
+Data: ${today}
+Preparato da: ${agentName}
+
+SERVIZI SELEZIONATI
+${sep}
+${linesText}
+
+${sep}
+Subtotale: €${subtotal.toLocaleString('it-IT')}
+${discountLine}TOTALE STIMATO: €${total.toLocaleString('it-IT')}
+IVA esclusa · prezzi indicativi soggetti a conferma
+${notesText}
+${sep}
+PLURIAGENCY · hello@pluriagency.com · +39 389 688 1004 · Bologna, Italia`;
 }
 
 function escapeHtml(str) {

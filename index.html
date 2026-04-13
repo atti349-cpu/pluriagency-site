@@ -99,14 +99,16 @@ section{padding:80px 20px;max-width:1100px;margin:0 auto;}
 .sc.br{bottom:12px;right:12px;border-bottom:1px solid var(--g1);border-right:1px solid var(--g1);}
 .module-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:5px;
   color:var(--g2);margin-bottom:32px;}
-.slider-row{display:flex;align-items:center;justify-content:center;gap:20px;}
+.slider-row{display:flex;align-items:center;justify-content:center;}
+.slider-nav{display:flex;gap:12px;justify-content:center;margin-top:20px;}
 .slider-btn{width:44px;height:44px;border:1px solid var(--border);background:transparent;
   color:var(--muted);font-size:20px;cursor:pointer;display:flex;align-items:center;
   justify-content:center;transition:all 0.2s;flex-shrink:0;}
 .slider-btn:hover{border-color:var(--g1);color:var(--g1);box-shadow:0 0 12px rgba(0,255,136,0.2);}
-#services-canvas{width:min(280px,70vw);height:min(280px,70vw);flex-shrink:0;}
-.service-info{margin-top:28px;}
-.service-dots{display:flex;gap:8px;justify-content:center;margin-bottom:24px;}
+#services-canvas{width:min(280px,70vw);height:min(280px,70vw);flex-shrink:0;cursor:grab;}
+#services-canvas:active{cursor:grabbing;}
+.service-info{margin-top:20px;}
+.service-dots{display:flex;gap:8px;justify-content:center;margin-bottom:20px;margin-top:16px;}
 .dot{width:6px;height:6px;border:1px solid var(--muted);transition:all 0.3s;cursor:pointer;}
 .dot.active{background:var(--g1);border-color:var(--g1);box-shadow:0 0 8px rgba(0,255,136,0.5);}
 .service-name{font-family:'Orbitron',monospace;font-size:clamp(24px,4vw,36px);font-weight:900;
@@ -217,12 +219,13 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
 
 /* RESPONSIVE */
 @media(max-width:768px){
-  nav{padding:14px 20px;gap:8px;}
+  nav{padding:0 16px;height:54px;position:relative;}
+  .nav-logo{position:absolute;left:50%;transform:translateX(-50%);font-size:15px;letter-spacing:3px;}
   .nav-links{display:none;}
   .nav-portfolio{display:none;}
-  .nav-actions{gap:6px;}
-  .nav-cta{padding:7px 14px;font-size:10px;}
-  .hamburger{display:flex;}
+  .nav-actions{gap:0;}
+  .hamburger{display:flex;order:-1;}
+  .nav-cta{padding:7px 12px;font-size:10px;letter-spacing:1px;}
   #hero{padding:90px 16px 40px;}
   .hero-sub{font-size:13px;}
   #hero-canvas{width:min(300px,85vw);height:min(300px,85vw);margin:24px auto 12px;}
@@ -254,7 +257,7 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
 <nav>
   <a href="/" class="nav-logo">PLURIAGENCY</a>
   <ul class="nav-links">
-    <li><a href="#services">Moduli</a></li>
+    <li><a href="/servizi">Moduli</a></li>
     <li><a href="#team">Team</a></li>
     <li><a href="#about">Chi Siamo</a></li>
     <li><a href="/portfolio" style="color:var(--g2)">Portfolio</a></li>
@@ -290,8 +293,10 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
     <div class="sc bl"></div><div class="sc br"></div>
     <p class="module-label">— SELEZIONA CATEGORIA —</p>
     <div class="slider-row">
-      <button class="slider-btn" onclick="changeService(-1)">&#8592;</button>
       <canvas id="services-canvas"></canvas>
+    </div>
+    <div class="slider-nav">
+      <button class="slider-btn" onclick="changeService(-1)">&#8592;</button>
       <button class="slider-btn" onclick="changeService(1)">&#8594;</button>
     </div>
     <div class="service-dots">
@@ -598,7 +603,7 @@ try { (function initHero() {
 
 // ===== SERVICES 3D =====
 let svcScene, svcRenderer, svcCamera, svcMesh, svcLight1, svcCurrentIdx=0;
-let svcDragging=false, svcPrevX=0, svcVX=0;
+let svcDragging=false, svcPrevX=0, svcPrevY=0, svcVX=0, svcVY=0;
 requestAnimationFrame(function(){try { (function initServices(){
   const canvas = document.getElementById('services-canvas');
   const W = canvas.offsetWidth||280, H=canvas.offsetHeight||280;
@@ -610,14 +615,22 @@ requestAnimationFrame(function(){try { (function initServices(){
   svcLight1=new THREE.PointLight(0x00ff88,2.5,10); svcLight1.position.set(2,2,2); svcScene.add(svcLight1);
   const svcL2=new THREE.PointLight(0x9b5cff,1.5,10); svcL2.position.set(-2,-1,1); svcScene.add(svcL2);
   buildServiceMesh(0);
-  canvas.addEventListener('mousedown',e=>{svcDragging=true;svcPrevX=e.clientX;});
-  window.addEventListener('mousemove',e=>{if(!svcDragging)return;svcVX=(e.clientX-svcPrevX)*0.015;if(svcMesh)svcMesh.rotation.y+=svcVX;svcPrevX=e.clientX;});
+  // Mouse drag — full X+Y rotation
+  canvas.addEventListener('mousedown',e=>{svcDragging=true;svcPrevX=e.clientX;svcPrevY=e.clientY;e.preventDefault();});
+  window.addEventListener('mousemove',e=>{if(!svcDragging)return;svcVX=(e.clientX-svcPrevX)*0.015;svcVY=(e.clientY-svcPrevY)*0.015;if(svcMesh){svcMesh.rotation.y+=svcVX;svcMesh.rotation.x+=svcVY;}svcPrevX=e.clientX;svcPrevY=e.clientY;});
   window.addEventListener('mouseup',()=>svcDragging=false);
+  // Touch drag
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();svcDragging=true;svcPrevX=e.touches[0].clientX;svcPrevY=e.touches[0].clientY;},{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!svcDragging)return;const tx=e.touches[0].clientX,ty=e.touches[0].clientY;svcVX=(tx-svcPrevX)*0.015;svcVY=(ty-svcPrevY)*0.015;if(svcMesh){svcMesh.rotation.y+=svcVX;svcMesh.rotation.x+=svcVY;}svcPrevX=tx;svcPrevY=ty;},{passive:false});
+  canvas.addEventListener('touchend',()=>svcDragging=false);
+  // Scroll to zoom
+  canvas.addEventListener('wheel',e=>{e.preventDefault();svcCamera.position.z=Math.max(1.5,Math.min(8,svcCamera.position.z+e.deltaY*0.003));},{passive:false});
   let t2=0;
   (function animSvc(){
     requestAnimationFrame(animSvc); t2+=0.01;
-    if(svcMesh){if(!svcDragging){svcMesh.rotation.y+=svcVX*0.93;svcVX*=0.93;svcMesh.rotation.y+=0.005;}
-      svcMesh.rotation.x+=0.002; svcMesh.scale.setScalar(1+Math.sin(t2*0.6)*0.04);}
+    if(svcMesh){
+      if(!svcDragging){svcMesh.rotation.y+=svcVX*0.93;svcVX*=0.93;svcMesh.rotation.x+=svcVY*0.93;svcVY*=0.93;svcMesh.rotation.y+=0.005;}
+      svcMesh.scale.setScalar(1+Math.sin(t2*0.6)*0.04);}
     svcLight1.position.x=Math.sin(t2)*2; svcLight1.position.y=Math.cos(t2*0.8)*1.5;
     svcRenderer.render(svcScene,svcCamera);
   })();

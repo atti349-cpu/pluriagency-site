@@ -24,17 +24,30 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
 /* NAV */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;
-  justify-content:space-between;padding:16px 40px;background:rgba(6,6,8,0.92);
+  justify-content:space-between;padding:0 40px;height:64px;background:rgba(6,6,8,0.92);
   backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
 .nav-logo{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;letter-spacing:4px;
   color:var(--g1);text-shadow:0 0 20px rgba(0,255,136,0.5);text-decoration:none;}
-.nav-crd-note{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;
-  color:var(--muted);display:none;text-transform:lowercase;}
-@media(min-width:640px){.nav-crd-note{display:block;}}
-.nav-back{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;
-  color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color 0.2s;
-  display:flex;align-items:center;gap:8px;}
-.nav-back:hover{color:var(--g1);}
+.nav-actions{display:flex;align-items:center;gap:8px;}
+.nav-portfolio{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;
+  padding:8px 18px;border:1px solid var(--g2);color:var(--g2);background:transparent;
+  cursor:pointer;text-transform:uppercase;transition:all 0.2s;text-decoration:none;
+  position:relative;overflow:hidden;}
+.nav-portfolio::before{content:'';position:absolute;inset:0;background:var(--g2);
+  transform:translateX(-100%);transition:transform .2s;}
+.nav-portfolio span{position:relative;z-index:1;}
+.nav-portfolio:hover::before{transform:translateX(0);}
+.nav-portfolio:hover span{color:#000;}
+.nav-cta{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;
+  padding:8px 18px;border:1px solid var(--g1);color:var(--g1);background:transparent;
+  cursor:pointer;text-transform:uppercase;transition:all 0.2s;text-decoration:none;}
+.nav-cta:hover{background:var(--g1);color:#000;}
+@media(max-width:768px){
+  nav{padding:0 16px;position:relative;}
+  .nav-logo{position:absolute;left:50%;transform:translateX(-50%);font-size:15px;letter-spacing:2px;}
+  .nav-portfolio{display:none;}
+  .nav-cta{font-size:10px;padding:7px 12px;letter-spacing:1px;}
+}
 
 /* HERO */
 .services-hero{padding:72px 40px 8px;text-align:center;position:relative;
@@ -68,8 +81,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 /* MAIN LAYOUT */
 .services-main{max-width:1100px;margin:0 auto;padding:32px 40px;
   display:grid;grid-template-columns:1fr 260px;gap:40px;align-items:center;}
-.svc-3d-wrap{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;width:100%;}
-.svc-3d-wrap canvas{display:block;width:100%!important;height:auto!important;}
+.svc-3d-wrap{position:relative;display:flex;align-items:center;justify-content:center;
+  width:100%;max-width:280px;height:280px;align-self:center;}
+.svc-3d-wrap canvas{display:block;width:100%!important;height:100%!important;cursor:grab;}
+.svc-3d-wrap canvas:active{cursor:grabbing;}
 .svc-3d-frame{position:absolute;inset:0;pointer-events:none;border:1px solid var(--border);}
 .sc{position:absolute;width:20px;height:20px;}
 .sc.tl{top:0;left:0;border-top:2px solid currentColor;border-left:2px solid currentColor;}
@@ -144,6 +159,50 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .fade-t{transition:opacity 0.3s,transform 0.3s;}
 .fade-t.fading{opacity:0;transform:translateY(10px);}
 
+/* CRD small note */
+.crd-note{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;
+  color:var(--muted);opacity:0.5;text-align:center;margin-top:20px;padding-bottom:8px;}
+
+/* CONTACT MODULE */
+.contact-module-wrap{max-width:1100px;margin:0 auto;padding:0 40px 60px;}
+.contact-module-inner{background:var(--panel);border:1px solid var(--border);
+  padding:40px;position:relative;overflow:hidden;}
+.contact-module-inner::before{content:'';position:absolute;top:-80px;right:-60px;
+  width:320px;height:320px;background:radial-gradient(circle,rgba(0,255,136,0.05) 0%,transparent 70%);
+  pointer-events:none;}
+.module-label2{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:5px;
+  color:var(--g2);text-transform:uppercase;margin-bottom:12px;}
+.cmod-sub{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:28px;max-width:500px;}
+.area-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:28px;}
+.area-btn{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;
+  padding:10px 26px;border:1px solid var(--border);background:transparent;color:var(--muted);
+  cursor:pointer;text-transform:uppercase;transition:all 0.2s;position:relative;overflow:hidden;}
+.area-btn::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.2s;}
+.area-btn.active[data-cat="web"]{color:var(--g1);border-color:var(--g1);background:rgba(0,255,136,0.08);
+  box-shadow:0 0 16px rgba(0,255,136,0.15);}
+.area-btn.active[data-cat="grafics"]{color:var(--g2);border-color:var(--g2);background:rgba(155,92,255,0.08);
+  box-shadow:0 0 16px rgba(155,92,255,0.15);}
+.area-btn.active[data-cat="servizi"]{color:var(--g3);border-color:var(--g3);background:rgba(0,207,255,0.08);
+  box-shadow:0 0 16px rgba(0,207,255,0.15);}
+.cmod-fields{display:flex;flex-direction:column;gap:10px;max-width:480px;margin:0 auto;}
+.cmod-input{background:var(--panel2);border:1px solid var(--border);color:var(--text);
+  padding:12px 14px;font-family:'Share Tech Mono',monospace;font-size:12px;
+  outline:none;transition:border-color 0.2s;letter-spacing:0.05em;}
+.cmod-input:focus{border-color:var(--g1);box-shadow:0 0 0 1px rgba(0,255,136,0.15);}
+.cmod-input::placeholder{color:var(--muted);}
+.cmod-textarea{resize:vertical;min-height:72px;font-family:'Inter',sans-serif;font-size:13px;}
+.cmod-submit{width:100%;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;
+  letter-spacing:3px;padding:13px 20px;border:1px solid var(--g1);color:var(--g1);
+  background:transparent;cursor:pointer;text-transform:uppercase;transition:all 0.2s;
+  position:relative;overflow:hidden;margin-top:4px;}
+.cmod-submit::before{content:'';position:absolute;inset:0;background:var(--g1);
+  transform:translateX(-100%);transition:transform 0.25s;}
+.cmod-submit span{position:relative;z-index:1;}
+.cmod-submit:hover::before{transform:translateX(0);}
+.cmod-submit:hover span{color:#000;}
+.cmod-submit:disabled{opacity:0.5;cursor:not-allowed;}
+.cmod-submit:disabled::before{display:none;}
+
 /* FOOTER */
 footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
 .footer-logo{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;letter-spacing:6px;
@@ -159,7 +218,8 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
   .services-main{grid-template-columns:1fr;padding:20px 20px;gap:20px;}
   .svc-3d-wrap{width:100%;max-width:100%;margin:0 auto;}
   .all-services{padding:0 20px 40px;}
-  .crd-convert{padding:0 20px 40px;}
+  .contact-module-wrap{padding:0 20px 48px;}
+  .contact-module-inner{padding:28px 20px;}
   .svc-cards{grid-template-columns:1fr;}
   .tab-btn{font-size:10px;letter-spacing:1px;padding:14px 8px;}
   footer{padding:32px 20px;}
@@ -170,8 +230,10 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
 
 <nav>
   <a href="/" class="nav-logo">PLURIAGENCY</a>
-  <span class="nav-crd-note">prezzi in CRD — valuta di scambio digitale</span>
-  <a href="/" class="nav-back">&#8592; HOME</a>
+  <div class="nav-actions">
+    <a class="nav-portfolio" href="/portfolio"><span>&#9656; PORTFOLIO</span></a>
+    <a class="nav-cta" href="/#contact">Contatti</a>
+  </div>
 </nav>
 
 <div class="services-hero">
@@ -218,17 +280,24 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
 <div class="all-services">
   <div class="all-services-label">TUTTI I SERVIZI</div>
   <div class="svc-cards" id="svc-cards"></div>
+  <p class="crd-note">prezzi indicati in CRD — valuta di scambio digitale, solo esemplificativa</p>
 </div>
 
-<div class="crd-convert">
-  <div class="crd-convert-inner">
-    <div>
-      <div class="crd-convert-label">// CONVERTI I PREZZI</div>
-      <div class="crd-convert-rate">1 CRD = 1 €</div>
+<div class="contact-module-wrap">
+  <div class="contact-module-inner">
+    <p class="module-label2">// RICHIEDI INFORMAZIONI</p>
+    <p class="cmod-sub">Seleziona uno o più moduli di interesse e inviaci una richiesta — ti rispondiamo in giornata.</p>
+    <div class="area-btns" id="area-btns">
+      <button class="area-btn" data-cat="web" data-color="var(--g1)" onclick="toggleArea(this)">&#x2756; WEB</button>
+      <button class="area-btn" data-cat="grafics" data-color="var(--g2)" onclick="toggleArea(this)">&#x2756; GRAFICS</button>
+      <button class="area-btn" data-cat="servizi" data-color="var(--g3)" onclick="toggleArea(this)">&#x2756; SERVIZI</button>
     </div>
-    <div class="crd-convert-note">
-      CRD è la valuta interna Pluriagency — usata per quotare i servizi in modo trasparente.<br>
-      Ogni preventivo viene poi formalizzato in Euro nella proposta ufficiale.
+    <div class="cmod-fields">
+      <input class="cmod-input" id="cmod-email" type="email" placeholder="LA TUA EMAIL_">
+      <textarea class="cmod-input cmod-textarea" id="cmod-msg" placeholder="MESSAGGIO OPZIONALE_"></textarea>
+      <button class="cmod-submit" id="cmod-btn" onclick="sendModuleContact()">
+        <span>&#9654; INVIA RICHIESTA</span>
+      </button>
     </div>
   </div>
 </div>
@@ -272,7 +341,7 @@ const data = {
 
 let currentCat='web', currentItem=0;
 let svcRenderer, svcScene, svcCamera, svcMesh;
-let dragActive=false, dragPrevX=0, dragVX=0;
+let dragActive=false, dragPrevX=0, dragPrevY=0, dragVX=0, dragVY=0;
 
 const urlCat=new URLSearchParams(window.location.search).get('cat');
 if(urlCat&&data[urlCat])currentCat=urlCat;
@@ -289,18 +358,23 @@ requestAnimationFrame(function(){ try { (function init3D(){
   const svcL2=new THREE.PointLight(0x9b5cff,1.2,10); svcL2.position.set(-2,-1,1); svcScene.add(svcL2);
   window._svcL1=l1;
   buildMesh();
-  canvas.addEventListener('mousedown',e=>{dragActive=true;dragPrevX=e.clientX;});
-  window.addEventListener('mousemove',e=>{if(!dragActive)return;dragVX=(e.clientX-dragPrevX)*0.015;if(svcMesh)svcMesh.rotation.y+=dragVX;dragPrevX=e.clientX;});
+  // Mouse drag — full X+Y
+  canvas.addEventListener('mousedown',e=>{dragActive=true;dragPrevX=e.clientX;dragPrevY=e.clientY;e.preventDefault();});
+  window.addEventListener('mousemove',e=>{if(!dragActive)return;dragVX=(e.clientX-dragPrevX)*0.015;dragVY=(e.clientY-dragPrevY)*0.015;if(svcMesh){svcMesh.rotation.y+=dragVX;svcMesh.rotation.x+=dragVY;}dragPrevX=e.clientX;dragPrevY=e.clientY;});
   window.addEventListener('mouseup',()=>dragActive=false);
-  // Touch support for mobile
-  canvas.addEventListener('touchstart',e=>{e.preventDefault();dragActive=true;dragPrevX=e.touches[0].clientX;},{passive:false});
-  canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!dragActive)return;const tx=e.touches[0].clientX;dragVX=(tx-dragPrevX)*0.015;if(svcMesh)svcMesh.rotation.y+=dragVX;dragPrevX=tx;},{passive:false});
+  // Touch
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();dragActive=true;dragPrevX=e.touches[0].clientX;dragPrevY=e.touches[0].clientY;},{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!dragActive)return;const tx=e.touches[0].clientX,ty=e.touches[0].clientY;dragVX=(tx-dragPrevX)*0.015;dragVY=(ty-dragPrevY)*0.015;if(svcMesh){svcMesh.rotation.y+=dragVX;svcMesh.rotation.x+=dragVY;}dragPrevX=tx;dragPrevY=ty;},{passive:false});
   canvas.addEventListener('touchend',()=>dragActive=false);
+  // Scroll zoom
+  canvas.addEventListener('wheel',e=>{e.preventDefault();svcCamera.position.z=Math.max(1.5,Math.min(8,svcCamera.position.z+e.deltaY*0.003));},{passive:false});
   let t=0;
   (function anim(){
     requestAnimationFrame(anim); t+=0.01;
-    if(svcMesh){if(!dragActive){svcMesh.rotation.y+=dragVX*0.93;dragVX*=0.93;svcMesh.rotation.y+=0.006;}
-      svcMesh.rotation.x+=0.003; svcMesh.scale.setScalar(1+Math.sin(t*0.5)*0.03);}
+    if(svcMesh){
+      if(!dragActive){svcMesh.rotation.y+=dragVX*0.93;dragVX*=0.93;svcMesh.rotation.x+=dragVY*0.93;dragVY*=0.93;svcMesh.rotation.y+=0.006;}
+      svcMesh.scale.setScalar(1+Math.sin(t*0.5)*0.03);
+    }
     if(window._svcL1){window._svcL1.position.x=Math.sin(t)*2;window._svcL1.position.y=Math.cos(t*0.7)*1.5;}
     svcRenderer.render(svcScene,svcCamera);
   })();
@@ -376,6 +450,47 @@ function renderCards(){
 // Init
 switchCat(currentCat, document.querySelector(`.tab-btn[data-cat="${currentCat}"]`));
 updateFrameColor(data[currentCat].color);
+
+// ===== CONTACT MODULE =====
+function toggleArea(btn){
+  btn.classList.toggle('active');
+}
+
+async function sendModuleContact(){
+  const areas = [...document.querySelectorAll('.area-btn.active')].map(b=>b.dataset.cat);
+  const email = document.getElementById('cmod-email').value.trim();
+  const msg   = document.getElementById('cmod-msg').value.trim();
+  if(!areas.length){ alert('Seleziona almeno un modulo di interesse.'); return; }
+  if(!email){ alert('Inserisci la tua email.'); return; }
+
+  const btn = document.getElementById('cmod-btn');
+  btn.querySelector('span').textContent = '⟳ INVIO...';
+  btn.disabled = true;
+
+  const labelMap = {web:'WEB', grafics:'GRAFICS', servizi:'SERVIZI'};
+  const areaLabels = areas.map(a=>labelMap[a]||a).join(', ');
+
+  try {
+    const r = await fetch('/api/contact', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        name: `Richiesta moduli: ${areaLabels}`,
+        email,
+        message: `Moduli di interesse: ${areaLabels}\n\n${msg||'(nessun messaggio aggiuntivo)'}`
+      })
+    });
+    if(r.ok){
+      btn.querySelector('span').textContent = '✓ RICHIESTA INVIATA';
+    } else {
+      btn.querySelector('span').textContent = '✗ ERRORE — RIPROVA';
+      btn.disabled = false;
+    }
+  } catch {
+    btn.querySelector('span').textContent = '✗ CONNESSIONE — RIPROVA';
+    btn.disabled = false;
+  }
+}
 
 window.addEventListener('resize',()=>{
   const canvas=document.getElementById('svc-canvas');

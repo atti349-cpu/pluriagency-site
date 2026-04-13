@@ -4,9 +4,10 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   const {
-    agentName, clientName, email,
+    agentName, clientName, clientEmail,
     toAgency, toClient,
-    lines, subtotal, discount, saved, total, notes
+    lines, subtotal, discount, saved, total, notes,
+    pdfBase64, pdfFilename
   } = req.body || {};
 
   if (!process.env.RESEND_API_KEY) {
@@ -15,120 +16,235 @@ module.exports = async function handler(req, res) {
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const today = new Date().toLocaleDateString('it-IT', { day:'2-digit', month:'long', year:'numeric' });
+  const today = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
 
-  const htmlBody = buildQuoteHTML({ agentName, clientName, lines, subtotal, discount, saved, total, notes, today });
+  const plainText = buildQuotePlain({ agentName, clientName, clientEmail, lines, subtotal, discount, saved, total, notes, today });
+  const attachment = pdfBase64
+    ? [{ filename: pdfFilename || 'Preventivo.pdf', content: Buffer.from(pdfBase64, 'base64') }]
+    : undefined;
 
-  const recipients = [];
-  if (toAgency) recipients.push('hello@pluriagency.com');
-  if (toClient && email) recipients.push(email);
+  const sends = [];
+  const errors = [];
 
-  if (!recipients.length) {
+  // ── Internal email to hello@pluriagency.com ──────────────────────────────
+  if (toAgency) {
+    sends.push(
+      resend.emails.send({
+        from: 'PLURIAGENCY Preventivi <hello@pluriagency.com>',
+        to: ['hello@pluriagency.com'],
+        subject: `[Preventivo] ${clientName} — ${today}`,
+        html: buildAgencyHTML({ agentName, clientName, clientEmail, lines, subtotal, discount, saved, total, notes, today }),
+        text: plainText,
+        attachments: attachment
+      }).then(r => { if (r.error) errors.push(r.error); return r; })
+    );
+  }
+
+  // ── Client email ──────────────────────────────────────────────────────────
+  if (toClient && clientEmail) {
+    sends.push(
+      resend.emails.send({
+        from: 'PLURIAGENCY <hello@pluriagency.com>',
+        to: [clientEmail],
+        replyTo: 'hello@pluriagency.com',
+        subject: `Il tuo preventivo Pluriagency — ${today}`,
+        html: buildClientHTML({ agentName, clientName, lines, subtotal, discount, saved, total, notes, today }),
+        text: plainText,
+        attachments: attachment
+      }).then(r => { if (r.error) errors.push(r.error); return r; })
+    );
+  }
+
+  if (!sends.length) {
     return res.status(400).json({ error: 'Nessun destinatario selezionato' });
   }
 
-  const plainText = buildQuotePlain({ agentName, clientName, lines, subtotal, discount, saved, total, notes, today });
+  await Promise.all(sends);
 
-  const { data, error } = await resend.emails.send({
-    from: 'PLURIAGENCY Preventivi <hello@pluriagency.com>',
-    to: recipients,
-    subject: `Preventivo per ${clientName} — ${today}`,
-    html: htmlBody,
-    text: plainText
-  });
-
-  if (error) {
-    console.error('Resend error:', JSON.stringify(error));
-    return res.status(500).json({ error: error.message || 'Errore invio email', detail: error });
+  if (errors.length) {
+    console.error('Resend errors:', JSON.stringify(errors));
+    return res.status(500).json({ error: errors[0]?.message || 'Errore invio email', details: errors });
   }
 
-  console.log('Resend OK, id:', data?.id);
-  return res.status(200).json({ ok: true, id: data?.id });
+  return res.status(200).json({ ok: true });
 };
 
-function buildQuoteHTML({ agentName, clientName, lines, subtotal, discount, saved, total, notes, today }) {
-  const linesHtml = lines.map(l => `
-    <tr>
-      <td style="padding:8px 0;border-bottom:1px solid rgba(155,92,255,0.1);font-size:14px;color:#e8e8f0">${escapeHtml(l.split(':')[0])}</td>
-      <td style="padding:8px 0;border-bottom:1px solid rgba(155,92,255,0.1);font-size:14px;color:#c89bff;text-align:right;white-space:nowrap">${escapeHtml(l.split(':').slice(1).join(':').trim())}</td>
-    </tr>`).join('');
+// ──────────────────────────────────────────────────────────────────────────────
+// INTERNAL email (hello@pluriagency.com) — includes client contact info
+// ──────────────────────────────────────────────────────────────────────────────
+function buildAgencyHTML({ agentName, clientName, clientEmail, lines, subtotal, discount, saved, total, notes, today }) {
+  const linesHtml = lines.map(l => {
+    const i = l.indexOf(': ');
+    const name = i > -1 ? l.slice(0, i) : l;
+    const amt  = i > -1 ? l.slice(i + 2) : '';
+    return `<tr>
+      <td style="padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:14px;color:#333">${esc(name)}</td>
+      <td style="padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:13px;color:#111;text-align:right;font-weight:600;white-space:nowrap">${esc(amt)}</td>
+    </tr>`;
+  }).join('');
 
-  const discountRow = discount > 0 ? `
-    <tr>
-      <td style="padding:8px 0;font-size:12px;color:#6b6b80;letter-spacing:1px">SCONTO ${discount}%</td>
-      <td style="padding:8px 0;font-size:14px;color:#00ff88;text-align:right">−€${Math.round(saved).toLocaleString('it-IT')}</td>
-    </tr>` : '';
+  const discountRow = discount > 0 ? `<tr>
+    <td style="padding:7px 0;font-size:12px;color:#888">Sconto ${discount}%</td>
+    <td style="padding:7px 0;font-size:13px;color:#2a7a4a;text-align:right;font-weight:600">−€${Math.round(saved).toLocaleString('it-IT')}</td>
+  </tr>` : '';
 
-  const notesSection = notes ? `
-    <div style="margin-top:28px;padding:16px;background:rgba(155,92,255,0.06);border:1px solid rgba(155,92,255,0.15)">
-      <div style="font-size:10px;letter-spacing:3px;color:#9b5cff;text-transform:uppercase;margin-bottom:8px">NOTE</div>
-      <div style="font-size:13px;color:#8888a0;line-height:1.7">${escapeHtml(notes).replace(/\n/g,'<br>')}</div>
-    </div>` : '';
+  const notesHtml = notes ? `<div style="margin-top:20px;padding:14px 16px;background:#f9f9f9;border-left:3px solid #ddd">
+    <div style="font-size:10px;letter-spacing:2px;color:#aaa;text-transform:uppercase;margin-bottom:6px">NOTE</div>
+    <div style="font-size:13px;color:#555;line-height:1.6">${esc(notes).replace(/\n/g,'<br>')}</div>
+  </div>` : '';
 
-  return `
-<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"></head>
-<body style="margin:0;padding:0;background:#06060a;font-family:sans-serif">
-  <div style="max-width:600px;margin:0 auto;background:#0d0d12;color:#e8e8f0">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,Helvetica,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 16px;background:#f4f4f4">
+<tr><td>
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#fff;border-radius:4px;overflow:hidden;border:1px solid #e8e8e8">
 
-    <!-- HEADER -->
-    <div style="padding:32px 36px 24px;border-bottom:1px solid rgba(155,92,255,0.2);
-      background:linear-gradient(135deg,rgba(155,92,255,0.08),transparent)">
-      <div style="font-size:9px;letter-spacing:5px;color:#9b5cff;text-transform:uppercase;margin-bottom:12px">
-        PLURIAGENCY — PREVENTIVO SERVIZI
-      </div>
-      <div style="font-size:26px;font-weight:900;letter-spacing:2px;color:#e8e8f0;margin-bottom:4px">
-        ${escapeHtml(clientName)}
-      </div>
-      <div style="font-size:12px;color:#6b6b80;letter-spacing:1px">${today} · preparato da ${escapeHtml(agentName)}</div>
-    </div>
+  <tr><td style="background:#1c1c1c;padding:22px 28px">
+    <span style="font-size:10px;letter-spacing:3px;color:#888;text-transform:uppercase">PLURIAGENCY — PREVENTIVO INTERNO</span><br>
+    <span style="font-size:20px;font-weight:700;color:#fff;display:block;margin-top:6px">${esc(clientName)}</span>
+    <span style="font-size:12px;color:#666">${today} · ${esc(agentName)}</span>
+  </td></tr>
 
-    <!-- SERVICES TABLE -->
-    <div style="padding:28px 36px">
-      <div style="font-size:9px;letter-spacing:4px;color:#6b6b80;text-transform:uppercase;margin-bottom:16px">
-        SERVIZI SELEZIONATI
-      </div>
-      <table style="width:100%;border-collapse:collapse">
-        ${linesHtml}
-        <tr><td colspan="2" style="padding:6px 0"></td></tr>
-        <tr>
-          <td style="padding:8px 0;border-top:1px solid rgba(155,92,255,0.2);font-size:12px;color:#6b6b80;letter-spacing:1px">SUBTOTALE</td>
-          <td style="padding:8px 0;border-top:1px solid rgba(155,92,255,0.2);font-size:14px;color:#e8e8f0;text-align:right">€${subtotal.toLocaleString('it-IT')}</td>
-        </tr>
-        ${discountRow}
-        <tr>
-          <td style="padding:14px 0 0;font-size:11px;letter-spacing:3px;color:#9b5cff;text-transform:uppercase">TOTALE STIMATO</td>
-          <td style="padding:14px 0 0;font-size:22px;font-weight:900;color:#c89bff;text-align:right">€${total.toLocaleString('it-IT')}</td>
-        </tr>
-      </table>
-      <div style="font-size:11px;color:#6b6b80;margin-top:8px;font-style:italic">
-        IVA esclusa · prezzi indicativi soggetti a conferma
-      </div>
+  <tr><td style="padding:20px 28px;background:#fffbea;border-bottom:1px solid #f0e68c">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td style="font-size:11px;color:#888;width:100px">Cliente</td>
+        <td style="font-size:14px;color:#333;font-weight:600">${esc(clientName)}</td>
+      </tr>
+      <tr>
+        <td style="font-size:11px;color:#888;padding-top:6px">Email</td>
+        <td style="font-size:14px;padding-top:6px"><a href="mailto:${esc(clientEmail||'')}" style="color:#1a6ebf;text-decoration:none">${esc(clientEmail||'—')}</a></td>
+      </tr>
+      <tr>
+        <td style="font-size:11px;color:#888;padding-top:6px">Agente</td>
+        <td style="font-size:14px;color:#333;padding-top:6px">${esc(agentName)}</td>
+      </tr>
+    </table>
+  </td></tr>
 
-      ${notesSection}
-    </div>
+  <tr><td style="padding:24px 28px">
+    <div style="font-size:10px;letter-spacing:2px;color:#aaa;text-transform:uppercase;margin-bottom:10px">SERVIZI</div>
+    <table width="100%" cellpadding="0" cellspacing="0">
+      ${linesHtml}
+      <tr><td colspan="2" style="padding:3px 0"></td></tr>
+      ${discountRow}
+      <tr><td colspan="2" style="padding:3px 0"></td></tr>
+      <tr><td colspan="2">
+        <div style="background:#1c1c1c;padding:12px 16px">
+          <span style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:2px">Totale stimato</span>
+          <span style="font-size:18px;font-weight:700;color:#fff;float:right">€${total.toLocaleString('it-IT')}</span>
+        </div>
+      </td></tr>
+    </table>
+    <p style="font-size:11px;color:#bbb;margin:6px 0 0;font-style:italic">IVA esclusa · prezzi indicativi</p>
+    ${notesHtml}
+  </td></tr>
 
-    <!-- FOOTER -->
-    <div style="padding:20px 36px;border-top:1px solid rgba(255,255,255,0.06);
-      font-size:11px;color:#6b6b80;letter-spacing:1px;line-height:1.7">
-      PLURIAGENCY · hello@pluriagency.com · +39 389 688 1004 · Bologna, Italia
-    </div>
+  <tr><td style="background:#f9f9f9;padding:14px 28px;border-top:1px solid #eee">
+    <p style="font-size:11px;color:#aaa;margin:0">PLURIAGENCY · hello@pluriagency.com · +39 389 688 1004 · Bologna</p>
+  </td></tr>
 
-  </div>
+</table>
+</td></tr>
+</table>
 </body>
 </html>`;
 }
 
-function buildQuotePlain({ agentName, clientName, lines, subtotal, discount, saved, total, notes, today }) {
+// ──────────────────────────────────────────────────────────────────────────────
+// CLIENT email — friendly, mobile-first, minimal
+// ──────────────────────────────────────────────────────────────────────────────
+function buildClientHTML({ agentName, clientName, lines, subtotal, discount, saved, total, notes, today }) {
+  const linesHtml = lines.map(l => {
+    const i = l.indexOf(': ');
+    const name = i > -1 ? l.slice(0, i) : l;
+    const amt  = i > -1 ? l.slice(i + 2) : '';
+    return `<tr>
+      <td style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:14px;color:#333">${esc(name)}</td>
+      <td style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:14px;color:#111;text-align:right;font-weight:600;white-space:nowrap">${esc(amt)}</td>
+    </tr>`;
+  }).join('');
+
+  const discountRow = discount > 0 ? `<tr>
+    <td style="padding:7px 0;font-size:13px;color:#888">Sconto ${discount}%</td>
+    <td style="padding:7px 0;font-size:13px;color:#2a7a4a;text-align:right;font-weight:600">−€${Math.round(saved).toLocaleString('it-IT')}</td>
+  </tr>` : '';
+
+  const notesHtml = notes ? `<div style="margin-top:20px;padding:14px 16px;background:#f9f9f9;border-left:3px solid #ddd">
+    <div style="font-size:10px;letter-spacing:2px;color:#aaa;text-transform:uppercase;margin-bottom:6px">NOTE</div>
+    <div style="font-size:13px;color:#555;line-height:1.6">${esc(notes).replace(/\n/g,'<br>')}</div>
+  </div>` : '';
+
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,Helvetica,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 16px;background:#f4f4f4">
+<tr><td>
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#fff;border-radius:4px;overflow:hidden;border:1px solid #e8e8e8">
+
+  <tr><td style="background:#1c1c1c;padding:22px 28px">
+    <span style="font-size:10px;letter-spacing:3px;color:#888;text-transform:uppercase">PLURIAGENCY</span><br>
+    <span style="font-size:20px;font-weight:700;color:#fff;display:block;margin-top:6px">Preventivo per ${esc(clientName)}</span>
+    <span style="font-size:12px;color:#666">${today}</span>
+  </td></tr>
+
+  <tr><td style="padding:24px 28px">
+    <p style="font-size:15px;line-height:1.7;color:#444;margin:0 0 6px">Ciao ${esc(clientName)},</p>
+    <p style="font-size:15px;line-height:1.7;color:#444;margin:0 0 24px">
+      in allegato trovi il preventivo in PDF con tutti i dettagli.
+      Qui sotto un riepilogo rapido — per domande o modifiche, rispondimi direttamente a questa email.
+    </p>
+
+    <div style="font-size:10px;letter-spacing:2px;color:#aaa;text-transform:uppercase;margin-bottom:10px">RIEPILOGO SERVIZI</div>
+    <table width="100%" cellpadding="0" cellspacing="0">
+      ${linesHtml}
+      <tr><td colspan="2" style="padding:3px 0"></td></tr>
+      ${discountRow}
+      <tr><td colspan="2" style="padding:3px 0"></td></tr>
+      <tr><td colspan="2">
+        <div style="background:#1c1c1c;padding:12px 16px">
+          <span style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:2px">Totale stimato</span>
+          <span style="font-size:18px;font-weight:700;color:#fff;float:right">€${total.toLocaleString('it-IT')}</span>
+        </div>
+      </td></tr>
+    </table>
+    <p style="font-size:11px;color:#bbb;margin:6px 0 0;font-style:italic">IVA esclusa · prezzi indicativi soggetti a conferma ufficiale</p>
+    ${notesHtml}
+  </td></tr>
+
+  <tr><td style="padding:20px 28px;border-top:1px solid #eee">
+    <p style="font-size:13px;color:#555;margin:0 0 4px">Con piacere,</p>
+    <p style="font-size:13px;font-weight:600;color:#333;margin:0">${esc(agentName)} — Pluriagency</p>
+    <p style="font-size:12px;color:#aaa;margin:4px 0 0">hello@pluriagency.com · +39 389 688 1004</p>
+  </td></tr>
+
+  <tr><td style="background:#f9f9f9;padding:12px 28px;border-top:1px solid #eee">
+    <p style="font-size:11px;color:#ccc;margin:0">PLURIAGENCY · Bologna, Italia · pluriagency.com</p>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// PLAIN TEXT fallback
+// ──────────────────────────────────────────────────────────────────────────────
+function buildQuotePlain({ agentName, clientName, clientEmail, lines, subtotal, discount, saved, total, notes, today }) {
   const sep = '─'.repeat(44);
   const linesText = lines.map(l => `  • ${l}`).join('\n');
   const discountLine = discount > 0 ? `  Sconto ${discount}%: -€${Math.round(saved).toLocaleString('it-IT')}\n` : '';
   const notesText = notes ? `\nNOTE\n${sep}\n${notes}\n` : '';
+  const emailLine = clientEmail ? `Email cliente: ${clientEmail}\n` : '';
   return `PLURIAGENCY — PREVENTIVO SERVIZI
 ${sep}
 Cliente: ${clientName}
-Data: ${today}
+${emailLine}Data: ${today}
 Preparato da: ${agentName}
 
 SERVIZI SELEZIONATI
@@ -144,10 +260,10 @@ ${sep}
 PLURIAGENCY · hello@pluriagency.com · +39 389 688 1004 · Bologna, Italia`;
 }
 
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
+function esc(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }

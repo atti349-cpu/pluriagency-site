@@ -545,65 +545,6 @@ function editPrice(id, amtEl){
   input.addEventListener('keydown', e => { if(e.key==='Enter'){ commit(); input.blur(); } if(e.key==='Escape'){ amtEl.textContent=`€${(priceUsed*qty).toLocaleString('it-IT')}${suffix}`; } });
 }
 
-async function sendQuote(){
-  const clientName = document.getElementById('client-name').value.trim();
-  const agentName = document.getElementById('agent-name').value.trim();
-  const email = document.getElementById('send-email').value.trim();
-  const notes = document.getElementById('send-notes').value.trim();
-  const toAgency = document.getElementById('send-to-agency').checked;
-  const toClient = document.getElementById('send-to-client').checked;
-  const disc = parseFloat(document.getElementById('discount-val').value)||0;
-
-  if(!email && toClient){ alert('Inserisci email del cliente.'); return; }
-  if(Object.keys(selected).length === 0){ alert('Seleziona almeno un servizio.'); return; }
-
-  let sub = 0;
-  const lines = [];
-  Object.values(selected).forEach(({item, qty, priceUsed}) => {
-    const line = priceUsed * qty;
-    sub += line;
-    const suffix = item.monthly ? '/mese' : item.yearly ? '/anno' : '';
-    lines.push(`${item.name}${qty > 1 ? ' ×'+qty : ''}: €${line.toLocaleString('it-IT')}${suffix}`);
-  });
-  const saved = Math.round(sub * disc / 100);
-  const total = sub - saved;
-
-  const btn = document.getElementById('send-btn');
-  btn.querySelector('span').textContent = '⟳ INVIO...';
-  btn.disabled = true;
-
-  const payload = {
-    type: 'quote',
-    agentName: agentName || 'Agente',
-    clientName: clientName || 'Cliente',
-    email,
-    toAgency,
-    toClient,
-    lines,
-    subtotal: sub,
-    discount: disc,
-    saved,
-    total,
-    notes
-  };
-
-  try {
-    const r = await fetch('/api/quote', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
-    });
-    if(r.ok){
-      btn.querySelector('span').textContent = '✓ PREVENTIVO INVIATO';
-    } else {
-      btn.querySelector('span').textContent = '✗ ERRORE — RIPROVA';
-      btn.disabled = false;
-    }
-  } catch {
-    btn.querySelector('span').textContent = '✗ CONNESSIONE — RIPROVA';
-    btn.disabled = false;
-  }
-}
 
 function generatePDF(){
   if(Object.keys(selected).length === 0){ alert('Seleziona almeno un servizio.'); return; }
@@ -707,6 +648,224 @@ function generatePDF(){
 }
 
 buildUI();
+
+// ===== PDF GENERATION (jsPDF) =====
+async function buildPDFBase64(clientName, agentName, today, lines, sub, disc, saved, total, notes) {
+  if (!window.jspdf) throw new Error('jsPDF non caricato');
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const PW = 210, M = 20;
+  let y = 0;
+
+  // Header bar
+  doc.setFillColor(20, 20, 20);
+  doc.rect(0, 0, PW, 22, 'F');
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(200, 200, 200);
+  doc.text('PLURIAGENCY — PREVENTIVO SERVIZI', M, 13);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(120, 120, 120);
+  doc.text('pluriagency.com', PW - M, 13, { align: 'right' });
+
+  y = 36;
+
+  // Client name
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(20, 20, 20);
+  doc.text(clientName || 'Cliente', M, y);
+  y += 8;
+
+  // Date / agent
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(130, 130, 130);
+  doc.text(`${today}  ·  Preparato da ${agentName || 'Agente'}`, M, y);
+  y += 10;
+
+  // Divider
+  doc.setDrawColor(220, 220, 220);
+  doc.setLineWidth(0.4);
+  doc.line(M, y, PW - M, y);
+  y += 8;
+
+  // Services header
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(160, 160, 160);
+  doc.text('SERVIZI SELEZIONATI', M, y);
+  doc.text('IMPORTO', PW - M, y, { align: 'right' });
+  y += 7;
+
+  // Lines
+  lines.forEach(l => {
+    const colonIdx = l.indexOf(': ');
+    const nameQty = colonIdx > -1 ? l.slice(0, colonIdx) : l;
+    const amount   = colonIdx > -1 ? l.slice(colonIdx + 2) : '';
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(25, 25, 25);
+    doc.text(nameQty, M, y);
+    doc.setFont('helvetica', 'bold');
+    doc.text(amount, PW - M, y, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.setDrawColor(235, 235, 235);
+    doc.setLineWidth(0.2);
+    doc.line(M, y + 3, PW - M, y + 3);
+    y += 11;
+    if (y > 258) { doc.addPage(); y = 22; }
+  });
+
+  y += 3;
+  doc.setDrawColor(180, 180, 180);
+  doc.setLineWidth(0.5);
+  doc.line(M, y, PW - M, y);
+  y += 7;
+
+  // Discount line if present
+  if (disc > 0) {
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(120, 120, 120);
+    doc.text('Subtotale', M, y);
+    doc.text(`€${sub.toLocaleString('it-IT')}`, PW - M, y, { align: 'right' });
+    y += 7;
+    doc.setTextColor(40, 140, 80);
+    doc.text(`Sconto ${disc}%`, M, y);
+    doc.text(`−€${Math.round(saved).toLocaleString('it-IT')}`, PW - M, y, { align: 'right' });
+    y += 8;
+  }
+
+  // Total box
+  doc.setFillColor(20, 20, 20);
+  doc.rect(M, y - 2, PW - 2 * M, 16, 'F');
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(200, 200, 200);
+  doc.text('TOTALE STIMATO', M + 5, y + 8);
+  doc.setFontSize(15);
+  doc.setTextColor(255, 255, 255);
+  doc.text(`€${total.toLocaleString('it-IT')}`, PW - M - 5, y + 9, { align: 'right' });
+  y += 22;
+
+  // IVA note
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(170, 170, 170);
+  doc.text('IVA esclusa · prezzi indicativi soggetti a conferma ufficiale', M, y);
+  y += 12;
+
+  // Notes
+  if (notes) {
+    doc.setFillColor(248, 248, 248);
+    const noteLines = doc.splitTextToSize(notes, PW - 2 * M - 10);
+    doc.rect(M, y - 3, PW - 2 * M, noteLines.length * 5.5 + 14, 'F');
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(140, 140, 140);
+    doc.text('NOTE', M + 5, y + 3);
+    y += 9;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    doc.text(noteLines, M + 5, y);
+    y += noteLines.length * 5.5 + 8;
+  }
+
+  // Footer
+  const FY = 285;
+  doc.setFillColor(245, 245, 245);
+  doc.rect(0, FY - 4, PW, 16, 'F');
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(160, 160, 160);
+  doc.text('PLURIAGENCY  ·  hello@pluriagency.com  ·  +39 389 688 1004  ·  Bologna, Italia', PW / 2, FY + 4, { align: 'center' });
+
+  return doc.output('datauristring').split(',')[1]; // base64 only
+}
+
+// ===== SEND QUOTE (with PDF) =====
+async function sendQuote() {
+  const clientName = document.getElementById('client-name').value.trim();
+  const agentName  = document.getElementById('agent-name').value.trim();
+  const email      = document.getElementById('send-email').value.trim();
+  const notes      = document.getElementById('send-notes').value.trim();
+  const toAgency   = document.getElementById('send-to-agency').checked;
+  const toClient   = document.getElementById('send-to-client').checked;
+  const disc       = parseFloat(document.getElementById('discount-val').value) || 0;
+
+  if (!email && toClient) { alert('Inserisci email del cliente.'); return; }
+  if (Object.keys(selected).length === 0) { alert('Seleziona almeno un servizio.'); return; }
+
+  let sub = 0;
+  const lines = [];
+  Object.values(selected).forEach(({ item, qty, priceUsed }) => {
+    const line   = priceUsed * qty;
+    sub += line;
+    const suffix = item.monthly ? '/mese' : item.yearly ? '/anno' : '';
+    lines.push(`${item.name}${qty > 1 ? ' ×' + qty : ''}: €${line.toLocaleString('it-IT')}${suffix}`);
+  });
+  const saved = Math.round(sub * disc / 100);
+  const total = sub - saved;
+  const today = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
+
+  const btn = document.getElementById('send-btn');
+  btn.querySelector('span').textContent = '⟳ GENERAZIONE PDF...';
+  btn.disabled = true;
+
+  let pdfBase64 = null;
+  try {
+    pdfBase64 = await buildPDFBase64(clientName || 'Cliente', agentName || 'Agente', today, lines, sub, disc, saved, total, notes);
+  } catch(e) {
+    console.warn('PDF gen failed:', e);
+    btn.querySelector('span').textContent = '⟳ INVIO...';
+  }
+
+  btn.querySelector('span').textContent = '⟳ INVIO...';
+
+  const payload = {
+    agentName:  agentName  || 'Agente',
+    clientName: clientName || 'Cliente',
+    clientEmail: email,
+    toAgency,
+    toClient,
+    lines,
+    subtotal:  sub,
+    discount:  disc,
+    saved,
+    total,
+    notes,
+    pdfBase64,
+    pdfFilename: `Preventivo_${(clientName || 'Cliente').replace(/\s+/g, '_')}_${today.replace(/\s/g,'_')}.pdf`
+  };
+
+  try {
+    const r = await fetch('/api/quote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (r.ok) {
+      btn.querySelector('span').textContent = '✓ INVIATO';
+      setTimeout(() => {
+        btn.querySelector('span').textContent = '↺ REINVIA';
+        btn.disabled = false;
+      }, 3000);
+    } else {
+      const err = await r.json().catch(() => ({}));
+      console.error('API error:', err);
+      btn.querySelector('span').textContent = '✗ ERRORE — RIPROVA';
+      btn.disabled = false;
+    }
+  } catch {
+    btn.querySelector('span').textContent = '✗ CONNESSIONE — RIPROVA';
+    btn.disabled = false;
+  }
+}
+
+buildUI();
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </body>
 </html>

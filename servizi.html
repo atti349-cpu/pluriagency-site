@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLURIAGENCY — Servizi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060608; --panel:#0d0d12; --panel2:#111118;
+  --border:rgba(255,255,255,0.07);
+  --g1:#00ff88; --g2:#9b5cff; --g3:#00cfff;
+  --text:#e8e8f0; --muted:#6b6b80;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:0.35;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
+  background:repeating-linear-gradient(to bottom,transparent,transparent 2px,rgba(0,0,0,0.08) 3px);}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;
+  justify-content:space-between;padding:16px 40px;background:rgba(6,6,8,0.92);
+  backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;letter-spacing:4px;
+  color:var(--g1);text-shadow:0 0 20px rgba(0,255,136,0.5);text-decoration:none;}
+.nav-back{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;
+  color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color 0.2s;
+  display:flex;align-items:center;gap:8px;}
+.nav-back:hover{color:var(--g1);}
+
+/* HERO */
+.services-hero{padding:120px 40px 0;text-align:center;position:relative;
+  background:linear-gradient(180deg,rgba(0,255,136,0.03) 0%,transparent 40%);}
+.hero-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:5px;
+  color:var(--g2);margin-bottom:12px;}
+.hero-title-svc{font-family:'Orbitron',monospace;font-size:clamp(28px,5vw,52px);
+  font-weight:900;letter-spacing:3px;color:var(--text);}
+.hero-sub-svc{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;
+  color:var(--muted);margin-top:12px;}
+
+/* TABS */
+.tabs-section{padding:40px 40px 0;position:sticky;top:64px;z-index:50;
+  background:rgba(6,6,8,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.tabs-row{display:flex;gap:0;max-width:700px;margin:0 auto;}
+.tab-btn{flex:1;padding:16px 20px;font-family:'Orbitron',monospace;
+  font-size:clamp(11px,1.5vw,14px);font-weight:700;letter-spacing:3px;
+  text-transform:uppercase;background:transparent;color:var(--muted);
+  border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all 0.3s;
+  position:relative;outline:none;}
+.tab-btn::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,255,136,0.04),transparent);opacity:0;transition:opacity 0.3s;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn:hover::before,.tab-btn.active::before{opacity:1;}
+.tab-btn.active[data-cat="web"]{color:var(--g1);border-bottom-color:var(--g1);text-shadow:0 0 15px rgba(0,255,136,0.4);}
+.tab-btn.active[data-cat="grafics"]{color:var(--g2);border-bottom-color:var(--g2);text-shadow:0 0 15px rgba(155,92,255,0.4);}
+.tab-btn.active[data-cat="servizi"]{color:var(--g3);border-bottom-color:var(--g3);text-shadow:0 0 15px rgba(0,207,255,0.4);}
+
+/* SLOGAN */
+.slogan-bar{text-align:center;padding:16px 40px;font-family:'Share Tech Mono',monospace;
+  font-size:12px;letter-spacing:2px;color:var(--muted);border-bottom:1px solid var(--border);transition:all 0.4s;}
+
+/* MAIN LAYOUT */
+.services-main{max-width:1100px;margin:0 auto;padding:60px 40px;
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+.svc-3d-wrap{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;}
+.svc-3d-wrap canvas{width:100%!important;height:100%!important;}
+.svc-3d-frame{position:absolute;inset:0;pointer-events:none;border:1px solid var(--border);}
+.sc{position:absolute;width:20px;height:20px;}
+.sc.tl{top:0;left:0;border-top:2px solid currentColor;border-left:2px solid currentColor;}
+.sc.tr{top:0;right:0;border-top:2px solid currentColor;border-right:2px solid currentColor;}
+.sc.bl{bottom:0;left:0;border-bottom:2px solid currentColor;border-left:2px solid currentColor;}
+.sc.br{bottom:0;right:0;border-bottom:2px solid currentColor;border-right:2px solid currentColor;}
+
+.svc-right{display:flex;flex-direction:column;gap:0;}
+.svc-number{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;
+  color:var(--muted);margin-bottom:8px;}
+.svc-title{font-family:'Orbitron',monospace;font-size:clamp(22px,3.5vw,38px);
+  font-weight:900;letter-spacing:2px;line-height:1.1;margin-bottom:8px;transition:all 0.4s;}
+.svc-desc-long{font-size:14px;color:var(--muted);line-height:1.9;margin-bottom:16px;transition:all 0.4s;}
+
+/* CRD PRICE BADGE */
+.crd-badge{display:inline-flex;align-items:center;gap:8px;
+  font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:2px;
+  padding:6px 14px;border-radius:2px;margin-bottom:20px;
+  background:rgba(0,0,0,0.5);border:1px solid currentColor;transition:all 0.4s;}
+.crd-label{font-size:9px;letter-spacing:3px;opacity:0.7;text-transform:uppercase;}
+.crd-value{font-size:15px;font-weight:900;}
+
+.svc-dots{display:flex;gap:6px;margin-bottom:24px;align-items:center;}
+.svc-dot{width:5px;height:5px;border:1px solid var(--muted);cursor:pointer;transition:all 0.3s;}
+.svc-dot.active{width:20px;background:currentColor;border-color:currentColor;}
+.svc-nav{display:flex;gap:12px;}
+.svc-nav-btn{width:40px;height:40px;border:1px solid var(--border);background:transparent;
+  color:var(--muted);font-size:18px;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;transition:all 0.2s;}
+.svc-nav-btn:hover{border-color:currentColor;color:var(--text);}
+.svc-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+.tag{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;
+  padding:5px 12px;border:1px solid var(--border);color:var(--muted);transition:all 0.3s;}
+.tag.active{border-color:currentColor;color:currentColor;background:rgba(0,0,0,0.5);}
+
+/* ALL SERVICES GRID */
+.all-services{max-width:1100px;margin:0 auto;padding:0 40px 80px;}
+.all-services-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:4px;
+  color:var(--muted);margin-bottom:24px;display:flex;align-items:center;gap:16px;}
+.all-services-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.svc-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.svc-card{background:var(--panel);border:1px solid var(--border);padding:24px 20px;
+  cursor:pointer;position:relative;overflow:hidden;transition:all 0.2s;}
+.svc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,currentColor,transparent);opacity:0;transition:opacity 0.3s;}
+.svc-card:hover{border-color:rgba(255,255,255,0.15);}
+.svc-card:hover::before{opacity:0.4;}
+.svc-card.active{border-color:currentColor;}
+.svc-card.active::before{opacity:0.6;}
+.card-num{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;
+  color:var(--muted);margin-bottom:12px;}
+.card-name{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;
+  letter-spacing:1px;margin-bottom:6px;}
+.card-desc{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:8px;}
+.card-crd{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:1px;
+  opacity:0.8;padding-top:8px;border-top:1px solid var(--border);}
+
+.fade-t{transition:opacity 0.3s,transform 0.3s;}
+.fade-t.fading{opacity:0;transform:translateY(10px);}
+
+@media(max-width:768px){
+  nav{padding:16px 20px;}
+  .services-hero{padding:100px 20px 0;}
+  .tabs-section{padding:20px 20px 0;}
+  .slogan-bar{padding:12px 20px;font-size:11px;}
+  .services-main{grid-template-columns:1fr;padding:40px 20px;gap:40px;}
+  .svc-3d-wrap{max-height:280px;}
+  .all-services{padding:0 20px 60px;}
+  .svc-cards{grid-template-columns:1fr;}
+  .tab-btn{font-size:10px;letter-spacing:1px;padding:14px 8px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">PLURIAGENCY</a>
+  <a href="/" class="nav-back">&#8592; HOME</a>
+</nav>
+
+<div class="services-hero">
+  <p class="hero-label">// CATALOGO SERVIZI</p>
+  <h1 class="hero-title-svc">SCEGLI IL TUO MODULO</h1>
+  <p class="hero-sub-svc">prezzi indicati in CRD — valuta di scambio digitale</p>
+</div>
+
+<div class="tabs-section">
+  <div class="tabs-row">
+    <button class="tab-btn active" data-cat="web" onclick="switchCat('web',this)">&#x2756; WEB</button>
+    <button class="tab-btn" data-cat="grafics" onclick="switchCat('grafics',this)">&#x2756; GRAFICS</button>
+    <button class="tab-btn" data-cat="servizi" onclick="switchCat('servizi',this)">&#x2756; SERVIZI</button>
+  </div>
+</div>
+<div class="slogan-bar"><span id="cat-slogan">Costruiamo esperienze che funzionano davvero</span></div>
+
+<div class="services-main">
+  <div class="svc-3d-wrap" id="svc-3d-wrap">
+    <canvas id="svc-canvas"></canvas>
+    <div class="svc-3d-frame">
+      <div class="sc tl" id="frame-tl"></div>
+      <div class="sc tr" id="frame-tr"></div>
+      <div class="sc bl" id="frame-bl"></div>
+      <div class="sc br" id="frame-br"></div>
+    </div>
+  </div>
+  <div class="svc-right">
+    <div class="svc-number fade-t" id="svc-num">01 / 03</div>
+    <div class="svc-title fade-t" id="svc-title">SITO VETRINA</div>
+    <div class="svc-desc-long fade-t" id="svc-desc">La tua presenza online che convince al primo colpo.</div>
+    <div class="crd-badge fade-t" id="svc-crd">
+      <span class="crd-label">CRD</span>
+      <span class="crd-value" id="crd-value">2.400</span>
+    </div>
+    <div class="svc-tags" id="svc-tags"></div>
+    <div class="svc-dots" id="svc-dots"></div>
+    <div class="svc-nav">
+      <button class="svc-nav-btn" id="prev-btn" onclick="changeItem(-1)">&#8592;</button>
+      <button class="svc-nav-btn" id="next-btn" onclick="changeItem(1)">&#8594;</button>
+    </div>
+  </div>
+</div>
+
+<div class="all-services">
+  <div class="all-services-label">TUTTI I SERVIZI</div>
+  <div class="svc-cards" id="svc-cards"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const data = {
+  web: {
+    color:'#00ff88', hex:0x00ff88,
+    slogan:'Costruiamo esperienze che funzionano davvero',
+    items:[
+      { name:'SITO VETRINA', desc:'La tua presenza online che convince al primo colpo. Design curato, performance ottimizzate e conversioni al centro di ogni scelta progettuale.', tags:['Design','Performance','SEO'], crd:'2.400 CRD' },
+      { name:'E-COMMERCE', desc:'Piattaforme di vendita online scalabili, veloci e piacevoli da usare. Dall\'architettura al checkout, ogni dettaglio pensato per vendere.', tags:['Shopify','WooCommerce','UX'], crd:'3.800 CRD' },
+      { name:'WEB APP', desc:'Applicazioni web complesse che funzionano come prodotti. Dashboard, portali, tool interni: architettura solida e interfacce moderne.', tags:['React','Next.js','API'], crd:'5.200 CRD' }
+    ]
+  },
+  grafics: {
+    color:'#9b5cff', hex:0x9b5cff,
+    slogan:'Diamo forma visiva alle idee',
+    items:[
+      { name:'RENDERING 3D', desc:'Visualizzazioni fotorealistiche per prodotti, architetture e concept. Da file tecnici a immagini che fanno innamorare.', tags:['Blender','Cinema4D','Fotorealistico'], crd:'650 CRD' },
+      { name:'BRAND IDENTITY', desc:'Loghi, palette, font e sistema visivo completo. Un\'identità che comunica chi sei ancora prima che aprano bocca.', tags:['Logo','Typography','Brand Guide'], crd:'950 CRD' },
+      { name:'VISUAL DESIGN', desc:'Grafiche per social, campagne, materiali stampa e tutto ciò che comunica la tua visione al mondo.', tags:['Print','Social','Campaign'], crd:'520 CRD' }
+    ]
+  },
+  servizi: {
+    color:'#00cfff', hex:0x00cfff,
+    slogan:'Automatizziamo e potenziamo il tuo business',
+    items:[
+      { name:'PAPER DESIGN', desc:'Presentazioni, brochure, report e documenti che non passano inosservati. Struttura chiara, impatto visivo forte.', tags:['Keynote','PDF','Print'], crd:'380 CRD' },
+      { name:'AUTOMAZIONI & AI', desc:'Workflow automatizzati, chatbot, integrazione di tool AI nel tuo business. Ti salviamo ore ogni settimana.', tags:['n8n','OpenAI','Zapier'], crd:'1.450 CRD' },
+      { name:'MARKETING', desc:'Strategia, contenuti e campagne per crescere online. Dati al centro, creatività come leva principale.', tags:['Strategy','Content','Ads'], crd:'920 CRD' }
+    ]
+  }
+};
+
+let currentCat='web', currentItem=0;
+let svcRenderer, svcScene, svcCamera, svcMesh;
+let dragActive=false, dragPrevX=0, dragVX=0;
+
+const urlCat=new URLSearchParams(window.location.search).get('cat');
+if(urlCat&&data[urlCat])currentCat=urlCat;
+
+(function init3D(){
+  const canvas=document.getElementById('svc-canvas');
+  const W=canvas.parentElement.clientWidth||400, H=W;
+  svcRenderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  svcRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2)); svcRenderer.setSize(W,H);
+  svcScene=new THREE.Scene(); svcCamera=new THREE.PerspectiveCamera(55,1,0.1,100);
+  svcCamera.position.z=3.2;
+  svcScene.add(new THREE.AmbientLight(0xffffff,0.3));
+  const l1=new THREE.PointLight(0xffffff,2,10); l1.position.set(2,2,2); svcScene.add(l1);
+  svcScene.add(Object.assign(new THREE.PointLight(0x9b5cff,1.2,10),{position:new THREE.Vector3(-2,-1,1)}));
+  window._svcL1=l1;
+  buildMesh();
+  canvas.addEventListener('mousedown',e=>{dragActive=true;dragPrevX=e.clientX;});
+  window.addEventListener('mousemove',e=>{if(!dragActive)return;dragVX=(e.clientX-dragPrevX)*0.015;if(svcMesh)svcMesh.rotation.y+=dragVX;dragPrevX=e.clientX;});
+  window.addEventListener('mouseup',()=>dragActive=false);
+  let t=0;
+  (function anim(){
+    requestAnimationFrame(anim); t+=0.01;
+    if(svcMesh){if(!dragActive){svcMesh.rotation.y+=dragVX*0.93;dragVX*=0.93;svcMesh.rotation.y+=0.006;}
+      svcMesh.rotation.x+=0.003; svcMesh.scale.setScalar(1+Math.sin(t*0.5)*0.03);}
+    if(window._svcL1){window._svcL1.position.x=Math.sin(t)*2;window._svcL1.position.y=Math.cos(t*0.7)*1.5;}
+    svcRenderer.render(svcScene,svcCamera);
+  })();
+})();
+
+function buildMesh(){
+  if(svcMesh){svcScene.remove(svcMesh);svcMesh.geometry.dispose();}
+  const catIdx=Object.keys(data).indexOf(currentCat);
+  const shapes=[
+    [new THREE.BoxGeometry(1.3,1.3,1.3),new THREE.CylinderGeometry(0,1,1.8,4),new THREE.OctahedronGeometry(1.2)],
+    [new THREE.IcosahedronGeometry(1.1,2),new THREE.SphereGeometry(1,8,8),new THREE.TorusGeometry(0.9,0.12,8,40)],
+    [new THREE.TorusKnotGeometry(0.7,0.25,80,12),new THREE.TetrahedronGeometry(1.3),new THREE.DodecahedronGeometry(1)]
+  ];
+  const cat=data[currentCat];
+  svcMesh=new THREE.Mesh(shapes[catIdx][currentItem]||shapes[0][0],
+    new THREE.MeshPhongMaterial({color:cat.hex,wireframe:true,transparent:true,opacity:0.72}));
+  svcScene.add(svcMesh);
+  if(window._svcL1)window._svcL1.color.set(cat.hex);
+}
+
+function switchCat(cat,btn){
+  currentCat=cat; currentItem=0;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));
+  document.getElementById('cat-slogan').textContent=data[cat].slogan;
+  updateFrameColor(data[cat].color);
+  buildMesh(); renderContent(); renderCards();
+}
+function updateFrameColor(c){
+  ['frame-tl','frame-tr','frame-bl','frame-br'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.color=c;});
+  document.querySelectorAll('.svc-nav-btn').forEach(b=>{b.style.color=c;b.style.borderColor=c+'33';});
+  const badge=document.getElementById('svc-crd');
+  if(badge)badge.style.color=c;
+}
+function changeItem(dir){
+  const items=data[currentCat].items;
+  currentItem=(currentItem+dir+items.length)%items.length;
+  buildMesh(); renderContent(); renderCards();
+}
+function setItem(idx){currentItem=idx;buildMesh();renderContent();renderCards();}
+
+function renderContent(){
+  const items=data[currentCat].items, item=items[currentItem], cat=data[currentCat];
+  document.querySelectorAll('.fade-t').forEach(e=>e.classList.add('fading'));
+  setTimeout(()=>{
+    document.getElementById('svc-num').textContent=`0${currentItem+1} / 0${items.length}`;
+    const titleEl=document.getElementById('svc-title');
+    titleEl.textContent=item.name; titleEl.style.color=cat.color;
+    titleEl.style.textShadow=`0 0 30px ${cat.color}60`;
+    document.getElementById('svc-desc').textContent=item.desc;
+    document.getElementById('crd-value').textContent=item.crd;
+    const badge=document.getElementById('svc-crd');
+    badge.style.color=cat.color; badge.style.borderColor=cat.color+'55';
+    const tagsEl=document.getElementById('svc-tags');
+    tagsEl.innerHTML=item.tags.map(t=>`<div class="tag active" style="color:${cat.color};border-color:${cat.color}66">${t}</div>`).join('');
+    const dotsEl=document.getElementById('svc-dots');
+    dotsEl.innerHTML=items.map((_,i)=>`<div class="svc-dot${i===currentItem?' active':''}" style="${i===currentItem?'background:'+cat.color+';border-color:'+cat.color+';width:20px':''};color:${cat.color}" onclick="setItem(${i})"></div>`).join('');
+    document.querySelectorAll('.fade-t').forEach(e=>e.classList.remove('fading'));
+  },280);
+}
+
+function renderCards(){
+  const items=data[currentCat].items, cat=data[currentCat];
+  document.getElementById('svc-cards').innerHTML=items.map((item,i)=>`
+    <div class="svc-card${i===currentItem?' active':''}" style="color:${cat.color};${i===currentItem?'border-color:'+cat.color+'66':''}" onclick="setItem(${i})">
+      <div class="card-num">&gt; SERVICE.${(i+1).toString().padStart(2,'0')}</div>
+      <div class="card-name">${item.name}</div>
+      <div class="card-desc">${item.desc.substring(0,80)}...</div>
+      <div class="card-crd" style="color:${cat.color}">&#x25C8; ${item.crd}</div>
+    </div>`).join('');
+}
+
+// Init
+switchCat(currentCat, document.querySelector(`.tab-btn[data-cat="${currentCat}"]`));
+updateFrameColor(data[currentCat].color);
+
+window.addEventListener('resize',()=>{
+  const canvas=document.getElementById('svc-canvas');
+  const W=canvas.parentElement.clientWidth;
+  svcRenderer.setSize(W,W); svcCamera.aspect=1; svcCamera.updateProjectionMatrix();
+});
+</script>
+</body>
+</html>

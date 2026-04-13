@@ -1,0 +1,8 @@
+{
+  "name": "pluriagency-site",
+  "version": "1.0.0",
+  "description": "PLURIAGENCY — sito agenzia digitale",
+  "dependencies": {
+    "resend": "^4.0.0"
+  }
+}

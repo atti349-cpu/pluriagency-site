@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLURIAGENCY — Interfacce Digitali Evolute</title>
+<!-- Set content="/assets/model.glb" to use a custom 3D model in the hero -->
+<meta name="hero-model" content="">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#060608; --panel:#0d0d12; --panel2:#111118;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
+  --g1:#00ff88; --g2:#9b5cff; --g3:#00cfff;
+  --text:#e8e8f0; --muted:#6b6b80;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity:0.35;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
+  background:repeating-linear-gradient(to bottom,transparent,transparent 2px,rgba(0,0,0,0.08) 3px);}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;
+  justify-content:space-between;padding:16px 40px;background:rgba(6,6,8,0.88);
+  backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;letter-spacing:4px;
+  color:var(--g1);text-shadow:0 0 20px rgba(0,255,136,0.5);text-decoration:none;}
+.nav-links{display:flex;gap:32px;list-style:none;}
+.nav-links a{font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:2px;
+  color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
+.nav-links a:hover{color:var(--g1);}
+.nav-cta{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;
+  padding:8px 20px;border:1px solid var(--g1);color:var(--g1);background:transparent;
+  cursor:pointer;text-transform:uppercase;transition:all 0.2s;}
+.nav-cta:hover{background:var(--g1);color:#000;}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;}
+.hamburger span{width:24px;height:1.5px;background:var(--g1);display:block;}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;padding:120px 20px 60px;text-align:center;}
+.hero-grid-bg{position:absolute;inset:0;
+  background-image:linear-gradient(rgba(0,255,136,0.03) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,255,136,0.03) 1px,transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse 80% 80% at center,black 30%,transparent 80%);}
+.hero-radial{position:absolute;width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(155,92,255,0.08) 0%,transparent 70%);
+  top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;}
+.hero-tag{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:4px;color:var(--g2);
+  margin-bottom:20px;opacity:0;animation:fadeUp 0.8s 0.2s forwards;}
+.hero-title{font-family:'Orbitron',monospace;font-size:clamp(32px,6vw,72px);font-weight:900;
+  line-height:1.1;letter-spacing:2px;opacity:0;animation:fadeUp 0.8s 0.4s forwards;}
+.hero-title .line1{display:block;color:var(--text);}
+.hero-title .line2{display:block;color:var(--g1);text-shadow:0 0 40px rgba(0,255,136,0.4);}
+.hero-sub{font-size:15px;color:var(--muted);margin-top:20px;max-width:500px;line-height:1.8;
+  opacity:0;animation:fadeUp 0.8s 0.6s forwards;}
+#hero-canvas{width:min(420px,90vw);height:min(420px,90vw);margin:40px auto 20px;
+  opacity:0;animation:fadeIn 1.2s 0.8s forwards;position:relative;z-index:1;}
+.scroll-hint{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;
+  color:var(--muted);margin-top:20px;display:flex;align-items:center;gap:8px;
+  opacity:0;animation:fadeIn 1s 1.4s forwards;}
+.scroll-hint::before,.scroll-hint::after{content:'';display:block;width:30px;height:1px;background:var(--muted);}
+
+/* SECTIONS */
+section{padding:80px 20px;max-width:1100px;margin:0 auto;}
+.section-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:5px;
+  color:var(--g2);text-transform:uppercase;margin-bottom:12px;}
+.section-title{font-family:'Orbitron',monospace;font-size:clamp(20px,3vw,30px);font-weight:700;
+  letter-spacing:2px;color:var(--text);margin-bottom:48px;}
+.sep{width:60px;height:1px;background:linear-gradient(90deg,var(--g1),transparent);margin:16px 0 40px;}
+
+/* SERVICES SLIDER */
+#services{text-align:center;}
+.services-container{position:relative;background:var(--panel);border:1px solid var(--border);
+  border-radius:4px;padding:50px 30px 40px;overflow:hidden;}
+.services-container::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(0,255,136,0.03) 0%,rgba(155,92,255,0.03) 100%);pointer-events:none;}
+.sc{position:absolute;width:20px;height:20px;}
+.sc.tl{top:12px;left:12px;border-top:1px solid var(--g1);border-left:1px solid var(--g1);}
+.sc.tr{top:12px;right:12px;border-top:1px solid var(--g1);border-right:1px solid var(--g1);}
+.sc.bl{bottom:12px;left:12px;border-bottom:1px solid var(--g1);border-left:1px solid var(--g1);}
+.sc.br{bottom:12px;right:12px;border-bottom:1px solid var(--g1);border-right:1px solid var(--g1);}
+.module-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:5px;
+  color:var(--g2);margin-bottom:32px;}
+.slider-row{display:flex;align-items:center;justify-content:center;gap:20px;}
+.slider-btn{width:44px;height:44px;border:1px solid var(--border);background:transparent;
+  color:var(--muted);font-size:20px;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.slider-btn:hover{border-color:var(--g1);color:var(--g1);box-shadow:0 0 12px rgba(0,255,136,0.2);}
+#services-canvas{width:min(280px,70vw);height:min(280px,70vw);flex-shrink:0;}
+.service-info{margin-top:28px;}
+.service-dots{display:flex;gap:8px;justify-content:center;margin-bottom:24px;}
+.dot{width:6px;height:6px;border:1px solid var(--muted);transition:all 0.3s;cursor:pointer;}
+.dot.active{background:var(--g1);border-color:var(--g1);box-shadow:0 0 8px rgba(0,255,136,0.5);}
+.service-name{font-family:'Orbitron',monospace;font-size:clamp(24px,4vw,36px);font-weight:900;
+  color:var(--g1);letter-spacing:4px;text-shadow:0 0 30px rgba(0,255,136,0.4);transition:all 0.4s;}
+.service-slogan{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--muted);
+  letter-spacing:1px;margin-top:8px;transition:all 0.4s;}
+.service-desc{font-size:14px;color:#8888a0;line-height:1.7;margin:16px auto 0;
+  max-width:420px;transition:all 0.4s;}
+.enter-btn{display:inline-block;margin-top:28px;font-family:'Share Tech Mono',monospace;
+  font-size:12px;letter-spacing:3px;padding:12px 32px;border:1px solid var(--g1);
+  color:var(--g1);background:transparent;cursor:pointer;text-transform:uppercase;
+  text-decoration:none;transition:all 0.25s;position:relative;overflow:hidden;}
+.enter-btn::before{content:'';position:absolute;inset:0;background:var(--g1);
+  transform:translateX(-100%);transition:transform 0.25s;}
+.enter-btn span{position:relative;z-index:1;}
+.enter-btn:hover::before{transform:translateX(0);}
+.enter-btn:hover span{color:#000;}
+
+/* TEAM */
+#team{text-align:center;max-width:1100px;}
+.team-container{background:var(--panel);border:1px solid var(--border);padding:48px 30px 40px;
+  position:relative;overflow:hidden;max-width:600px;margin:0 auto;}
+.unit-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:5px;color:var(--g2);
+  margin-bottom:32px;display:flex;align-items:center;justify-content:center;gap:12px;}
+.unit-label::before,.unit-label::after{content:'';flex:1;max-width:60px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--g2));}
+.unit-label::after{transform:scaleX(-1);}
+.team-slider-row{display:flex;align-items:center;justify-content:center;gap:24px;margin-bottom:28px;}
+.team-avatar{width:min(180px,50vw);height:min(180px,50vw);border:1px solid var(--border);
+  position:relative;overflow:hidden;flex-shrink:0;}
+.team-avatar-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+.avatar-placeholder{width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.avatar-scan{position:absolute;top:-100%;left:0;right:0;height:40%;
+  background:linear-gradient(180deg,transparent,rgba(0,255,136,0.08),transparent);
+  animation:scanline 3s linear infinite;pointer-events:none;z-index:2;}
+@keyframes scanline{to{top:200%;}}
+#avatar-canvas{image-rendering:pixelated;image-rendering:crisp-edges;position:relative;z-index:1;}
+.fc{position:absolute;width:14px;height:14px;}
+.fc.tl{top:0;left:0;border-top:2px solid var(--g1);border-left:2px solid var(--g1);}
+.fc.tr{top:0;right:0;border-top:2px solid var(--g1);border-right:2px solid var(--g1);}
+.fc.bl{bottom:0;left:0;border-bottom:2px solid var(--g1);border-left:2px solid var(--g1);}
+.fc.br{bottom:0;right:0;border-bottom:2px solid var(--g1);border-right:2px solid var(--g1);}
+.member-name{font-family:'Orbitron',monospace;font-size:clamp(18px,3vw,24px);font-weight:700;
+  letter-spacing:3px;color:var(--text);margin-bottom:4px;}
+.member-role{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--g2);
+  letter-spacing:2px;margin-bottom:20px;font-style:italic;}
+.skills-terminal{text-align:left;background:rgba(0,0,0,0.4);border:1px solid var(--border);
+  padding:16px 20px;font-family:'Share Tech Mono',monospace;font-size:13px;
+  min-height:100px;margin:0 auto 20px;max-width:340px;}
+.terminal-line{color:var(--g1);line-height:2;}
+.terminal-line.muted{color:var(--muted);}
+.terminal-cursor{display:inline-block;width:8px;height:1em;background:var(--g1);
+  vertical-align:text-bottom;animation:blink 0.8s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.contact-btn{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;
+  padding:10px 28px;border:1px solid var(--g2);color:var(--g2);background:transparent;cursor:pointer;
+  transition:all 0.2s;}
+.contact-btn:hover{background:var(--g2);color:#000;}
+.team-counter{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;
+  color:var(--muted);margin-bottom:12px;}
+
+/* ABOUT */
+#about{max-width:1100px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+.about-visual{position:relative;height:300px;border:1px solid var(--border);
+  overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.about-visual canvas{position:absolute;inset:0;width:100%!important;height:100%!important;}
+.about-text h2{font-family:'Orbitron',monospace;font-size:clamp(18px,2.5vw,26px);font-weight:700;
+  letter-spacing:2px;margin-bottom:16px;}
+.about-text p{font-size:14px;color:var(--muted);line-height:1.9;margin-bottom:16px;}
+.discover-btn{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;
+  padding:10px 28px;border:1px solid var(--g3);color:var(--g3);background:transparent;
+  cursor:pointer;display:inline-block;margin-top:8px;text-decoration:none;transition:all 0.2s;}
+.discover-btn:hover{background:var(--g3);color:#000;}
+
+/* CONTACT */
+#contact{max-width:1100px;text-align:center;}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;text-align:left;margin-top:40px;}
+.contact-info{display:flex;flex-direction:column;gap:20px;}
+.contact-item{display:flex;flex-direction:column;gap:4px;padding:20px;
+  border:1px solid var(--border);background:var(--panel);}
+.contact-item-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--g2);}
+.contact-item-value{font-size:15px;color:var(--text);}
+.contact-form{display:flex;flex-direction:column;gap:12px;}
+.contact-form input,.contact-form textarea{background:var(--panel);border:1px solid var(--border);
+  color:var(--text);padding:14px 16px;font-family:'Inter',sans-serif;font-size:14px;
+  outline:none;transition:border-color 0.2s;}
+.contact-form input:focus,.contact-form textarea:focus{border-color:var(--g1);}
+.contact-form textarea{resize:vertical;min-height:100px;}
+.send-btn{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;padding:14px 32px;
+  border:1px solid var(--g1);color:var(--g1);background:transparent;cursor:pointer;
+  text-transform:uppercase;transition:all 0.2s;align-self:flex-start;}
+.send-btn:hover{background:var(--g1);color:#000;}
+.send-btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
+.footer-logo{font-family:'Orbitron',monospace;font-size:24px;font-weight:900;letter-spacing:6px;
+  color:var(--g1);text-shadow:0 0 20px rgba(0,255,136,0.3);margin-bottom:10px;}
+.footer-sub{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:3px;}
+.footer-sub span{color:#ff6b8a;}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.fade-target{transition:opacity 0.3s,transform 0.3s;}
+.fade-target.fading{opacity:0;transform:translateY(8px);}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  nav{padding:16px 20px;}
+  .nav-links{display:none;}
+  .hamburger{display:flex;}
+  #about{grid-template-columns:1fr;}
+  .about-visual{display:none;}
+  .contact-grid{grid-template-columns:1fr;}
+  section{padding:60px 20px;}
+  .slider-row{flex-direction:column;}
+  #services-canvas{width:min(240px,80vw);height:min(240px,80vw);}
+  footer{padding:40px 20px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">PLURIAGENCY</a>
+  <ul class="nav-links">
+    <li><a href="#services">Moduli</a></li>
+    <li><a href="#team">Team</a></li>
+    <li><a href="#about">Chi Siamo</a></li>
+    <li><a href="#contact">Contatti</a></li>
+  </ul>
+  <button class="nav-cta" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Inizia</button>
+  <button class="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<section id="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-radial"></div>
+  <p class="hero-tag">// SISTEMA OPERATIVO v2.4.1 — BOLOGNA</p>
+  <h1 class="hero-title">
+    <span class="line1">INTERFACCE</span>
+    <span class="line2">DIGITALI EVOLUTE</span>
+  </h1>
+  <p class="hero-sub">Costruiamo esperienze che si muovono, scalano e convertono. Web, grafica e sistemi digitali per il tuo business — da Bologna.</p>
+  <canvas id="hero-canvas"></canvas>
+  <div class="scroll-hint">SCROLL TO EXPLORE</div>
+</section>
+
+<section id="services">
+  <p class="section-label">// 001 — MODULI OPERATIVI</p>
+  <h2 class="section-title">SELECT MODULE</h2>
+  <div class="services-container">
+    <div class="sc tl"></div><div class="sc tr"></div>
+    <div class="sc bl"></div><div class="sc br"></div>
+    <p class="module-label">— SELEZIONA CATEGORIA —</p>
+    <div class="slider-row">
+      <button class="slider-btn" onclick="changeService(-1)">&#8592;</button>
+      <canvas id="services-canvas"></canvas>
+      <button class="slider-btn" onclick="changeService(1)">&#8594;</button>
+    </div>
+    <div class="service-dots">
+      <div class="dot active" onclick="setService(0)"></div>
+      <div class="dot" onclick="setService(1)"></div>
+      <div class="dot" onclick="setService(2)"></div>
+    </div>
+    <div class="service-info">
+      <div class="service-name fade-target" id="svc-name">WEB</div>
+      <div class="service-slogan fade-target" id="svc-slogan">Costruiamo esperienze che funzionano</div>
+      <div class="service-desc fade-target" id="svc-desc">Siti vetrina, e-commerce e web app performanti che vivono e crescono online.</div>
+      <a class="enter-btn" id="enter-btn" href="/servizi?cat=web"><span>&#9654; ENTER MODULE</span></a>
+    </div>
+  </div>
+</section>
+
+<section id="team" style="max-width:1100px;margin:0 auto;">
+  <p class="section-label">// 002 — UNITÀ OPERATIVE</p>
+  <h2 class="section-title">SELECT YOUR UNIT</h2>
+  <div class="team-container">
+    <div class="sc tl"></div><div class="sc tr"></div>
+    <div class="sc bl"></div><div class="sc br"></div>
+    <div class="unit-label">PLAYER SELECT</div>
+    <div class="team-counter fade-target" id="team-counter">01 / 10</div>
+    <div class="team-slider-row">
+      <button class="slider-btn" onclick="changeTeam(-1)">&#8592;</button>
+      <div class="team-avatar">
+        <div class="team-avatar-inner">
+          <div class="avatar-placeholder" id="avatar-display">
+            <div class="avatar-scan"></div>
+            <canvas id="avatar-canvas" width="154" height="154"></canvas>
+          </div>
+        </div>
+        <div class="fc tl"></div><div class="fc tr"></div>
+        <div class="fc bl"></div><div class="fc br"></div>
+      </div>
+      <button class="slider-btn" onclick="changeTeam(1)">&#8594;</button>
+    </div>
+    <div class="member-name fade-target" id="member-name">FILIPPO</div>
+    <div class="member-role fade-target" id="member-role">Systems Architect</div>
+    <div class="skills-terminal" id="skills-terminal">
+      <div class="terminal-line muted">&gt; initializing unit...</div>
+      <span class="terminal-cursor"></span>
+    </div>
+    <button class="contact-btn" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">&#9656; CONTACT</button>
+  </div>
+</section>
+
+<section id="about">
+  <div class="about-visual">
+    <canvas id="about-canvas"></canvas>
+  </div>
+  <div class="about-text">
+    <p class="section-label">// 003 — WHO WE ARE</p>
+    <div class="sep"></div>
+    <h2>Costruiamo il futuro digitale — da Bologna</h2>
+    <p>Siamo un team di designer, sviluppatori e creativi con una visione: trasformare ogni progetto digitale in un'esperienza memorabile.</p>
+    <p>Dalla grafica 3D ai sistemi automatizzati, affianchiamo le aziende in ogni fase del loro percorso digitale con cura, tecnologia e un pizzico di follia controllata.</p>
+    <a class="discover-btn" href="/servizi">&#9654; SCOPRI DI PIÙ</a>
+  </div>
+</section>
+
+<section id="contact">
+  <p class="section-label">// 004 — TRASMETTI SEGNALE</p>
+  <h2 class="section-title">CONTACT</h2>
+  <div class="contact-grid">
+    <div class="contact-info">
+      <div class="contact-item">
+        <span class="contact-item-label">EMAIL</span>
+        <span class="contact-item-value">hello@pluriagency.com</span>
+      </div>
+      <div class="contact-item">
+        <span class="contact-item-label">TELEFONO</span>
+        <span class="contact-item-value">+39 389 688 1004</span>
+      </div>
+      <div class="contact-item">
+        <span class="contact-item-label">SEDE</span>
+        <span class="contact-item-value">Bologna, Italia</span>
+      </div>
+    </div>
+    <form class="contact-form" onsubmit="sendContact(event)">
+      <input type="text" name="name" placeholder="NOME_" required>
+      <input type="email" name="email" placeholder="EMAIL_" required>
+      <textarea name="message" placeholder="MESSAGGIO_" required></textarea>
+      <button class="send-btn" type="submit" id="send-btn">&#9654; SEND SIGNAL</button>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">PLURIAGENCY</div>
+  <div class="footer-sub">MADE WITH <span>&#9829;</span> IN BOLOGNA — 2025</div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ===== SERVICES DATA =====
+const services = [
+  { key:'web', name:'WEB', color:0x00ff88, colorHex:'#00ff88',
+    slogan:'Costruiamo esperienze che funzionano',
+    desc:'Siti vetrina, e-commerce e web app performanti che vivono e crescono online.' },
+  { key:'grafics', name:'GRAFICS', color:0x9b5cff, colorHex:'#9b5cff',
+    slogan:'Diamo forma visiva alle idee',
+    desc:'Rendering, branding e visual design che fanno girare la testa.' },
+  { key:'servizi', name:'SERVIZI', color:0x00cfff, colorHex:'#00cfff',
+    slogan:'Automatizziamo e potenziamo il business',
+    desc:'Paper design, automazioni AI e marketing che portano risultati concreti.' }
+];
+
+// ===== TEAM DATA =====
+const team = [
+  { name:'FILIPPO', role:'Systems Architect', color:'#00ff88',
+    skills:['> AI Systems ✓','> Automazioni ✓','> Backend Dev ✓','> Data Analysis ✓'] },
+  { name:'CATERINA', role:'Web & Brand Consultant', color:'#00cfff',
+    skills:['> Analisi cliente ✓','> Strategia digitale ✓','> Identità visiva ✓','> Gestione progetti ✓'] },
+  { name:'HICHAME', role:'Full Stack Engineer', color:'#9b5cff',
+    skills:['> Frontend Dev ✓','> Backend Dev ✓','> API Integration ✓','> Database ✓'] },
+  { name:'COLLEGA', role:'Software Engineer', color:'#00ff88',
+    skills:['> Software modulare ✓','> Debugging ✓','> Problem solving ✓','> Performance ✓'] },
+  { name:'MATTEO', role:'Vibe Coding Specialist', color:'#ff88cc',
+    skills:['> Prototipazione rapida ✓','> UI creativa ✓','> Idee → Prodotti ✓','> Frontend ✓'] },
+  { name:'PATRICK', role:'Engineering Advisor', color:'#00cfff',
+    skills:['> Code review ✓','> Architettura ✓','> Sistemi complessi ✓','> Tech advisor ✓'] },
+  { name:'DAVIDE', role:'Business Developer', color:'#ffc04d',
+    skills:['> Dev commerciale ✓','> Partnership ✓','> Acquisizione clienti ✓','> Negoziazione ✓'] },
+  { name:'SALVATORE', role:'3D & Motion Designer', color:'#9b5cff',
+    skills:['> Modellazione 3D ✓','> Rendering ✓','> Motion graphics ✓','> Visual brand ✓'] },
+  { name:'MARCO', role:'Visual Storyteller', color:'#ff6b8a',
+    skills:['> Regia ✓','> Direzione creativa ✓','> Editing ✓','> Post-produzione ✓'] },
+  { name:'LORENZO', role:'Founder & Creative Director', color:'#c8a96e',
+    skills:['> Visione strategica ✓','> Concept digitale ✓','> Team & Progetti ✓','> Dir. creativa ✓'] }
+];
+
+// ===== PIXEL ART AVATAR =====
+function renderPixelArt(canvas, name, hexColor) {
+  const GRID = 7, PX = 22;
+  canvas.width = GRID * PX;
+  canvas.height = GRID * PX;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Seeded RNG
+  let s = 0;
+  for (let i = 0; i < name.length; i++) s = (Math.imul(31, s) + name.charCodeAt(i)) | 0;
+  const rng = () => { s ^= s << 13; s ^= s >> 17; s ^= s << 5; return (s >>> 0) / 0xffffffff; };
+
+  // Parse hex color
+  const c = parseInt(hexColor.replace('#',''), 16);
+  const [cr, cg, cb] = [(c>>16)&255, (c>>8)&255, c&255];
+  const dark = `rgba(${Math.round(cr*0.15)},${Math.round(cg*0.15)},${Math.round(cb*0.15)},1)`;
+
+  // Background fill
+  ctx.fillStyle = dark;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Symmetric pixel art (left half mirrored)
+  const half = Math.ceil(GRID / 2);
+  for (let y = 0; y < GRID; y++) {
+    for (let x = 0; x < half; x++) {
+      if (rng() > 0.45) {
+        const shade = 0.55 + rng() * 0.45;
+        ctx.fillStyle = `rgba(${Math.round(cr*shade)},${Math.round(cg*shade)},${Math.round(cb*shade)},1)`;
+        ctx.fillRect(x * PX, y * PX, PX, PX);
+        if (x < GRID - 1 - x) ctx.fillRect((GRID - 1 - x) * PX, y * PX, PX, PX);
+      }
+    }
+  }
+  // Force eyes row 2
+  ctx.fillStyle = `rgba(${cr},${cg},${cb},0.95)`;
+  ctx.fillRect(1*PX, 2*PX, PX, PX); ctx.fillRect(5*PX, 2*PX, PX, PX);
+  ctx.clearRect(2*PX, 2*PX, 3*PX, PX); // eye gap
+  ctx.fillRect(2*PX, 2*PX, PX, PX); ctx.fillRect(4*PX, 2*PX, PX, PX); // pupils
+  // Mouth row 5
+  ctx.fillRect(2*PX, 5*PX, PX, PX); ctx.fillRect(4*PX, 5*PX, PX, PX);
+  // Scanline overlay
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  for (let y = 0; y < GRID*PX; y += 2) ctx.fillRect(0, y, GRID*PX, 1);
+}
+
+// ===== HERO 3D =====
+const HERO_GLB = document.querySelector('meta[name="hero-model"]')?.content || '';
+
+(function initHero() {
+  const canvas = document.getElementById('hero-canvas');
+  const W = canvas.clientWidth || 400, H = canvas.clientHeight || 400;
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(W, H);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
+  camera.position.z = 3.5;
+
+  // Core mesh
+  const geo = new THREE.IcosahedronGeometry(1, 1);
+  const mat = new THREE.MeshPhongMaterial({color:0x00ff88, wireframe:true, transparent:true, opacity:HERO_GLB?0:0.6});
+  const mesh = new THREE.Mesh(geo, mat); scene.add(mesh);
+
+  const innerGeo = new THREE.IcosahedronGeometry(0.6, 0);
+  const innerMat = new THREE.MeshPhongMaterial({color:0x9b5cff, transparent:true, opacity:HERO_GLB?0:0.4});
+  const inner = new THREE.Mesh(innerGeo, innerMat); scene.add(inner);
+
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.5,0.005,2,120),
+    new THREE.MeshBasicMaterial({color:0x00ff8840,transparent:true,opacity:0.4}));
+  ring.rotation.x = Math.PI/3; scene.add(ring);
+  const ring2 = new THREE.Mesh(new THREE.TorusGeometry(1.8,0.004,2,120),
+    new THREE.MeshBasicMaterial({color:0x9b5cff50,transparent:true,opacity:0.25}));
+  ring2.rotation.x = -Math.PI/4; ring2.rotation.z = Math.PI/6; scene.add(ring2);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+  const p1 = new THREE.PointLight(0x00ff88, 2, 10); p1.position.set(2,2,2); scene.add(p1);
+  const p2 = new THREE.PointLight(0x9b5cff, 1.5, 10); p2.position.set(-2,-1,1); scene.add(p2);
+
+  // GLB support — drop model.glb in /assets/ and set meta[name="hero-model"]
+  if (HERO_GLB) {
+    const loaderScript = document.createElement('script');
+    loaderScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
+    loaderScript.onload = () => {
+      const loader = new THREE.GLTFLoader();
+      loader.load(HERO_GLB, gltf => {
+        const box = new THREE.Box3().setFromObject(gltf.scene);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        gltf.scene.position.sub(center);
+        gltf.scene.scale.setScalar(2 / Math.max(size.x, size.y, size.z));
+        scene.add(gltf.scene);
+        mat.opacity = 0; innerMat.opacity = 0;
+      }, undefined, () => { mat.opacity = 0.6; innerMat.opacity = 0.4; });
+    };
+    document.head.appendChild(loaderScript);
+  }
+
+  let isDragging=false, prevX=0, prevY=0, vX=0, vY=0, t=0;
+  canvas.addEventListener('mousedown', e=>{isDragging=true;prevX=e.clientX;prevY=e.clientY;});
+  window.addEventListener('mousemove', e=>{
+    if(!isDragging)return; vX=(e.clientX-prevX)*0.01; vY=(e.clientY-prevY)*0.01;
+    mesh.rotation.y+=vX; mesh.rotation.x+=vY; prevX=e.clientX; prevY=e.clientY;});
+  window.addEventListener('mouseup',()=>isDragging=false);
+  canvas.addEventListener('touchstart',e=>{prevX=e.touches[0].clientX;prevY=e.touches[0].clientY;},{passive:true});
+  canvas.addEventListener('touchmove',e=>{
+    vX=(e.touches[0].clientX-prevX)*0.01; vY=(e.touches[0].clientY-prevY)*0.01;
+    mesh.rotation.y+=vX; mesh.rotation.x+=vY;
+    prevX=e.touches[0].clientX; prevY=e.touches[0].clientY; e.preventDefault();},{passive:false});
+
+  (function animate(){
+    requestAnimationFrame(animate); t+=0.01;
+    if(!isDragging){mesh.rotation.y+=vX*0.95;mesh.rotation.x+=vY*0.95;vX*=0.95;vY*=0.95;mesh.rotation.y+=0.003;}
+    inner.rotation.y-=0.008; inner.rotation.x+=0.004;
+    ring.rotation.z+=0.003; ring2.rotation.z-=0.002;
+    p1.position.x=Math.sin(t)*2.5; p1.position.y=Math.cos(t*0.7)*2;
+    mesh.scale.setScalar(1+Math.sin(t*0.5)*0.03);
+    renderer.render(scene,camera);
+  })();
+})();
+
+// ===== SERVICES 3D =====
+let svcScene, svcRenderer, svcCamera, svcMesh, svcLight1, svcCurrentIdx=0;
+let svcDragging=false, svcPrevX=0, svcVX=0;
+(function initServices(){
+  const canvas = document.getElementById('services-canvas');
+  const W = canvas.clientWidth||280, H=canvas.clientHeight||280;
+  svcRenderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  svcRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2)); svcRenderer.setSize(W,H);
+  svcScene=new THREE.Scene(); svcCamera=new THREE.PerspectiveCamera(55,1,0.1,100);
+  svcCamera.position.z=3;
+  svcScene.add(new THREE.AmbientLight(0xffffff,0.3));
+  svcLight1=new THREE.PointLight(0x00ff88,2.5,10); svcLight1.position.set(2,2,2); svcScene.add(svcLight1);
+  svcScene.add(Object.assign(new THREE.PointLight(0x9b5cff,1.5,10),{position:new THREE.Vector3(-2,-1,1)}));
+  buildServiceMesh(0);
+  canvas.addEventListener('mousedown',e=>{svcDragging=true;svcPrevX=e.clientX;});
+  window.addEventListener('mousemove',e=>{if(!svcDragging)return;svcVX=(e.clientX-svcPrevX)*0.015;if(svcMesh)svcMesh.rotation.y+=svcVX;svcPrevX=e.clientX;});
+  window.addEventListener('mouseup',()=>svcDragging=false);
+  let t2=0;
+  (function animSvc(){
+    requestAnimationFrame(animSvc); t2+=0.01;
+    if(svcMesh){if(!svcDragging){svcMesh.rotation.y+=svcVX*0.93;svcVX*=0.93;svcMesh.rotation.y+=0.005;}
+      svcMesh.rotation.x+=0.002; svcMesh.scale.setScalar(1+Math.sin(t2*0.6)*0.04);}
+    svcLight1.position.x=Math.sin(t2)*2; svcLight1.position.y=Math.cos(t2*0.8)*1.5;
+    svcRenderer.render(svcScene,svcCamera);
+  })();
+})();
+
+function buildServiceMesh(idx){
+  if(svcMesh){svcScene.remove(svcMesh);svcMesh.geometry.dispose();}
+  const s=services[idx]; let geo;
+  if(idx===0) geo=new THREE.BoxGeometry(1.4,1.4,1.4);
+  else if(idx===1) geo=new THREE.IcosahedronGeometry(1,2);
+  else geo=new THREE.TorusKnotGeometry(0.7,0.25,100,16);
+  svcMesh=new THREE.Mesh(geo,new THREE.MeshPhongMaterial({color:s.color,wireframe:true,transparent:true,opacity:0.75}));
+  svcScene.add(svcMesh); svcLight1.color.set(s.color);
+}
+function setService(idx){
+  svcCurrentIdx=idx; buildServiceMesh(idx);
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  document.querySelectorAll('.fade-target').forEach(e=>e.classList.add('fading'));
+  setTimeout(()=>{
+    const s=services[idx];
+    document.getElementById('svc-name').textContent=s.name;
+    document.getElementById('svc-name').style.color=s.colorHex;
+    document.getElementById('svc-slogan').textContent=s.slogan;
+    document.getElementById('svc-desc').textContent=s.desc;
+    document.getElementById('enter-btn').href=`/servizi?cat=${s.key}`;
+    document.querySelectorAll('.fade-target').forEach(e=>e.classList.remove('fading'));
+  },300);
+}
+function changeService(dir){setService((svcCurrentIdx+dir+3)%3);}
+
+// ===== ABOUT 3D =====
+(function initAbout(){
+  const canvas=document.getElementById('about-canvas');
+  if(!canvas)return;
+  const W=canvas.parentElement.clientWidth||400,H=300;
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2)); renderer.setSize(W,H);
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(55,W/H,0.1,100); camera.position.z=3.5;
+  scene.add(new THREE.AmbientLight(0xffffff,0.2));
+  const l=new THREE.PointLight(0x00cfff,2,10); l.position.set(2,1,2); scene.add(l);
+  const geo=new THREE.BufferGeometry();
+  const pts=[];
+  for(let x=-3;x<=3;x+=0.5)for(let y=-2;y<=2;y+=0.5)pts.push(x,y,Math.sin(x)*Math.cos(y)*0.5);
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));
+  const points=new THREE.Points(geo,new THREE.PointsMaterial({color:0x00cfff,size:0.04,transparent:true,opacity:0.6}));
+  scene.add(points); let t=0;
+  (function anim(){requestAnimationFrame(anim);t+=0.005;
+    points.rotation.y+=0.003; points.rotation.x=Math.sin(t)*0.2;
+    renderer.render(scene,camera);})();
+})();
+
+// ===== TEAM =====
+let teamIdx=0, skillTimeout=null;
+function changeTeam(dir){ teamIdx=(teamIdx+dir+team.length)%team.length; updateTeam(); }
+function updateTeam(){
+  const m=team[teamIdx];
+  document.querySelectorAll('.fade-target').forEach(e=>e.classList.add('fading'));
+  setTimeout(()=>{
+    document.getElementById('member-name').textContent=m.name;
+    document.getElementById('member-role').textContent=m.role;
+    document.getElementById('team-counter').textContent=`${String(teamIdx+1).padStart(2,'0')} / ${String(team.length).padStart(2,'0')}`;
+    document.querySelectorAll('.fade-target').forEach(e=>e.classList.remove('fading'));
+  },250);
+  renderPixelArt(document.getElementById('avatar-canvas'), m.name, m.color);
+  document.getElementById('avatar-display').style.background=`rgba(0,0,0,0.5)`;
+  if(skillTimeout)clearTimeout(skillTimeout);
+  const terminal=document.getElementById('skills-terminal');
+  terminal.innerHTML='<div class="terminal-line muted">&gt; initializing unit...</div><span class="terminal-cursor"></span>';
+  let i=0;
+  function addSkill(){
+    if(i>=m.skills.length)return;
+    terminal.innerHTML+=`<div class="terminal-line" style="color:${m.color}">${m.skills[i]}</div>`;
+    i++; skillTimeout=setTimeout(addSkill,340);
+  }
+  skillTimeout=setTimeout(addSkill,600);
+}
+updateTeam();
+
+// ===== CONTACT FORM =====
+async function sendContact(e){
+  e.preventDefault();
+  const form=e.target, btn=document.getElementById('send-btn');
+  const data={
+    name:form.name.value,
+    email:form.email.value,
+    message:form.message.value,
+    site:'pluriagency.com'
+  };
+  btn.textContent='⟳ INVIO...'; btn.disabled=true;
+  try{
+    const r=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    if(r.ok){btn.textContent='✓ INVIATO';form.reset();}
+    else{btn.textContent='✗ ERRORE — RIPROVA';btn.disabled=false;}
+  }catch{btn.textContent='✗ CONNESSIONE — RIPROVA';btn.disabled=false;}
+}
+
+// ===== NAV MOBILE =====
+function toggleMenu(){
+  const links=document.querySelector('.nav-links');
+  const isVisible=links.style.display==='flex';
+  links.style.cssText=isVisible?'display:none':'display:flex;position:fixed;top:60px;left:0;right:0;flex-direction:column;background:rgba(6,6,8,0.97);padding:20px;gap:16px;border-bottom:1px solid rgba(255,255,255,0.07);z-index:99;';
+}
+
+// Scroll reveal
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.style.animation='fadeUp 0.8s forwards';});
+},{threshold:0.1});
+document.querySelectorAll('section').forEach(s=>observer.observe(s));
+</script>
+</body>
+</html>

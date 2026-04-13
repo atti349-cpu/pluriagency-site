@@ -369,26 +369,27 @@ const services = [
 ];
 
 // ===== TEAM DATA =====
+const BRAND = '#00ff88';
 const team = [
-  { name:'FILIPPO', role:'Systems Architect', color:'#00ff88',
+  { name:'FILIPPO', role:'Systems Architect', color:BRAND,
     skills:['> AI Systems ✓','> Automazioni ✓','> Backend Dev ✓','> Data Analysis ✓'] },
-  { name:'CATERINA', role:'Web & Brand Consultant', color:'#00cfff',
+  { name:'CATERINA', role:'Web & Brand Consultant', color:BRAND,
     skills:['> Analisi cliente ✓','> Strategia digitale ✓','> Identità visiva ✓','> Gestione progetti ✓'] },
-  { name:'HICHAME', role:'Full Stack Engineer', color:'#9b5cff',
+  { name:'HICHAME', role:'Full Stack Engineer', color:BRAND,
     skills:['> Frontend Dev ✓','> Backend Dev ✓','> API Integration ✓','> Database ✓'] },
-  { name:'COLLEGA', role:'Software Engineer', color:'#00ff88',
+  { name:'COLLEGA', role:'Software Engineer', color:BRAND,
     skills:['> Software modulare ✓','> Debugging ✓','> Problem solving ✓','> Performance ✓'] },
-  { name:'MATTEO', role:'Vibe Coding Specialist', color:'#ff88cc',
+  { name:'MATTEO', role:'Vibe Coding Specialist', color:BRAND,
     skills:['> Prototipazione rapida ✓','> UI creativa ✓','> Idee → Prodotti ✓','> Frontend ✓'] },
-  { name:'PATRICK', role:'Engineering Advisor', color:'#00cfff',
+  { name:'PATRICK', role:'Engineering Advisor', color:BRAND,
     skills:['> Code review ✓','> Architettura ✓','> Sistemi complessi ✓','> Tech advisor ✓'] },
-  { name:'DAVIDE', role:'Business Developer', color:'#ffc04d',
+  { name:'DAVIDE', role:'Business Developer', color:BRAND,
     skills:['> Dev commerciale ✓','> Partnership ✓','> Acquisizione clienti ✓','> Negoziazione ✓'] },
-  { name:'SALVATORE', role:'3D & Motion Designer', color:'#9b5cff',
+  { name:'SALVATORE', role:'3D & Motion Designer', color:BRAND,
     skills:['> Modellazione 3D ✓','> Rendering ✓','> Motion graphics ✓','> Visual brand ✓'] },
-  { name:'MARCO', role:'Visual Storyteller', color:'#ff6b8a',
+  { name:'MARCO', role:'Visual Storyteller', color:BRAND,
     skills:['> Regia ✓','> Direzione creativa ✓','> Editing ✓','> Post-produzione ✓'] },
-  { name:'LORENZO', role:'Founder & Creative Director', color:'#c8a96e',
+  { name:'LORENZO', role:'Founder & Creative Director', color:BRAND,
     skills:['> Visione strategica ✓','> Concept digitale ✓','> Team & Progetti ✓','> Dir. creativa ✓'] }
 ];
 
@@ -516,9 +517,9 @@ try { (function initHero() {
 // ===== SERVICES 3D =====
 let svcScene, svcRenderer, svcCamera, svcMesh, svcLight1, svcCurrentIdx=0;
 let svcDragging=false, svcPrevX=0, svcVX=0;
-try { (function initServices(){
+requestAnimationFrame(function(){try { (function initServices(){
   const canvas = document.getElementById('services-canvas');
-  const W = canvas.clientWidth||280, H=canvas.clientHeight||280;
+  const W = canvas.offsetWidth||280, H=canvas.offsetHeight||280;
   svcRenderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
   svcRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2)); svcRenderer.setSize(W,H);
   svcScene=new THREE.Scene(); svcCamera=new THREE.PerspectiveCamera(55,1,0.1,100);
@@ -538,7 +539,7 @@ try { (function initServices(){
     svcLight1.position.x=Math.sin(t2)*2; svcLight1.position.y=Math.cos(t2*0.8)*1.5;
     svcRenderer.render(svcScene,svcCamera);
   })();
-})(); } catch(e){ console.warn('Services 3D init failed:', e); }
+})(); } catch(e){ console.warn('Services 3D init failed:', e); }});
 
 function buildServiceMesh(idx){
   if(svcMesh){svcScene.remove(svcMesh);svcMesh.geometry.dispose();}
@@ -566,10 +567,10 @@ function setService(idx){
 function changeService(dir){setService((svcCurrentIdx+dir+3)%3);}
 
 // ===== ABOUT 3D =====
-try { (function initAbout(){
+requestAnimationFrame(function(){ try { (function initAbout(){
   const canvas=document.getElementById('about-canvas');
   if(!canvas)return;
-  const W=canvas.parentElement.clientWidth||400,H=300;
+  const W=canvas.parentElement.offsetWidth||400,H=300;
   const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,2)); renderer.setSize(W,H);
   const scene=new THREE.Scene();
@@ -585,7 +586,7 @@ try { (function initAbout(){
   (function anim(){requestAnimationFrame(anim);t+=0.005;
     points.rotation.y+=0.003; points.rotation.x=Math.sin(t)*0.2;
     renderer.render(scene,camera);})();
-})(); } catch(e){ console.warn('About 3D init failed:', e); }
+})(); } catch(e){ console.warn('About 3D init failed:', e); }});
 
 // ===== TEAM =====
 let teamIdx=0, skillTimeout=null;
@@ -594,7 +595,8 @@ function updateTeam(){
   const m=team[teamIdx];
   document.querySelectorAll('.fade-target').forEach(e=>e.classList.add('fading'));
   setTimeout(()=>{
-    document.getElementById('member-name').textContent=m.name;
+    const nameEl=document.getElementById('member-name');
+    nameEl.textContent=m.name; nameEl.style.color=m.color; nameEl.style.textShadow=`0 0 20px ${m.color}60`;
     document.getElementById('member-role').textContent=m.role;
     document.getElementById('team-counter').textContent=`${String(teamIdx+1).padStart(2,'0')} / ${String(team.length).padStart(2,'0')}`;
     document.querySelectorAll('.fade-target').forEach(e=>e.classList.remove('fading'));

@@ -235,9 +235,9 @@ let dragActive=false, dragPrevX=0, dragVX=0;
 const urlCat=new URLSearchParams(window.location.search).get('cat');
 if(urlCat&&data[urlCat])currentCat=urlCat;
 
-try { (function init3D(){
+requestAnimationFrame(function(){ try { (function init3D(){
   const canvas=document.getElementById('svc-canvas');
-  const W=Math.min(canvas.parentElement.clientWidth||300, 300), H=W;
+  const W=Math.min(canvas.parentElement.offsetWidth||300, 300), H=W;
   svcRenderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
   svcRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2)); svcRenderer.setSize(W,H);
   svcScene=new THREE.Scene(); svcCamera=new THREE.PerspectiveCamera(55,1,0.1,100);
@@ -258,7 +258,7 @@ try { (function init3D(){
     if(window._svcL1){window._svcL1.position.x=Math.sin(t)*2;window._svcL1.position.y=Math.cos(t*0.7)*1.5;}
     svcRenderer.render(svcScene,svcCamera);
   })();
-})(); } catch(e){ console.warn('Servizi 3D init failed:', e); document.querySelector('.svc-3d-wrap').style.display='none'; }
+})(); } catch(e){ console.warn('Servizi 3D init failed:', e); const w=document.querySelector('.svc-3d-wrap'); if(w)w.style.display='none'; }});
 
 function buildMesh(){
   if(!svcScene) return;

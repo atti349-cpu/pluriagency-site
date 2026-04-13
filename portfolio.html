@@ -33,9 +33,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   display:flex;align-items:center;gap:8px;}
 .nav-back:hover{color:var(--g1);}
 .nav-cta{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;
-  padding:8px 18px;border:1px solid var(--g1);color:var(--g1);background:transparent;
+  padding:8px 18px;border:1px solid var(--g3);color:var(--g3);background:transparent;
   cursor:pointer;text-transform:uppercase;transition:all 0.2s;text-decoration:none;}
-.nav-cta:hover{background:var(--g1);color:#000;}
+.nav-cta:hover{background:var(--g3);color:#000;}
 
 /* HERO */
 .port-hero{padding:120px 40px 48px;text-align:center;position:relative;
@@ -146,6 +146,13 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .cta-btn:hover::before{transform:translateX(0);}
 .cta-btn:hover span{color:#000;}
 
+footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
+.footer-logo{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;letter-spacing:6px;
+  color:var(--g1);text-shadow:0 0 20px rgba(0,255,136,0.3);}
+.footer-sub{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:3px;margin-top:8px;}
+.footer-sub span{color:#ff6b8a;}
+.footer-info{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1.5px;margin-top:10px;opacity:0.6;}
+
 @media(max-width:768px){
   nav{padding:0 16px;height:54px;}
   .nav-logo{font-size:15px;letter-spacing:3px;}
@@ -165,7 +172,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 
 <nav>
   <a href="/" class="nav-logo">PLURIAGENCY</a>
-  <a href="/#contact" class="nav-cta">Inizia</a>
+  <a href="/demo" class="nav-cta">Demo</a>
 </nav>
 
 <div class="port-hero">
@@ -440,5 +447,12 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeLightbox(); })
 // Init
 buildGrid('all');
 </script>
+
+<footer>
+  <div class="footer-logo">PLURIAGENCY</div>
+  <div class="footer-sub">MADE WITH <span>&#9829;</span> IN BOLOGNA — 2025</div>
+  <div class="footer-info">hello@pluriagency.com &nbsp;·&nbsp; +39 389 688 1004 &nbsp;·&nbsp; Bologna, Italia &nbsp;·&nbsp; P.IVA 99999999999</div>
+</footer>
+
 </body>
 </html>

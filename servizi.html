@@ -213,6 +213,7 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
   color:var(--g1);text-shadow:0 0 20px rgba(0,255,136,0.3);margin-bottom:10px;}
 .footer-sub{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:3px;}
 .footer-sub span{color:#ff6b8a;}
+.footer-info{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1.5px;margin-top:10px;opacity:0.6;}
 
 /* TOAST */
 .brief-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9000;
@@ -279,7 +280,7 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
   <a href="/" class="nav-logo">PLURIAGENCY</a>
   <div class="nav-actions">
     <a class="nav-portfolio" href="/portfolio"><span>&#9656; PORTFOLIO</span></a>
-    <a class="nav-cta" href="/#contact">Contatti</a>
+    <a class="nav-cta" href="#contact" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'});return false;">Inizia</a>
   </div>
 </nav>
 
@@ -364,6 +365,7 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
 <footer>
   <div class="footer-logo">PLURIAGENCY</div>
   <div class="footer-sub">MADE WITH <span>&#9829;</span> IN BOLOGNA — 2025</div>
+  <div class="footer-info">hello@pluriagency.com &nbsp;·&nbsp; +39 389 688 1004 &nbsp;·&nbsp; Bologna, Italia &nbsp;·&nbsp; P.IVA 99999999999</div>
 </footer>
 
 <div class="brief-overlay" id="brief-overlay" onclick="closeBriefToast()"></div>

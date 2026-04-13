@@ -244,7 +244,7 @@ requestAnimationFrame(function(){ try { (function init3D(){
   svcCamera.position.z=3.2;
   svcScene.add(new THREE.AmbientLight(0xffffff,0.3));
   const l1=new THREE.PointLight(0xffffff,2,10); l1.position.set(2,2,2); svcScene.add(l1);
-  svcScene.add(Object.assign(new THREE.PointLight(0x9b5cff,1.2,10),{position:new THREE.Vector3(-2,-1,1)}));
+  const svcL2=new THREE.PointLight(0x9b5cff,1.2,10); svcL2.position.set(-2,-1,1); svcScene.add(svcL2);
   window._svcL1=l1;
   buildMesh();
   canvas.addEventListener('mousedown',e=>{dragActive=true;dragPrevX=e.clientX;});

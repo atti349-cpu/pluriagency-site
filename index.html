@@ -35,8 +35,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .nav-links a{font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:2px;
   color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
 .nav-links a:hover{color:var(--g1);}
+.nav-actions{display:flex;align-items:center;gap:8px;}
 .nav-portfolio{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;
-  padding:8px 20px;border:1px solid var(--g2);color:var(--g2);background:transparent;
+  padding:8px 18px;border:1px solid var(--g2);color:var(--g2);background:transparent;
   cursor:pointer;text-transform:uppercase;transition:all 0.2s;text-decoration:none;
   position:relative;overflow:hidden;}
 .nav-portfolio::before{content:'';position:absolute;inset:0;background:var(--g2);
@@ -45,7 +46,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .nav-portfolio:hover::before{transform:translateX(0);}
 .nav-portfolio:hover span{color:#000;}
 .nav-cta{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;
-  padding:8px 20px;border:1px solid var(--g1);color:var(--g1);background:transparent;
+  padding:8px 18px;border:1px solid var(--g1);color:var(--g1);background:transparent;
   cursor:pointer;text-transform:uppercase;transition:all 0.2s;}
 .nav-cta:hover{background:var(--g1);color:#000;}
 .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;}
@@ -216,17 +217,35 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
 
 /* RESPONSIVE */
 @media(max-width:768px){
-  nav{padding:16px 20px;}
+  nav{padding:14px 20px;gap:8px;}
   .nav-links{display:none;}
   .nav-portfolio{display:none;}
+  .nav-actions{gap:6px;}
+  .nav-cta{padding:7px 14px;font-size:10px;}
   .hamburger{display:flex;}
+  #hero{padding:90px 16px 40px;}
+  .hero-sub{font-size:13px;}
+  #hero-canvas{width:min(300px,85vw);height:min(300px,85vw);margin:24px auto 12px;}
+  section{padding:52px 16px;}
+  .section-title{font-size:clamp(18px,5vw,26px);}
+  .services-container{padding:32px 16px 28px;}
+  .slider-row{flex-direction:column;gap:12px;}
+  #services-canvas{width:min(220px,75vw);height:min(220px,75vw);}
+  .slider-btn{width:36px;height:36px;font-size:16px;}
+  .service-name{font-size:clamp(20px,6vw,32px);}
+  .team-container{padding:32px 16px 28px;}
+  .team-slider-row{gap:12px;}
+  .team-avatar{width:min(140px,42vw);height:min(140px,42vw);}
+  .member-name{font-size:clamp(16px,5vw,22px);}
+  .skills-terminal{padding:12px 14px;font-size:12px;}
   #about{grid-template-columns:1fr;}
   .about-visual{display:none;}
+  .about-text h2{font-size:clamp(16px,5vw,22px);}
   .contact-grid{grid-template-columns:1fr;}
-  section{padding:60px 20px;}
-  .slider-row{flex-direction:column;}
-  #services-canvas{width:min(240px,80vw);height:min(240px,80vw);}
-  footer{padding:40px 20px;}
+  .contact-form textarea{min-height:80px;}
+  .send-btn{width:100%;}
+  footer{padding:32px 20px;}
+  .footer-logo{font-size:20px;}
 }
 </style>
 </head>
@@ -241,8 +260,10 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
     <li><a href="/portfolio" style="color:var(--g2)">Portfolio</a></li>
     <li><a href="#contact">Contatti</a></li>
   </ul>
-  <a class="nav-portfolio" href="/portfolio"><span>&#9656; PORTFOLIO</span></a>
-  <button class="nav-cta" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Inizia</button>
+  <div class="nav-actions">
+    <a class="nav-portfolio" href="/portfolio"><span>&#9656; PORTFOLIO</span></a>
+    <button class="nav-cta" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Inizia</button>
+  </div>
   <button class="hamburger" onclick="toggleMenu()">
     <span></span><span></span><span></span>
   </button>
@@ -538,7 +559,7 @@ requestAnimationFrame(function(){try { (function initServices(){
   svcCamera.position.z=3;
   svcScene.add(new THREE.AmbientLight(0xffffff,0.3));
   svcLight1=new THREE.PointLight(0x00ff88,2.5,10); svcLight1.position.set(2,2,2); svcScene.add(svcLight1);
-  svcScene.add(Object.assign(new THREE.PointLight(0x9b5cff,1.5,10),{position:new THREE.Vector3(-2,-1,1)}));
+  const svcL2=new THREE.PointLight(0x9b5cff,1.5,10); svcL2.position.set(-2,-1,1); svcScene.add(svcL2);
   buildServiceMesh(0);
   canvas.addEventListener('mousedown',e=>{svcDragging=true;svcPrevX=e.clientX;});
   window.addEventListener('mousemove',e=>{if(!svcDragging)return;svcVX=(e.clientX-svcPrevX)*0.015;if(svcMesh)svcMesh.rotation.y+=svcVX;svcPrevX=e.clientX;});

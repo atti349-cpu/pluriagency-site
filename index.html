@@ -100,7 +100,7 @@ section{padding:80px 20px;max-width:1100px;margin:0 auto;}
 .module-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:5px;
   color:var(--g2);margin-bottom:32px;}
 .slider-row{display:flex;align-items:center;justify-content:center;}
-.slider-nav{display:flex;gap:12px;justify-content:center;margin-top:20px;}
+.slider-nav{display:flex;gap:12px;justify-content:center;margin:20px 0 8px;}
 .slider-btn{width:44px;height:44px;border:1px solid var(--border);background:transparent;
   color:var(--muted);font-size:20px;cursor:pointer;display:flex;align-items:center;
   justify-content:center;transition:all 0.2s;flex-shrink:0;}
@@ -219,14 +219,14 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
 
 /* RESPONSIVE */
 @media(max-width:768px){
-  nav{padding:0 16px;height:54px;position:relative;}
-  .nav-logo{position:absolute;left:50%;transform:translateX(-50%);font-size:15px;letter-spacing:3px;}
+  nav{padding:0 16px;height:54px;}
+  .nav-logo{font-size:15px;letter-spacing:3px;}
   .nav-links{display:none;}
   .nav-portfolio{display:none;}
   .nav-actions{gap:0;}
-  .hamburger{display:flex;order:-1;}
+  .hamburger{display:none;}
   .nav-cta{padding:7px 12px;font-size:10px;letter-spacing:1px;}
-  #hero{padding:90px 16px 40px;}
+  #hero{padding:74px 16px 40px;}
   .hero-sub{font-size:13px;}
   #hero-canvas{width:min(300px,85vw);height:min(300px,85vw);margin:24px auto 12px;}
   section{padding:52px 16px;}
@@ -295,10 +295,6 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
     <div class="slider-row">
       <canvas id="services-canvas"></canvas>
     </div>
-    <div class="slider-nav">
-      <button class="slider-btn" onclick="changeService(-1)">&#8592;</button>
-      <button class="slider-btn" onclick="changeService(1)">&#8594;</button>
-    </div>
     <div class="service-dots">
       <div class="dot active" onclick="setService(0)"></div>
       <div class="dot" onclick="setService(1)"></div>
@@ -308,6 +304,10 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
       <div class="service-name fade-target" id="svc-name">WEB</div>
       <div class="service-slogan fade-target" id="svc-slogan">Costruiamo esperienze che funzionano</div>
       <div class="service-desc fade-target" id="svc-desc">Siti vetrina, e-commerce e web app performanti che vivono e crescono online.</div>
+      <div class="slider-nav">
+        <button class="slider-btn" onclick="changeService(-1)">&#8592;</button>
+        <button class="slider-btn" onclick="changeService(1)">&#8594;</button>
+      </div>
       <a class="enter-btn" id="enter-btn" href="/servizi?cat=web"><span>&#9654; ENTER MODULE</span></a>
     </div>
   </div>
@@ -355,7 +355,7 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
     <h2>Costruiamo il futuro digitale — da Bologna</h2>
     <p>Siamo un team di designer, sviluppatori e creativi con una visione: trasformare ogni progetto digitale in un'esperienza memorabile.</p>
     <p>Dalla grafica 3D ai sistemi automatizzati, affianchiamo le aziende in ogni fase del loro percorso digitale con cura, tecnologia e un pizzico di follia controllata.</p>
-    <a class="discover-btn" href="/servizi">&#9654; SCOPRI DI PIÙ</a>
+    <a class="discover-btn" href="/portfolio">&#9654; PORTFOLIO</a>
   </div>
 </section>
 

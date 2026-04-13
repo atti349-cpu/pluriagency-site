@@ -80,9 +80,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 
 /* MAIN LAYOUT */
 .services-main{max-width:1100px;margin:0 auto;padding:32px 40px;
-  display:grid;grid-template-columns:1fr 260px;gap:40px;align-items:center;}
+  display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;}
 .svc-3d-wrap{position:relative;display:flex;align-items:center;justify-content:center;
-  width:100%;max-width:280px;height:280px;align-self:center;}
+  width:100%;max-width:380px;height:380px;align-self:center;}
 .svc-3d-wrap canvas{display:block;width:100%!important;height:100%!important;cursor:grab;}
 .svc-3d-wrap canvas:active{cursor:grabbing;}
 .svc-3d-frame{position:absolute;inset:0;pointer-events:none;border:1px solid var(--border);}
@@ -210,13 +210,29 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
 .footer-sub{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:3px;}
 .footer-sub span{color:#ff6b8a;}
 
+/* SUB-TABS (mobile only) */
+.sub-tabs-row{display:none;}
+
 @media(max-width:768px){
-  nav{padding:16px 20px;}
-  .services-hero{padding:72px 20px 8px;}
-  .tabs-section{padding:8px 20px 0;}
+  nav{padding:0 16px;height:54px;}
+  .nav-logo{font-size:15px;letter-spacing:2px;}
+  .nav-portfolio{display:none;}
+  .nav-cta{font-size:10px;padding:7px 12px;letter-spacing:1px;}
+  .services-hero{padding:68px 20px 6px;}
+  .tabs-section{padding:8px 20px 0;top:54px;}
   .slogan-bar{padding:10px 20px;font-size:11px;}
+  .sub-tabs-row{display:flex;overflow-x:auto;background:rgba(6,6,8,0.95);
+    border-bottom:1px solid var(--border);padding:0 16px;gap:0;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;}
+  .sub-tabs-row::-webkit-scrollbar{display:none;}
+  .sub-tab{flex-shrink:0;padding:10px 14px;font-family:'Share Tech Mono',monospace;
+    font-size:9px;letter-spacing:1.5px;text-transform:uppercase;background:transparent;
+    color:var(--muted);border:none;border-bottom:2px solid transparent;cursor:pointer;
+    white-space:nowrap;transition:all 0.2s;}
+  .sub-tab.active{border-bottom-color:currentColor;}
   .services-main{grid-template-columns:1fr;padding:20px 20px;gap:20px;}
-  .svc-3d-wrap{width:100%;max-width:100%;margin:0 auto;}
+  .svc-3d-wrap{width:min(260px,85vw);height:min(260px,85vw);max-width:none;margin:0 auto;}
+  .svc-nav-btn{display:none;}
   .all-services{padding:0 20px 40px;}
   .contact-module-wrap{padding:0 20px 48px;}
   .contact-module-inner{padding:28px 20px;}
@@ -249,6 +265,7 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
   </div>
 </div>
 <div class="slogan-bar"><span id="cat-slogan">Costruiamo esperienze che funzionano davvero</span></div>
+<div class="sub-tabs-row" id="sub-tabs-row"></div>
 
 <div class="services-main">
   <div class="svc-3d-wrap" id="svc-3d-wrap">
@@ -401,7 +418,18 @@ function switchCat(cat,btn){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));
   document.getElementById('cat-slogan').textContent=data[cat].slogan;
   updateFrameColor(data[cat].color);
-  buildMesh(); renderContent(); renderCards();
+  buildMesh(); renderContent(); renderCards(); renderSubTabs();
+}
+
+function renderSubTabs(){
+  const items=data[currentCat].items, cat=data[currentCat];
+  const row=document.getElementById('sub-tabs-row');
+  if(!row)return;
+  row.innerHTML=items.map((item,i)=>
+    `<button class="sub-tab${i===currentItem?' active':''}"
+      style="${i===currentItem?'color:'+cat.color+';border-bottom-color:'+cat.color:''}"
+      onclick="setItem(${i})">${item.name}</button>`
+  ).join('');
 }
 function updateFrameColor(c){
   ['frame-tl','frame-tr','frame-bl','frame-br'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.color=c;});
@@ -433,6 +461,7 @@ function renderContent(){
     const dotsEl=document.getElementById('svc-dots');
     dotsEl.innerHTML=items.map((_,i)=>`<div class="svc-dot${i===currentItem?' active':''}" style="${i===currentItem?'background:'+cat.color+';border-color:'+cat.color+';width:20px':''};color:${cat.color}" onclick="setItem(${i})"></div>`).join('');
     document.querySelectorAll('.fade-t').forEach(e=>e.classList.remove('fading'));
+    renderSubTabs();
   },280);
 }
 

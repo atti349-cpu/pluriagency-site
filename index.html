@@ -184,25 +184,54 @@ section{padding:80px 20px;max-width:1100px;margin:0 auto;}
   cursor:pointer;display:inline-block;margin-top:8px;text-decoration:none;transition:all 0.2s;}
 .discover-btn:hover{background:var(--g3);color:#000;}
 
-/* CONTACT */
+/* CONTACT / BRIEF */
 #contact{max-width:1100px;text-align:center;}
-.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;text-align:left;margin-top:40px;}
-.contact-info{display:flex;flex-direction:column;gap:20px;}
-.contact-item{display:flex;flex-direction:column;gap:4px;padding:20px;
+.contact-grid{display:grid;grid-template-columns:1fr 220px;gap:48px;text-align:left;margin-top:40px;}
+.contact-info{display:flex;flex-direction:column;gap:16px;}
+.contact-item{display:flex;flex-direction:column;gap:4px;padding:18px 20px;
   border:1px solid var(--border);background:var(--panel);}
-.contact-item-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--g2);}
-.contact-item-value{font-size:15px;color:var(--text);}
-.contact-form{display:flex;flex-direction:column;gap:12px;}
-.contact-form input,.contact-form textarea{background:var(--panel);border:1px solid var(--border);
-  color:var(--text);padding:14px 16px;font-family:'Inter',sans-serif;font-size:14px;
-  outline:none;transition:border-color 0.2s;}
-.contact-form input:focus,.contact-form textarea:focus{border-color:var(--g1);}
-.contact-form textarea{resize:vertical;min-height:100px;}
-.send-btn{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;padding:14px 32px;
-  border:1px solid var(--g1);color:var(--g1);background:transparent;cursor:pointer;
-  text-transform:uppercase;transition:all 0.2s;align-self:flex-start;}
-.send-btn:hover{background:var(--g1);color:#000;}
-.send-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.contact-item-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--g2);}
+.contact-item-value{font-size:14px;color:var(--text);}
+/* Brief shared styles */
+.brief-step{margin-bottom:28px;}
+.brief-step-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:4px;
+  color:var(--g2);text-transform:uppercase;margin-bottom:12px;
+  display:flex;align-items:center;gap:12px;}
+.brief-step-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.brief-cats{display:flex;gap:8px;flex-wrap:wrap;}
+.brief-cat{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;
+  padding:8px 20px;border:1px solid var(--border);background:transparent;color:var(--muted);
+  cursor:pointer;text-transform:uppercase;transition:all 0.2s;outline:none;}
+.brief-cat:hover:not(.active){color:var(--text);border-color:var(--border2);}
+.brief-cat.active[data-cat="web"]{color:var(--g1);border-color:var(--g1);background:rgba(0,255,136,0.07);}
+.brief-cat.active[data-cat="grafics"]{color:var(--g2);border-color:var(--g2);background:rgba(155,92,255,0.07);}
+.brief-cat.active[data-cat="servizi"]{color:var(--g3);border-color:var(--g3);background:rgba(0,207,255,0.07);}
+.brief-subcats{display:flex;gap:8px;flex-wrap:wrap;min-height:36px;margin-top:4px;}
+.brief-sub{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1.5px;
+  padding:7px 14px;border:1px solid var(--border);background:transparent;color:var(--muted);
+  cursor:pointer;text-transform:uppercase;transition:all 0.2s;outline:none;}
+.brief-sub:hover:not(:disabled):not(.selected){color:var(--text);border-color:var(--border2);}
+.brief-sub.selected{background:rgba(0,0,0,0.5);}
+.brief-sub:disabled{opacity:0.28;cursor:not-allowed;}
+.brief-counter{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;
+  color:var(--muted);margin-top:10px;opacity:0.6;}
+.brief-input{display:block;width:100%;background:var(--panel);border:1px solid var(--border);
+  color:var(--text);padding:13px 16px;font-family:'Inter',sans-serif;font-size:14px;
+  outline:none;transition:border-color 0.2s;margin-bottom:10px;}
+.brief-input:focus{border-color:var(--g1);}
+.brief-input::placeholder{color:var(--muted);}
+.brief-textarea{resize:vertical;min-height:80px;}
+.brief-submit{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;
+  padding:13px 32px;border:1px solid var(--g1);color:var(--g1);background:transparent;
+  cursor:pointer;text-transform:uppercase;transition:all 0.2s;
+  position:relative;overflow:hidden;}
+.brief-submit::before{content:'';position:absolute;inset:0;background:var(--g1);
+  transform:translateX(-100%);transition:transform 0.25s;}
+.brief-submit span{position:relative;z-index:1;}
+.brief-submit:hover::before{transform:translateX(0);}
+.brief-submit:hover span{color:#000;}
+.brief-submit:disabled{opacity:0.5;cursor:not-allowed;}
+.brief-submit:disabled::before{display:none;}
 
 /* FOOTER */
 footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
@@ -245,8 +274,9 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
   .about-visual{display:none;}
   .about-text h2{font-size:clamp(16px,5vw,22px);}
   .contact-grid{grid-template-columns:1fr;}
-  .contact-form textarea{min-height:80px;}
-  .send-btn{width:100%;}
+  .brief-cats{gap:6px;}
+  .brief-cat{font-size:9px;padding:7px 14px;letter-spacing:1px;}
+  .brief-submit{width:100%;}
   footer{padding:32px 20px;}
   .footer-logo{font-size:20px;}
 }
@@ -363,6 +393,28 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
   <p class="section-label">// 004 — TRASMETTI SEGNALE</p>
   <h2 class="section-title">CONTACT</h2>
   <div class="contact-grid">
+    <div>
+      <div class="brief-step">
+        <div class="brief-step-label">01 // AREA DI INTERESSE</div>
+        <div class="brief-cats">
+          <button class="brief-cat active" data-cat="web" onclick="briefSelectCat('web',this)">&#x25C8; WEB</button>
+          <button class="brief-cat" data-cat="grafics" onclick="briefSelectCat('grafics',this)">&#x25C8; GRAFICS</button>
+          <button class="brief-cat" data-cat="servizi" onclick="briefSelectCat('servizi',this)">&#x25C8; SERVIZI</button>
+        </div>
+      </div>
+      <div class="brief-step">
+        <div class="brief-step-label">02 // SERVIZI — MAX 3</div>
+        <div class="brief-subcats" id="brief-subcats"></div>
+        <div class="brief-counter" id="brief-counter">0 / 3 selezionati</div>
+      </div>
+      <div class="brief-step">
+        <div class="brief-step-label">03 // TRASMETTI</div>
+        <input type="text" class="brief-input" id="brief-name" placeholder="NOME_">
+        <input type="email" class="brief-input" id="brief-email" placeholder="EMAIL_">
+        <textarea class="brief-input brief-textarea" id="brief-msg" placeholder="MESSAGGIO OPZIONALE_"></textarea>
+        <button class="brief-submit" id="brief-submit" onclick="sendBrief()"><span>&#9654; SEND SIGNAL</span></button>
+      </div>
+    </div>
     <div class="contact-info">
       <div class="contact-item">
         <span class="contact-item-label">EMAIL</span>
@@ -377,12 +429,6 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
         <span class="contact-item-value">Bologna, Italia</span>
       </div>
     </div>
-    <form class="contact-form" onsubmit="sendContact(event)">
-      <input type="text" name="name" placeholder="NOME_" required>
-      <input type="email" name="email" placeholder="EMAIL_" required>
-      <textarea name="message" placeholder="MESSAGGIO_" required></textarea>
-      <button class="send-btn" type="submit" id="send-btn">&#9654; SEND SIGNAL</button>
-    </form>
   </div>
 </section>
 
@@ -712,22 +758,59 @@ function updateTeam(){
 updateTeam();
 
 // ===== CONTACT FORM =====
-async function sendContact(e){
-  e.preventDefault();
-  const form=e.target, btn=document.getElementById('send-btn');
-  const data={
-    name:form.name.value,
-    email:form.email.value,
-    message:form.message.value,
-    site:'pluriagency.com'
-  };
-  btn.textContent='⟳ INVIO...'; btn.disabled=true;
-  try{
-    const r=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-    if(r.ok){btn.textContent='✓ INVIATO';form.reset();}
-    else{btn.textContent='✗ ERRORE — RIPROVA';btn.disabled=false;}
-  }catch{btn.textContent='✗ CONNESSIONE — RIPROVA';btn.disabled=false;}
+// ===== BRIEF CONTACT =====
+const briefCats = {
+  web:     { color:'#00ff88', items:['SITO VETRINA','E-COMMERCE','WEB APP'] },
+  grafics: { color:'#9b5cff', items:['RENDERING 3D','BRAND IDENTITY','VISUAL DESIGN'] },
+  servizi: { color:'#00cfff', items:['PAPER DESIGN','AUTOMAZIONI & AI','MARKETING'] }
+};
+let briefActiveCat='web', briefSelected=[];
+
+function briefSelectCat(cat){
+  briefActiveCat=cat;
+  document.querySelectorAll('.brief-cat').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));
+  renderBriefSubcats();
 }
+function renderBriefSubcats(){
+  const cat=briefCats[briefActiveCat];
+  document.getElementById('brief-subcats').innerHTML=cat.items.map(item=>{
+    const sel=briefSelected.includes(item);
+    const dis=!sel&&briefSelected.length>=3;
+    return `<button class="brief-sub${sel?' selected':''}"
+      style="${sel?'color:'+cat.color+';border-color:'+cat.color+'55;':''}"
+      ${dis?'disabled':''}
+      onclick="toggleBriefSub('${item}')">${item}</button>`;
+  }).join('');
+  document.getElementById('brief-counter').textContent=briefSelected.length+' / 3 selezionati';
+}
+function toggleBriefSub(item){
+  const i=briefSelected.indexOf(item);
+  if(i>-1)briefSelected.splice(i,1);
+  else if(briefSelected.length<3)briefSelected.push(item);
+  renderBriefSubcats();
+}
+async function sendBrief(){
+  const btn=document.getElementById('brief-submit');
+  const name=document.getElementById('brief-name').value.trim();
+  const email=document.getElementById('brief-email').value.trim();
+  const msg=document.getElementById('brief-msg').value.trim();
+  if(!name||!email){alert('Nome e email sono obbligatori');return;}
+  btn.disabled=true; btn.querySelector('span').textContent='⟳ TRASMISSIONE...';
+  const sel=briefSelected.length?briefSelected.join(', '):'—';
+  const fullMsg=`Area: ${briefActiveCat.toUpperCase()}\nServizi: ${sel}\n\n${msg||'(nessun messaggio)'}`;
+  try{
+    const r=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,email,message:fullMsg,site:'pluriagency.com'})});
+    if(r.ok){
+      btn.querySelector('span').textContent='✓ SEGNALE TRASMESSO';
+      setTimeout(()=>{btn.querySelector('span').textContent='▶ SEND SIGNAL';btn.disabled=false;},4000);
+    }else throw new Error();
+  }catch{
+    btn.querySelector('span').textContent='✕ ERRORE — RIPROVA';
+    setTimeout(()=>{btn.querySelector('span').textContent='▶ SEND SIGNAL';btn.disabled=false;},3000);
+  }
+}
+briefSelectCat('web');
 
 // ===== NAV MOBILE =====
 function toggleMenu(){

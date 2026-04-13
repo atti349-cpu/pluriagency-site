@@ -50,7 +50,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 }
 
 /* HERO */
-.services-hero{padding:72px 40px 8px;text-align:center;position:relative;
+.services-hero{padding:68px 40px 4px;text-align:center;position:relative;
   background:linear-gradient(180deg,rgba(0,255,136,0.03) 0%,transparent 40%);}
 .hero-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:5px;
   color:var(--g2);margin-bottom:8px;}
@@ -163,7 +163,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .crd-note{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;
   color:var(--muted);opacity:0.5;text-align:center;margin-top:20px;padding-bottom:8px;}
 
-/* CONTACT MODULE */
+/* BRIEF CONTACT MODULE */
 .contact-module-wrap{max-width:1100px;margin:0 auto;padding:0 40px 60px;}
 .contact-module-inner{background:var(--panel);border:1px solid var(--border);
   padding:40px;position:relative;overflow:hidden;}
@@ -171,37 +171,47 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   width:320px;height:320px;background:radial-gradient(circle,rgba(0,255,136,0.05) 0%,transparent 70%);
   pointer-events:none;}
 .module-label2{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:5px;
-  color:var(--g2);text-transform:uppercase;margin-bottom:12px;}
-.cmod-sub{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:28px;max-width:500px;}
-.area-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:28px;}
-.area-btn{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;
-  padding:10px 26px;border:1px solid var(--border);background:transparent;color:var(--muted);
-  cursor:pointer;text-transform:uppercase;transition:all 0.2s;position:relative;overflow:hidden;}
-.area-btn::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.2s;}
-.area-btn.active[data-cat="web"]{color:var(--g1);border-color:var(--g1);background:rgba(0,255,136,0.08);
-  box-shadow:0 0 16px rgba(0,255,136,0.15);}
-.area-btn.active[data-cat="grafics"]{color:var(--g2);border-color:var(--g2);background:rgba(155,92,255,0.08);
-  box-shadow:0 0 16px rgba(155,92,255,0.15);}
-.area-btn.active[data-cat="servizi"]{color:var(--g3);border-color:var(--g3);background:rgba(0,207,255,0.08);
-  box-shadow:0 0 16px rgba(0,207,255,0.15);}
-.cmod-fields{display:flex;flex-direction:column;gap:10px;max-width:480px;margin:0 auto;}
-.cmod-input{background:var(--panel2);border:1px solid var(--border);color:var(--text);
-  padding:12px 14px;font-family:'Share Tech Mono',monospace;font-size:12px;
-  outline:none;transition:border-color 0.2s;letter-spacing:0.05em;}
-.cmod-input:focus{border-color:var(--g1);box-shadow:0 0 0 1px rgba(0,255,136,0.15);}
-.cmod-input::placeholder{color:var(--muted);}
-.cmod-textarea{resize:vertical;min-height:72px;font-family:'Inter',sans-serif;font-size:13px;}
-.cmod-submit{width:100%;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;
+  color:var(--g2);text-transform:uppercase;margin-bottom:28px;}
+/* Brief shared */
+.brief-step{margin-bottom:28px;}
+.brief-step-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:4px;
+  color:var(--g2);text-transform:uppercase;margin-bottom:12px;
+  display:flex;align-items:center;gap:12px;}
+.brief-step-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.brief-cats{display:flex;gap:8px;flex-wrap:wrap;}
+.brief-cat{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;
+  padding:8px 20px;border:1px solid var(--border);background:transparent;color:var(--muted);
+  cursor:pointer;text-transform:uppercase;transition:all 0.2s;outline:none;}
+.brief-cat:hover:not(.active){color:var(--text);border-color:rgba(255,255,255,0.13);}
+.brief-cat.active[data-cat="web"]{color:var(--g1);border-color:var(--g1);background:rgba(0,255,136,0.07);}
+.brief-cat.active[data-cat="grafics"]{color:var(--g2);border-color:var(--g2);background:rgba(155,92,255,0.07);}
+.brief-cat.active[data-cat="servizi"]{color:var(--g3);border-color:var(--g3);background:rgba(0,207,255,0.07);}
+.brief-subcats{display:flex;gap:8px;flex-wrap:wrap;min-height:36px;margin-top:4px;}
+.brief-sub{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1.5px;
+  padding:7px 14px;border:1px solid var(--border);background:transparent;color:var(--muted);
+  cursor:pointer;text-transform:uppercase;transition:all 0.2s;outline:none;}
+.brief-sub:hover:not(:disabled):not(.selected){color:var(--text);border-color:rgba(255,255,255,0.13);}
+.brief-sub.selected{background:rgba(0,0,0,0.5);}
+.brief-sub:disabled{opacity:0.28;cursor:not-allowed;}
+.brief-counter{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;
+  color:var(--muted);margin-top:10px;opacity:0.6;}
+.brief-input{display:block;width:100%;background:var(--panel2);border:1px solid var(--border);
+  color:var(--text);padding:12px 14px;font-family:'Inter',sans-serif;font-size:14px;
+  outline:none;transition:border-color 0.2s;margin-bottom:10px;}
+.brief-input:focus{border-color:var(--g1);}
+.brief-input::placeholder{color:var(--muted);}
+.brief-textarea{resize:vertical;min-height:72px;}
+.brief-submit{width:100%;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;
   letter-spacing:3px;padding:13px 20px;border:1px solid var(--g1);color:var(--g1);
   background:transparent;cursor:pointer;text-transform:uppercase;transition:all 0.2s;
-  position:relative;overflow:hidden;margin-top:4px;}
-.cmod-submit::before{content:'';position:absolute;inset:0;background:var(--g1);
+  position:relative;overflow:hidden;}
+.brief-submit::before{content:'';position:absolute;inset:0;background:var(--g1);
   transform:translateX(-100%);transition:transform 0.25s;}
-.cmod-submit span{position:relative;z-index:1;}
-.cmod-submit:hover::before{transform:translateX(0);}
-.cmod-submit:hover span{color:#000;}
-.cmod-submit:disabled{opacity:0.5;cursor:not-allowed;}
-.cmod-submit:disabled::before{display:none;}
+.brief-submit span{position:relative;z-index:1;}
+.brief-submit:hover::before{transform:translateX(0);}
+.brief-submit:hover span{color:#000;}
+.brief-submit:disabled{opacity:0.5;cursor:not-allowed;}
+.brief-submit:disabled::before{display:none;}
 
 /* FOOTER */
 footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
@@ -215,7 +225,7 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
 
 @media(max-width:768px){
   nav{padding:0 16px;height:54px;}
-  .nav-logo{font-size:15px;letter-spacing:2px;}
+  .nav-logo{font-size:15px;letter-spacing:3px;}
   .nav-portfolio{display:none;}
   .nav-cta{font-size:10px;padding:7px 12px;letter-spacing:1px;}
   .services-hero{padding:68px 20px 6px;}
@@ -264,8 +274,8 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
     <button class="tab-btn" data-cat="servizi" onclick="switchCat('servizi',this)">&#x2756; SERVIZI</button>
   </div>
 </div>
-<div class="slogan-bar"><span id="cat-slogan">Costruiamo esperienze che funzionano davvero</span></div>
 <div class="sub-tabs-row" id="sub-tabs-row"></div>
+<div class="slogan-bar"><span id="cat-slogan">Costruiamo esperienze che funzionano davvero</span></div>
 
 <div class="services-main">
   <div class="svc-3d-wrap" id="svc-3d-wrap">
@@ -302,17 +312,26 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
 
 <div class="contact-module-wrap">
   <div class="contact-module-inner">
-    <p class="module-label2">// RICHIEDI INFORMAZIONI</p>
-    <p class="cmod-sub">Seleziona uno o più moduli di interesse e inviaci una richiesta — ti rispondiamo in giornata.</p>
-    <div class="area-btns" id="area-btns">
-      <button class="area-btn" data-cat="web" data-color="var(--g1)" onclick="toggleArea(this)">&#x2756; WEB</button>
-      <button class="area-btn" data-cat="grafics" data-color="var(--g2)" onclick="toggleArea(this)">&#x2756; GRAFICS</button>
-      <button class="area-btn" data-cat="servizi" data-color="var(--g3)" onclick="toggleArea(this)">&#x2756; SERVIZI</button>
+    <p class="module-label2">// BRIEF.EXE — RICHIEDI INFORMAZIONI</p>
+    <div class="brief-step">
+      <div class="brief-step-label">01 // AREA DI INTERESSE</div>
+      <div class="brief-cats">
+        <button class="brief-cat active" data-cat="web" onclick="briefSelectCat('web')">&#x25C8; WEB</button>
+        <button class="brief-cat" data-cat="grafics" onclick="briefSelectCat('grafics')">&#x25C8; GRAFICS</button>
+        <button class="brief-cat" data-cat="servizi" onclick="briefSelectCat('servizi')">&#x25C8; SERVIZI</button>
+      </div>
     </div>
-    <div class="cmod-fields">
-      <input class="cmod-input" id="cmod-email" type="email" placeholder="LA TUA EMAIL_">
-      <textarea class="cmod-input cmod-textarea" id="cmod-msg" placeholder="MESSAGGIO OPZIONALE_"></textarea>
-      <button class="cmod-submit" id="cmod-btn" onclick="sendModuleContact()">
+    <div class="brief-step">
+      <div class="brief-step-label">02 // SERVIZI — MAX 3</div>
+      <div class="brief-subcats" id="brief-subcats"></div>
+      <div class="brief-counter" id="brief-counter">0 / 3 selezionati</div>
+    </div>
+    <div class="brief-step">
+      <div class="brief-step-label">03 // TRASMETTI</div>
+      <input type="text" class="brief-input" id="brief-name" placeholder="NOME_">
+      <input type="email" class="brief-input" id="brief-email" placeholder="EMAIL_">
+      <textarea class="brief-input brief-textarea" id="brief-msg" placeholder="MESSAGGIO OPZIONALE_"></textarea>
+      <button class="brief-submit" id="brief-submit" onclick="sendBrief()">
         <span>&#9654; INVIA RICHIESTA</span>
       </button>
     </div>
@@ -481,45 +500,62 @@ switchCat(currentCat, document.querySelector(`.tab-btn[data-cat="${currentCat}"]
 updateFrameColor(data[currentCat].color);
 
 // ===== CONTACT MODULE =====
-function toggleArea(btn){
-  btn.classList.toggle('active');
+// ===== BRIEF CONTACT =====
+const briefCats = {
+  web:     { color: data.web.color,     items: data.web.items.map(i=>i.name) },
+  grafics: { color: data.grafics.color, items: data.grafics.items.map(i=>i.name) },
+  servizi: { color: data.servizi.color, items: data.servizi.items.map(i=>i.name) }
+};
+let briefActiveCat='web', briefSelected=[];
+
+function briefSelectCat(cat){
+  briefActiveCat=cat;
+  document.querySelectorAll('.brief-cat').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));
+  renderBriefSubcats();
 }
-
-async function sendModuleContact(){
-  const areas = [...document.querySelectorAll('.area-btn.active')].map(b=>b.dataset.cat);
-  const email = document.getElementById('cmod-email').value.trim();
-  const msg   = document.getElementById('cmod-msg').value.trim();
-  if(!areas.length){ alert('Seleziona almeno un modulo di interesse.'); return; }
-  if(!email){ alert('Inserisci la tua email.'); return; }
-
-  const btn = document.getElementById('cmod-btn');
-  btn.querySelector('span').textContent = '⟳ INVIO...';
-  btn.disabled = true;
-
-  const labelMap = {web:'WEB', grafics:'GRAFICS', servizi:'SERVIZI'};
-  const areaLabels = areas.map(a=>labelMap[a]||a).join(', ');
-
-  try {
-    const r = await fetch('/api/contact', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        name: `Richiesta moduli: ${areaLabels}`,
-        email,
-        message: `Moduli di interesse: ${areaLabels}\n\n${msg||'(nessun messaggio aggiuntivo)'}`
-      })
-    });
+function renderBriefSubcats(){
+  const cat=briefCats[briefActiveCat];
+  const el=document.getElementById('brief-subcats');
+  if(!el)return;
+  el.innerHTML=cat.items.map(item=>{
+    const sel=briefSelected.includes(item);
+    const dis=!sel&&briefSelected.length>=3;
+    return `<button class="brief-sub${sel?' selected':''}"
+      style="${sel?'color:'+cat.color+';border-color:'+cat.color+'55;':''}"
+      ${dis?'disabled':''}
+      onclick="toggleBriefSub('${item}')">${item}</button>`;
+  }).join('');
+  const counter=document.getElementById('brief-counter');
+  if(counter)counter.textContent=briefSelected.length+' / 3 selezionati';
+}
+function toggleBriefSub(item){
+  const i=briefSelected.indexOf(item);
+  if(i>-1)briefSelected.splice(i,1);
+  else if(briefSelected.length<3)briefSelected.push(item);
+  renderBriefSubcats();
+}
+async function sendBrief(){
+  const btn=document.getElementById('brief-submit');
+  const name=document.getElementById('brief-name').value.trim();
+  const email=document.getElementById('brief-email').value.trim();
+  const msg=document.getElementById('brief-msg').value.trim();
+  if(!name||!email){alert('Nome e email sono obbligatori');return;}
+  btn.disabled=true; btn.querySelector('span').textContent='⟳ TRASMISSIONE...';
+  const sel=briefSelected.length?briefSelected.join(', '):'—';
+  const fullMsg=`Area: ${briefActiveCat.toUpperCase()}\nServizi: ${sel}\n\n${msg||'(nessun messaggio)'}`;
+  try{
+    const r=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,email,message:fullMsg,site:'pluriagency.com'})});
     if(r.ok){
-      btn.querySelector('span').textContent = '✓ RICHIESTA INVIATA';
-    } else {
-      btn.querySelector('span').textContent = '✗ ERRORE — RIPROVA';
-      btn.disabled = false;
-    }
-  } catch {
-    btn.querySelector('span').textContent = '✗ CONNESSIONE — RIPROVA';
-    btn.disabled = false;
+      btn.querySelector('span').textContent='✓ RICHIESTA INVIATA';
+      setTimeout(()=>{btn.querySelector('span').textContent='▶ INVIA RICHIESTA';btn.disabled=false;},4000);
+    }else throw new Error();
+  }catch{
+    btn.querySelector('span').textContent='✕ ERRORE — RIPROVA';
+    setTimeout(()=>{btn.querySelector('span').textContent='▶ INVIA RICHIESTA';btn.disabled=false;},3000);
   }
 }
+briefSelectCat('web');
 
 window.addEventListener('resize',()=>{
   const canvas=document.getElementById('svc-canvas');

@@ -28,20 +28,21 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
 .nav-logo{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;letter-spacing:4px;
   color:var(--g1);text-shadow:0 0 20px rgba(0,255,136,0.5);text-decoration:none;}
+.nav-crd-note{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;
+  color:var(--muted);display:none;text-transform:lowercase;}
+@media(min-width:640px){.nav-crd-note{display:block;}}
 .nav-back{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;
   color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color 0.2s;
   display:flex;align-items:center;gap:8px;}
 .nav-back:hover{color:var(--g1);}
 
 /* HERO */
-.services-hero{padding:80px 40px 16px;text-align:center;position:relative;
+.services-hero{padding:72px 40px 8px;text-align:center;position:relative;
   background:linear-gradient(180deg,rgba(0,255,136,0.03) 0%,transparent 40%);}
 .hero-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:5px;
   color:var(--g2);margin-bottom:8px;}
 .hero-title-svc{font-family:'Orbitron',monospace;font-size:clamp(22px,4vw,40px);
   font-weight:900;letter-spacing:3px;color:var(--text);}
-.hero-sub-svc{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;
-  color:var(--muted);margin-top:6px;}
 
 /* TABS */
 .tabs-section{padding:12px 40px 0;position:sticky;top:64px;z-index:50;
@@ -66,9 +67,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 
 /* MAIN LAYOUT */
 .services-main{max-width:1100px;margin:0 auto;padding:32px 40px;
-  display:grid;grid-template-columns:300px 1fr;gap:40px;align-items:center;}
-.svc-3d-wrap{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;max-width:300px;}
-.svc-3d-wrap canvas{display:block;}
+  display:grid;grid-template-columns:1fr 260px;gap:40px;align-items:center;}
+.svc-3d-wrap{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;width:100%;}
+.svc-3d-wrap canvas{display:block;width:100%!important;height:auto!important;}
 .svc-3d-frame{position:absolute;inset:0;pointer-events:none;border:1px solid var(--border);}
 .sc{position:absolute;width:20px;height:20px;}
 .sc.tl{top:0;left:0;border-top:2px solid currentColor;border-left:2px solid currentColor;}
@@ -94,15 +95,29 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .svc-dots{display:flex;gap:6px;margin-bottom:24px;align-items:center;}
 .svc-dot{width:5px;height:5px;border:1px solid var(--muted);cursor:pointer;transition:all 0.3s;}
 .svc-dot.active{width:20px;background:currentColor;border-color:currentColor;}
-.svc-nav{display:flex;gap:12px;}
-.svc-nav-btn{width:40px;height:40px;border:1px solid var(--border);background:transparent;
-  color:var(--muted);font-size:18px;cursor:pointer;display:flex;align-items:center;
-  justify-content:center;transition:all 0.2s;}
+/* CRD + NAV ROW (arrows integrated with price badge) */
+.crd-nav-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+.svc-nav-btn{width:36px;height:36px;border:1px solid var(--border);background:transparent;
+  color:var(--muted);font-size:16px;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;transition:all 0.2s;flex-shrink:0;}
 .svc-nav-btn:hover{border-color:currentColor;color:var(--text);}
+.svc-nav{display:none;}
 .svc-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
 .tag{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;
   padding:5px 12px;border:1px solid var(--border);color:var(--muted);transition:all 0.3s;}
 .tag.active{border-color:currentColor;color:currentColor;background:rgba(0,0,0,0.5);}
+
+/* CRD CONVERSION BANNER */
+.crd-convert{max-width:1100px;margin:0 auto;padding:0 40px 48px;}
+.crd-convert-inner{border:1px solid var(--border);background:var(--panel);
+  padding:18px 28px;display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;}
+.crd-convert-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;
+  color:var(--g1);text-transform:uppercase;margin-bottom:4px;}
+.crd-convert-rate{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;
+  color:var(--g1);text-shadow:0 0 16px rgba(0,255,136,0.3);letter-spacing:2px;}
+.crd-convert-note{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;
+  color:var(--muted);line-height:1.7;max-width:420px;}
 
 /* ALL SERVICES GRID */
 .all-services{max-width:1100px;margin:0 auto;padding:0 40px 60px;}
@@ -129,16 +144,25 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .fade-t{transition:opacity 0.3s,transform 0.3s;}
 .fade-t.fading{opacity:0;transform:translateY(10px);}
 
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
+.footer-logo{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;letter-spacing:6px;
+  color:var(--g1);text-shadow:0 0 20px rgba(0,255,136,0.3);margin-bottom:10px;}
+.footer-sub{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:3px;}
+.footer-sub span{color:#ff6b8a;}
+
 @media(max-width:768px){
   nav{padding:16px 20px;}
-  .services-hero{padding:80px 20px 12px;}
+  .services-hero{padding:72px 20px 8px;}
   .tabs-section{padding:8px 20px 0;}
   .slogan-bar{padding:10px 20px;font-size:11px;}
-  .services-main{grid-template-columns:1fr;padding:24px 20px;gap:24px;}
-  .svc-3d-wrap{max-height:220px;max-width:220px;margin:0 auto;}
+  .services-main{grid-template-columns:1fr;padding:20px 20px;gap:20px;}
+  .svc-3d-wrap{width:100%;max-width:100%;margin:0 auto;}
   .all-services{padding:0 20px 40px;}
+  .crd-convert{padding:0 20px 40px;}
   .svc-cards{grid-template-columns:1fr;}
   .tab-btn{font-size:10px;letter-spacing:1px;padding:14px 8px;}
+  footer{padding:32px 20px;}
 }
 </style>
 </head>
@@ -146,13 +170,13 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 
 <nav>
   <a href="/" class="nav-logo">PLURIAGENCY</a>
+  <span class="nav-crd-note">prezzi in CRD — valuta di scambio digitale</span>
   <a href="/" class="nav-back">&#8592; HOME</a>
 </nav>
 
 <div class="services-hero">
   <p class="hero-label">// CATALOGO SERVIZI</p>
   <h1 class="hero-title-svc">SCEGLI IL TUO MODULO</h1>
-  <p class="hero-sub-svc">prezzi indicati in CRD — valuta di scambio digitale</p>
 </div>
 
 <div class="tabs-section">
@@ -178,16 +202,16 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
     <div class="svc-number fade-t" id="svc-num">01 / 03</div>
     <div class="svc-title fade-t" id="svc-title">SITO VETRINA</div>
     <div class="svc-desc-long fade-t" id="svc-desc">La tua presenza online che convince al primo colpo.</div>
-    <div class="crd-badge fade-t" id="svc-crd">
-      <span class="crd-label">CRD</span>
-      <span class="crd-value" id="crd-value">2.400</span>
+    <div class="crd-nav-row">
+      <button class="svc-nav-btn" id="prev-btn" onclick="changeItem(-1)">&#8592;</button>
+      <div class="crd-badge fade-t" id="svc-crd">
+        <span class="crd-label">CRD</span>
+        <span class="crd-value" id="crd-value">2.400</span>
+      </div>
+      <button class="svc-nav-btn" id="next-btn" onclick="changeItem(1)">&#8594;</button>
     </div>
     <div class="svc-tags" id="svc-tags"></div>
     <div class="svc-dots" id="svc-dots"></div>
-    <div class="svc-nav">
-      <button class="svc-nav-btn" id="prev-btn" onclick="changeItem(-1)">&#8592;</button>
-      <button class="svc-nav-btn" id="next-btn" onclick="changeItem(1)">&#8594;</button>
-    </div>
   </div>
 </div>
 
@@ -195,6 +219,24 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   <div class="all-services-label">TUTTI I SERVIZI</div>
   <div class="svc-cards" id="svc-cards"></div>
 </div>
+
+<div class="crd-convert">
+  <div class="crd-convert-inner">
+    <div>
+      <div class="crd-convert-label">// CONVERTI I PREZZI</div>
+      <div class="crd-convert-rate">1 CRD = 1 €</div>
+    </div>
+    <div class="crd-convert-note">
+      CRD è la valuta interna Pluriagency — usata per quotare i servizi in modo trasparente.<br>
+      Ogni preventivo viene poi formalizzato in Euro nella proposta ufficiale.
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">PLURIAGENCY</div>
+  <div class="footer-sub">MADE WITH <span>&#9829;</span> IN BOLOGNA — 2025</div>
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script>
@@ -237,7 +279,7 @@ if(urlCat&&data[urlCat])currentCat=urlCat;
 
 requestAnimationFrame(function(){ try { (function init3D(){
   const canvas=document.getElementById('svc-canvas');
-  const W=Math.min(canvas.parentElement.offsetWidth||300, 300), H=W;
+  const W=canvas.parentElement.offsetWidth||400, H=W;
   svcRenderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
   svcRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2)); svcRenderer.setSize(W,H);
   svcScene=new THREE.Scene(); svcCamera=new THREE.PerspectiveCamera(55,1,0.1,100);
@@ -250,6 +292,10 @@ requestAnimationFrame(function(){ try { (function init3D(){
   canvas.addEventListener('mousedown',e=>{dragActive=true;dragPrevX=e.clientX;});
   window.addEventListener('mousemove',e=>{if(!dragActive)return;dragVX=(e.clientX-dragPrevX)*0.015;if(svcMesh)svcMesh.rotation.y+=dragVX;dragPrevX=e.clientX;});
   window.addEventListener('mouseup',()=>dragActive=false);
+  // Touch support for mobile
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();dragActive=true;dragPrevX=e.touches[0].clientX;},{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!dragActive)return;const tx=e.touches[0].clientX;dragVX=(tx-dragPrevX)*0.015;if(svcMesh)svcMesh.rotation.y+=dragVX;dragPrevX=tx;},{passive:false});
+  canvas.addEventListener('touchend',()=>dragActive=false);
   let t=0;
   (function anim(){
     requestAnimationFrame(anim); t+=0.01;

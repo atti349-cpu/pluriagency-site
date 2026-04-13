@@ -233,6 +233,27 @@ section{padding:80px 20px;max-width:1100px;margin:0 auto;}
 .brief-submit:disabled{opacity:0.5;cursor:not-allowed;}
 .brief-submit:disabled::before{display:none;}
 
+/* TOAST */
+.brief-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9000;
+  opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.brief-overlay.visible{opacity:1;pointer-events:auto;}
+.brief-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.88);
+  background:var(--panel);border:1px solid var(--g1);box-shadow:0 0 60px rgba(0,255,136,0.25);
+  padding:44px 52px;z-index:9001;opacity:0;pointer-events:none;transition:all 0.3s;
+  text-align:center;min-width:280px;}
+.brief-toast.visible{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto;}
+.brief-toast-icon{font-size:44px;color:var(--g1);text-shadow:0 0 24px rgba(0,255,136,0.5);
+  margin-bottom:16px;line-height:1;}
+.brief-toast-title{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;
+  letter-spacing:3px;color:var(--g1);margin-bottom:10px;}
+.brief-toast-sub{font-family:'Share Tech Mono',monospace;font-size:11px;
+  color:var(--muted);letter-spacing:1.5px;line-height:1.7;}
+.brief-toast-close{margin-top:24px;font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:2px;padding:8px 24px;border:1px solid var(--border);background:transparent;
+  color:var(--muted);cursor:pointer;text-transform:uppercase;transition:all 0.2s;display:block;margin-left:auto;margin-right:auto;}
+.brief-toast-close:hover{border-color:var(--g1);color:var(--g1);}
+@media(max-width:480px){.brief-toast{padding:32px 28px;min-width:240px;}.brief-toast-title{font-size:13px;}}
+
 /* FOOTER */
 footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
 .footer-logo{font-family:'Orbitron',monospace;font-size:24px;font-weight:900;letter-spacing:6px;
@@ -436,6 +457,14 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
   <div class="footer-logo">PLURIAGENCY</div>
   <div class="footer-sub">MADE WITH <span>&#9829;</span> IN BOLOGNA — 2025</div>
 </footer>
+
+<div class="brief-overlay" id="brief-overlay" onclick="closeBriefToast()"></div>
+<div class="brief-toast" id="brief-toast">
+  <div class="brief-toast-icon">✓</div>
+  <div class="brief-toast-title">SEGNALE TRASMESSO</div>
+  <div class="brief-toast-sub">Richiesta ricevuta.<br>Ti rispondiamo entro poche ore.</div>
+  <button class="brief-toast-close" onclick="closeBriefToast()">&#10005; CHIUDI</button>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script>
@@ -796,19 +825,32 @@ async function sendBrief(){
   const msg=document.getElementById('brief-msg').value.trim();
   if(!name||!email){alert('Nome e email sono obbligatori');return;}
   btn.disabled=true; btn.querySelector('span').textContent='⟳ TRASMISSIONE...';
-  const sel=briefSelected.length?briefSelected.join(', '):'—';
-  const fullMsg=`Area: ${briefActiveCat.toUpperCase()}\nServizi: ${sel}\n\n${msg||'(nessun messaggio)'}`;
   try{
     const r=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({name,email,message:fullMsg,site:'pluriagency.com'})});
+      body:JSON.stringify({
+        name, email, message: msg,
+        area: briefActiveCat.toUpperCase(),
+        services: briefSelected,
+        site:'pluriagency.com'
+      })});
     if(r.ok){
+      showBriefToast();
       btn.querySelector('span').textContent='✓ SEGNALE TRASMESSO';
-      setTimeout(()=>{btn.querySelector('span').textContent='▶ SEND SIGNAL';btn.disabled=false;},4000);
+      setTimeout(()=>{btn.querySelector('span').textContent='▶ SEND SIGNAL';btn.disabled=false;},5000);
     }else throw new Error();
   }catch{
     btn.querySelector('span').textContent='✕ ERRORE — RIPROVA';
     setTimeout(()=>{btn.querySelector('span').textContent='▶ SEND SIGNAL';btn.disabled=false;},3000);
   }
+}
+function showBriefToast(){
+  document.getElementById('brief-toast').classList.add('visible');
+  document.getElementById('brief-overlay').classList.add('visible');
+  setTimeout(closeBriefToast,5000);
+}
+function closeBriefToast(){
+  document.getElementById('brief-toast').classList.remove('visible');
+  document.getElementById('brief-overlay').classList.remove('visible');
 }
 briefSelectCat('web');
 

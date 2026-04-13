@@ -104,6 +104,10 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   display:none;}
 .summary-count.visible{display:inline;}
 .summary-lines{padding:.5rem 1.25rem;min-height:100px;max-height:260px;overflow-y:auto;}
+.summary-lines::-webkit-scrollbar{width:3px;}
+.summary-lines::-webkit-scrollbar-track{background:transparent;}
+.summary-lines::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.summary-lines::-webkit-scrollbar-thumb:hover{background:var(--v);}
 .summary-empty{font-family:'Share Tech Mono',monospace;font-size:.72rem;color:var(--muted);
   padding:.5rem 0;letter-spacing:.05em;}
 .summary-line{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:.35rem;
@@ -169,6 +173,25 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--muted);
   letter-spacing:.1em;margin-top:2rem;}
 
+/* HOME BUTTON */
+.btn-home{font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--muted);background:transparent;
+  border:1px solid var(--border);padding:.4rem .85rem;cursor:pointer;
+  text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;
+  transition:all .2s;}
+.btn-home:hover{color:var(--text);border-color:var(--v);background:var(--v-dim);}
+
+/* PDF BUTTON */
+.pdf-btn{width:100%;font-family:'Orbitron',monospace;font-size:.75rem;font-weight:700;
+  letter-spacing:3px;padding:12px 20px;border:1px solid var(--g3);color:var(--g3);
+  background:transparent;cursor:pointer;text-transform:uppercase;transition:all .2s;
+  position:relative;overflow:hidden;margin-bottom:.6rem;}
+.pdf-btn::before{content:'';position:absolute;inset:0;background:var(--g3);
+  transform:translateX(-100%);transition:transform .25s;}
+.pdf-btn span{position:relative;z-index:1;}
+.pdf-btn:hover::before{transform:translateX(0);}
+.pdf-btn:hover span{color:#000;}
+
 @media(max-width:900px){
   .cfg-header,.meta-row,.cfg-layout{padding-left:1.25rem;padding-right:1.25rem;}
   .cfg-layout{grid-template-columns:1fr;}
@@ -183,6 +206,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 <header class="cfg-header">
   <div class="header-inner">
     <div>
+      <a href="/" class="btn-home" style="margin-bottom:.75rem;display:inline-flex;">&#8592; HOME</a>
       <div class="eyebrow">// PLURIAGENCY — CONFIGURATORE PREVENTIVI</div>
       <div class="cfg-title">CREA IL TUO <span>PREVENTIVO</span></div>
     </div>
@@ -260,6 +284,9 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
           Invia copia al cliente
         </label>
       </div>
+      <button class="pdf-btn" onclick="generatePDF()">
+        <span>&#8659; GENERA PDF</span>
+      </button>
       <button class="send-btn" id="send-btn" onclick="sendQuote()">
         <span>&#9654; INVIA PREVENTIVO</span>
       </button>
@@ -574,6 +601,107 @@ async function sendQuote(){
     btn.querySelector('span').textContent = '✗ CONNESSIONE — RIPROVA';
     btn.disabled = false;
   }
+}
+
+function generatePDF(){
+  if(Object.keys(selected).length === 0){ alert('Seleziona almeno un servizio.'); return; }
+
+  const clientName = document.getElementById('client-name').value.trim() || 'Cliente';
+  const agentName = document.getElementById('agent-name').value.trim() || 'Agente';
+  const notes = document.getElementById('send-notes').value.trim();
+  const disc = parseFloat(document.getElementById('discount-val').value)||0;
+
+  let sub = 0;
+  const linesRows = [];
+  Object.values(selected).forEach(({item, qty, priceUsed}) => {
+    const line = priceUsed * qty;
+    sub += line;
+    const suffix = item.monthly ? '/mese' : item.yearly ? '/anno' : '';
+    const qtyTxt = qty > 1 ? ` ×${qty}` : '';
+    linesRows.push(`
+      <tr>
+        <td style="padding:9px 0;border-bottom:1px solid rgba(155,92,255,0.12);font-size:14px;color:#e8e8f0">${item.name}${qtyTxt}</td>
+        <td style="padding:9px 0;border-bottom:1px solid rgba(155,92,255,0.12);font-size:14px;color:#c89bff;text-align:right;white-space:nowrap">€${line.toLocaleString('it-IT')}${suffix}</td>
+      </tr>`);
+  });
+  const saved = Math.round(sub * disc / 100);
+  const total = sub - saved;
+  const today = new Date().toLocaleDateString('it-IT', {day:'2-digit',month:'long',year:'numeric'});
+
+  const discountRow = disc > 0 ? `
+    <tr>
+      <td style="padding:8px 0;font-size:12px;color:#6b6b80;letter-spacing:1px">SCONTO ${disc}%</td>
+      <td style="padding:8px 0;font-size:14px;color:#00ff88;text-align:right">−€${saved.toLocaleString('it-IT')}</td>
+    </tr>` : '';
+
+  const notesSection = notes ? `
+    <div style="margin-top:28px;padding:16px;background:rgba(155,92,255,0.06);border:1px solid rgba(155,92,255,0.15)">
+      <div style="font-size:10px;letter-spacing:3px;color:#9b5cff;text-transform:uppercase;margin-bottom:8px">NOTE</div>
+      <div style="font-size:13px;color:#8888a0;line-height:1.7">${notes.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>
+    </div>` : '';
+
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<title>Preventivo — ${clientName}</title>
+<style>
+  @media print {
+    body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none; }
+  }
+  body { margin: 0; padding: 0; background: #06060a; font-family: sans-serif; }
+</style>
+</head>
+<body>
+<div style="max-width:620px;margin:0 auto;background:#0d0d12;color:#e8e8f0;min-height:100vh;">
+
+  <div style="padding:32px 36px 24px;border-bottom:1px solid rgba(155,92,255,0.2);background:linear-gradient(135deg,rgba(155,92,255,0.08),transparent)">
+    <div style="font-size:9px;letter-spacing:5px;color:#9b5cff;text-transform:uppercase;margin-bottom:12px">
+      PLURIAGENCY — PREVENTIVO SERVIZI
+    </div>
+    <div style="font-size:28px;font-weight:900;letter-spacing:2px;color:#e8e8f0;margin-bottom:4px;font-family:sans-serif">
+      ${clientName}
+    </div>
+    <div style="font-size:12px;color:#6b6b80;letter-spacing:1px">${today} · preparato da ${agentName}</div>
+  </div>
+
+  <div style="padding:28px 36px">
+    <div style="font-size:9px;letter-spacing:4px;color:#6b6b80;text-transform:uppercase;margin-bottom:16px">SERVIZI SELEZIONATI</div>
+    <table style="width:100%;border-collapse:collapse">
+      ${linesRows.join('')}
+      <tr><td colspan="2" style="padding:6px 0"></td></tr>
+      <tr>
+        <td style="padding:8px 0;border-top:1px solid rgba(155,92,255,0.2);font-size:12px;color:#6b6b80;letter-spacing:1px">SUBTOTALE</td>
+        <td style="padding:8px 0;border-top:1px solid rgba(155,92,255,0.2);font-size:14px;color:#e8e8f0;text-align:right">€${sub.toLocaleString('it-IT')}</td>
+      </tr>
+      ${discountRow}
+      <tr>
+        <td style="padding:14px 0 0;font-size:11px;letter-spacing:3px;color:#9b5cff;text-transform:uppercase">TOTALE STIMATO</td>
+        <td style="padding:14px 0 0;font-size:24px;font-weight:900;color:#c89bff;text-align:right">€${total.toLocaleString('it-IT')}</td>
+      </tr>
+    </table>
+    <div style="font-size:11px;color:#6b6b80;margin-top:8px;font-style:italic">IVA esclusa · prezzi indicativi soggetti a conferma</div>
+    ${notesSection}
+  </div>
+
+  <div style="padding:20px 36px;border-top:1px solid rgba(255,255,255,0.06);font-size:11px;color:#6b6b80;letter-spacing:1px;line-height:1.7">
+    PLURIAGENCY · hello@pluriagency.com · +39 389 688 1004 · Bologna, Italia
+  </div>
+
+  <div class="no-print" style="padding:20px 36px;text-align:center;">
+    <button onclick="window.print()" style="font-family:sans-serif;font-size:13px;padding:10px 28px;background:#9b5cff;color:#fff;border:none;cursor:pointer;letter-spacing:2px;">
+      SALVA PDF
+    </button>
+  </div>
+
+</div>
+</body></html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  // Small delay to let styles load before print dialog
+  setTimeout(() => win.print(), 400);
 }
 
 buildUI();

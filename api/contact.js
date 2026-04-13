@@ -16,8 +16,7 @@ module.exports = async function handler(req, res) {
 
   const resend = new Resend(process.env.RESEND_API_KEY);
 
-  try {
-    await resend.emails.send({
+  const { data, error } = await resend.emails.send({
       from: 'PLURIAGENCY <hello@pluriagency.com>',
       to: 'hello@pluriagency.com',
       replyTo: email,
@@ -45,11 +44,13 @@ module.exports = async function handler(req, res) {
       `
     });
 
-    return res.status(200).json({ ok: true });
-  } catch (err) {
-    console.error('Resend error:', err);
-    return res.status(500).json({ error: 'Errore invio email' });
+  if (error) {
+    console.error('Resend error:', JSON.stringify(error));
+    return res.status(500).json({ error: error.message || 'Errore invio email', detail: error });
   }
+
+  console.log('Resend OK, id:', data?.id);
+  return res.status(200).json({ ok: true, id: data?.id });
 };
 
 function escapeHtml(str) {

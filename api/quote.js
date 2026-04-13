@@ -27,19 +27,20 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Nessun destinatario selezionato' });
   }
 
-  try {
-    await resend.emails.send({
-      from: 'PLURIAGENCY Preventivi <hello@pluriagency.com>',
-      to: recipients,
-      subject: `Preventivo per ${clientName} — ${today}`,
-      html: htmlBody
-    });
+  const { data, error } = await resend.emails.send({
+    from: 'PLURIAGENCY Preventivi <hello@pluriagency.com>',
+    to: recipients,
+    subject: `Preventivo per ${clientName} — ${today}`,
+    html: htmlBody
+  });
 
-    return res.status(200).json({ ok: true });
-  } catch (err) {
-    console.error('Resend error:', err);
-    return res.status(500).json({ error: 'Errore invio email' });
+  if (error) {
+    console.error('Resend error:', JSON.stringify(error));
+    return res.status(500).json({ error: error.message || 'Errore invio email', detail: error });
   }
+
+  console.log('Resend OK, id:', data?.id);
+  return res.status(200).json({ ok: true, id: data?.id });
 };
 
 function buildQuoteHTML({ agentName, clientName, lines, subtotal, discount, saved, total, notes, today }) {

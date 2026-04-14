@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "PLURIAGENCY — sito agenzia digitale",
   "dependencies": {
-    "resend": "^4.0.0"
+    "resend": "^4.0.0",
+    "@supabase/supabase-js": "^2.49.4"
   }
 }

@@ -219,6 +219,81 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .modal-close:hover{border-color:var(--text);color:var(--text);}
 #preview-iframe{flex:1;width:100%;border:none;background:#fff;}
 
+/* PREVENTIVI */
+.pv-list{display:flex;flex-direction:column;gap:.6rem;}
+.pv-row{background:var(--panel);border:1px solid var(--border);
+  display:grid;grid-template-columns:1fr 1fr auto auto auto;
+  align-items:center;gap:.75rem;padding:.9rem 1.1rem;transition:border-color .15s;}
+.pv-row:hover{border-color:var(--border2);}
+.pv-row.pv-venduto{border-left:2px solid var(--g1);}
+.pv-row.pv-rifiutato{opacity:.45;}
+.pv-client{font-family:'Orbitron',monospace;font-size:.78rem;font-weight:700;letter-spacing:1px;color:var(--text);}
+.pv-agent{font-family:'Share Tech Mono',monospace;font-size:.58rem;letter-spacing:.12em;color:var(--muted);margin-top:2px;}
+.pv-total{font-family:'Orbitron',monospace;font-size:.9rem;font-weight:700;color:var(--v);text-align:right;}
+.pv-date{font-family:'Share Tech Mono',monospace;font-size:.58rem;letter-spacing:.05em;color:var(--muted);text-align:right;}
+.pv-status{padding:3px 9px;font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.15em;
+  text-transform:uppercase;border:1px solid;white-space:nowrap;}
+.pv-status.bozza{color:#6b6b80;border-color:rgba(107,107,128,.3);}
+.pv-status.inviato{color:var(--g3);border-color:rgba(0,207,255,.3);background:rgba(0,207,255,.05);}
+.pv-status.check{color:#ffc800;border-color:rgba(255,200,0,.3);background:rgba(255,200,0,.05);}
+.pv-status.venduto{color:var(--g1);border-color:rgba(0,255,136,.3);background:rgba(0,255,136,.05);}
+.pv-status.rifiutato{color:var(--red);border-color:rgba(255,74,106,.3);}
+.pv-actions{display:flex;gap:.4rem;flex-shrink:0;}
+
+/* PREVENTIVO MODAL */
+#pv-modal{display:none;position:fixed;inset:0;z-index:600;
+  background:rgba(0,0,0,.88);align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;}
+#pv-modal.open{display:flex;}
+.pv-modal-wrap{width:100%;max-width:760px;background:var(--panel);
+  border:1px solid var(--border2);margin:auto;position:relative;}
+.pv-modal-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--v);}
+.pv-modal-head{display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 1.25rem;border-bottom:1px solid var(--border);}
+.pv-modal-title{font-family:'Orbitron',monospace;font-size:.9rem;font-weight:700;letter-spacing:2px;color:var(--text);}
+.pv-modal-body{padding:1.5rem 1.25rem;}
+.pv-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.25rem;}
+.pv-info-cell{background:var(--panel2);padding:.6rem .85rem;border:1px solid var(--border);}
+.pv-info-key{font-family:'Share Tech Mono',monospace;font-size:.52rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.pv-info-val{font-size:.82rem;color:var(--text);}
+.pv-items-table{width:100%;border-collapse:collapse;margin-bottom:1.25rem;}
+.pv-items-table th{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--muted);padding:.4rem .6rem;border-bottom:1px solid var(--border);text-align:left;}
+.pv-items-table td{font-size:.78rem;padding:.5rem .6rem;border-bottom:1px solid var(--border);color:var(--text);}
+.pv-items-table td:last-child{text-align:right;color:var(--v);}
+.pv-total-row{display:flex;justify-content:flex-end;gap:2rem;padding:.75rem .6rem;
+  border-top:1px solid var(--border2);margin-bottom:1.25rem;}
+.pv-total-label{font-family:'Share Tech Mono',monospace;font-size:.65rem;letter-spacing:.1em;color:var(--muted);}
+.pv-total-val{font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:var(--g1);}
+.pv-status-actions{display:flex;gap:.5rem;flex-wrap:wrap;padding-top:.75rem;border-top:1px solid var(--border);}
+.pv-status-btn{font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.12em;
+  text-transform:uppercase;padding:.5rem 1rem;border:1px solid var(--border);color:var(--muted);
+  background:transparent;cursor:pointer;transition:all .15s;}
+.pv-status-btn:hover{border-color:var(--v);color:var(--v);}
+.pv-status-btn.confirm{border-color:rgba(0,255,136,.4);color:var(--g1);}
+.pv-status-btn.confirm:hover{background:rgba(0,255,136,.1);}
+.pv-status-btn.danger{border-color:rgba(255,74,106,.3);color:var(--red);}
+.pv-status-btn.danger:hover{background:var(--red-dim);}
+.pv-notes-box{background:var(--panel2);border:1px solid var(--border);padding:.75rem;
+  font-size:.78rem;color:var(--muted);line-height:1.7;margin-bottom:1rem;white-space:pre-wrap;}
+
+/* AGENTI LIST */
+.ag-list{display:flex;flex-direction:column;gap:.6rem;}
+.ag-row{background:var(--panel);border:1px solid var(--border);
+  display:grid;grid-template-columns:auto 1fr 1fr auto auto;
+  align-items:center;gap:.75rem;padding:.8rem 1.1rem;}
+.ag-avatar{width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--v),var(--g3));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Orbitron',monospace;font-size:.65rem;font-weight:700;color:#fff;flex-shrink:0;}
+.ag-name{font-family:'Orbitron',monospace;font-size:.8rem;font-weight:700;letter-spacing:1px;color:var(--text);}
+.ag-email{font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.05em;color:var(--muted);}
+.ag-role{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.15em;
+  padding:2px 8px;border:1px solid;text-transform:uppercase;}
+.ag-role.admin{color:var(--v);border-color:rgba(155,92,255,.3);}
+.ag-role.agent{color:var(--muted);border-color:var(--border);}
+.ag-actions{display:flex;gap:.4rem;}
+
 /* ERROR BANNER */
 #error-banner{display:none;padding:.75rem 1.25rem;background:var(--red-dim);
   border-bottom:1px solid rgba(255,74,106,.3);font-family:'Share Tech Mono',monospace;
@@ -260,10 +335,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         <button class="sb-item active" id="nav-portfolio" onclick="switchSection('portfolio',this)">◈ PORTFOLIO</button>
         <button class="sb-item" id="nav-demo" onclick="switchSection('demo',this)">◈ DEMO SITI</button>
         <div class="sb-divider"></div>
-        <div class="sb-section-label">PROSSIMAMENTE</div>
-        <button class="sb-item" disabled>◈ PREVENTIVI <span class="sb-badge">SOON</span></button>
-        <button class="sb-item" disabled>◈ LEADS <span class="sb-badge">SOON</span></button>
-        <button class="sb-item" disabled>◈ AGENTI <span class="sb-badge">SOON</span></button>
+        <div class="sb-section-label">GESTIONE</div>
+        <button class="sb-item" id="nav-preventivi" onclick="switchSection('preventivi',this)">◈ PREVENTIVI</button>
+        <button class="sb-item" id="nav-agenti" onclick="switchSection('agenti',this)">◈ AGENTI</button>
       </div>
       <div class="sb-user">
         <div class="sb-user-email" id="sb-email"></div>
@@ -426,7 +500,75 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         </div>
       </section>
 
+      <!-- === PREVENTIVI SECTION === -->
+      <section id="section-preventivi" style="display:none">
+        <div class="section-head">
+          <div>
+            <div class="section-eyebrow">// GESTIONE TRATTATIVE</div>
+            <h1 class="section-h1">PREVENTIVI</h1>
+          </div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <select id="pv-filter-status" class="field-select" style="font-size:.6rem;padding:.4rem .7rem" onchange="loadPreventivi()">
+              <option value="">TUTTI GLI STATI</option>
+              <option value="bozza">BOZZA</option>
+              <option value="inviato">INVIATO</option>
+              <option value="check">IN CHECK</option>
+              <option value="venduto">VENDUTO ✓</option>
+              <option value="rifiutato">RIFIUTATO</option>
+            </select>
+          </div>
+        </div>
+        <div id="preventivi-list">
+          <div class="loading-row">&gt; caricamento preventivi_</div>
+        </div>
+      </section>
+
+      <!-- === AGENTI SECTION === -->
+      <section id="section-agenti" style="display:none">
+        <div class="section-head">
+          <div>
+            <div class="section-eyebrow">// GESTIONE TEAM</div>
+            <h1 class="section-h1">AGENTI</h1>
+          </div>
+          <button class="btn-add" onclick="toggleAgentForm()">+ AGGIUNGI AGENTE</button>
+        </div>
+
+        <!-- FORM INVITA AGENTE -->
+        <div class="admin-form" id="form-agente" style="display:none">
+          <div class="form-grid">
+            <div class="field">
+              <label class="field-label">NOME *</label>
+              <input class="field-input" id="ag-name" type="text" placeholder="Es. Mattia Rossi">
+            </div>
+            <div class="field">
+              <label class="field-label">EMAIL *</label>
+              <input class="field-input" id="ag-email" type="email" placeholder="Es. mattia@email.com">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" id="ag-save-btn" onclick="saveAgente()">&#9654; SALVA &amp; INVIA INVITO</button>
+            <button class="btn-ghost" onclick="toggleAgentForm()">ANNULLA</button>
+          </div>
+          <div class="form-msg" id="ag-msg"></div>
+        </div>
+
+        <div id="agenti-list">
+          <div class="loading-row">&gt; caricamento agenti_</div>
+        </div>
+      </section>
+
     </main>
+  </div>
+</div>
+
+<!-- PREVENTIVO DETAIL MODAL -->
+<div id="pv-modal">
+  <div class="pv-modal-wrap">
+    <div class="pv-modal-head">
+      <div class="pv-modal-title" id="pv-modal-title">PREVENTIVO</div>
+      <button class="modal-close" onclick="closePvModal()">&#10005;</button>
+    </div>
+    <div class="pv-modal-body" id="pv-modal-body"></div>
   </div>
 </div>
 
@@ -482,10 +624,26 @@ function showLogin(){
   document.getElementById('screen-dashboard').style.display = 'none';
 }
 
-function showDashboard(user){
+async function showDashboard(user){
   document.getElementById('screen-login').style.display = 'none';
   document.getElementById('screen-dashboard').style.display = 'block';
   document.getElementById('sb-email').textContent = user.email;
+
+  // Carica ruolo utente dalla tabella agenti
+  _currentUserEmail = user.email;
+  const { data: agentProfile } = await _sb
+    .from('agenti')
+    .select('role, name')
+    .eq('email', user.email)
+    .maybeSingle();
+  _currentUserRole = agentProfile?.role || 'agent';
+
+  // Agente normale: nascondi sezioni admin-only
+  if(_currentUserRole !== 'admin'){
+    const navAgenti = document.getElementById('nav-agenti');
+    if(navAgenti) navAgenti.style.display = 'none';
+  }
+
   loadPortfolio();
 }
 
@@ -539,14 +697,17 @@ async function logout(){
 
 // ===== NAVIGATION =====
 function switchSection(name, btnEl){
-  ['portfolio','demo'].forEach(s => {
+  ['portfolio','demo','preventivi','agenti'].forEach(s => {
     document.getElementById('section-'+s).style.display = s===name ? 'block' : 'none';
-    document.getElementById('nav-'+s).classList.toggle('active', s===name);
+    const nav = document.getElementById('nav-'+s);
+    if(nav) nav.classList.toggle('active', s===name);
   });
   if(name==='portfolio' && !document.getElementById('portfolio-list').querySelector('.item-card'))
     loadPortfolio();
   if(name==='demo' && !document.getElementById('demo-list').querySelector('.demo-row'))
     loadDemo();
+  if(name==='preventivi') loadPreventivi();
+  if(name==='agenti') loadAgenti();
 }
 
 // ===== PORTFOLIO =====
@@ -897,6 +1058,252 @@ async function deleteDemoItem(id, btnEl){
   const { error } = await _sb.from('demo_items').delete().eq('id', id);
   if(error){ alert('Errore: '+error.message); btnEl.disabled=false; btnEl.textContent='ELIMINA'; return; }
   loadDemo();
+}
+
+// ===== PREVENTIVI =====
+const _preventiviMap = {};
+let _currentUserRole = 'agent';
+let _currentUserEmail = '';
+
+async function loadPreventivi(){
+  const container = document.getElementById('preventivi-list');
+  container.innerHTML = '<div class="loading-row">> caricamento preventivi_</div>';
+
+  const statusFilter = document.getElementById('pv-filter-status').value;
+  let query = _sb.from('preventivi').select('*').order('created_at', { ascending: false });
+  if(statusFilter) query = query.eq('status', statusFilter);
+  // Agente normale: vede solo i suoi
+  if(_currentUserRole !== 'admin' && _currentUserEmail){
+    query = query.eq('agent_email', _currentUserEmail);
+  }
+
+  const { data, error } = await query;
+  if(error){ container.innerHTML = `<div class="empty-state">⚠ ${error.message}</div>`; return; }
+  if(!data || !data.length){
+    container.innerHTML = '<div class="empty-state">> nessun preventivo trovato_</div>'; return;
+  }
+
+  container.innerHTML = '';
+  const list = document.createElement('div');
+  list.className = 'pv-list';
+  data.forEach(pv => {
+    _preventiviMap[pv.id] = pv;
+    list.appendChild(buildPreventivoRow(pv));
+  });
+  container.appendChild(list);
+}
+
+function buildPreventivoRow(pv){
+  const row = document.createElement('div');
+  const statusClass = pv.status || 'bozza';
+  row.className = `pv-row pv-${statusClass}`;
+
+  const total = (pv.total||0).toLocaleString('it-IT', { style:'currency', currency:'EUR' });
+  const date  = new Date(pv.created_at).toLocaleDateString('it-IT');
+  const isLocked = pv.status === 'venduto';
+
+  row.innerHTML = `
+    <div>
+      <div class="pv-client">${pv.client_name.replace(/</g,'&lt;')}</div>
+      <div class="pv-agent">agente: ${pv.agent_name.replace(/</g,'&lt;')}</div>
+    </div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--muted)">
+      ${pv.client_email ? `<div>${pv.client_email}</div>` : ''}
+      ${(pv.items||[]).length} servizi
+    </div>
+    <div class="pv-total">${total}</div>
+    <div><span class="pv-status ${statusClass}">${statusClass.toUpperCase()}</span></div>
+    <div class="pv-actions">
+      <button class="btn-ghost" style="font-size:.55rem;padding:.3rem .6rem" onclick="openPvModal('${pv.id}')">DETTAGLIO</button>
+      ${!isLocked ? `<button class="btn-danger" onclick="deletePv('${pv.id}',this)">✕</button>` : ''}
+    </div>`;
+  return row;
+}
+
+function openPvModal(id){
+  const pv = _preventiviMap[id];
+  if(!pv) return;
+  document.getElementById('pv-modal-title').textContent =
+    `PREVENTIVO — ${pv.client_name.toUpperCase()}`;
+
+  const total     = (pv.total||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
+  const subtotal  = (pv.subtotal||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
+  const date      = new Date(pv.created_at).toLocaleDateString('it-IT');
+  const isLocked  = pv.status === 'venduto';
+
+  const itemRows  = (pv.items||[]).map(it =>
+    `<tr>
+      <td>${it.name}</td>
+      <td style="text-align:center">${it.qty||1}</td>
+      <td>${(it.unit_price||0).toLocaleString('it-IT')} €</td>
+      <td>${(it.total||0).toLocaleString('it-IT')} €</td>
+    </tr>`
+  ).join('');
+
+  const statusActions = isLocked ? `<div class="pv-status venduto" style="display:inline-block">✓ VENDUTO — TRATTATIVA CHIUSA</div>` : `
+    <button class="pv-status-btn" onclick="setPvStatus('${id}','inviato')">▶ INVIATO</button>
+    <button class="pv-status-btn" style="color:#ffc800;border-color:rgba(255,200,0,.4)" onclick="setPvStatus('${id}','check')">⏳ IN CHECK</button>
+    <button class="pv-status-btn confirm" onclick="setPvStatus('${id}','venduto')">✓ VENDUTO</button>
+    <button class="pv-status-btn danger" onclick="setPvStatus('${id}','rifiutato')">✕ RIFIUTATO</button>`;
+
+  document.getElementById('pv-modal-body').innerHTML = `
+    <div class="pv-info-grid">
+      <div class="pv-info-cell">
+        <div class="pv-info-key">Cliente</div>
+        <div class="pv-info-val">${pv.client_name}${pv.client_email ? `<br><span style="font-size:.72rem;color:var(--muted)">${pv.client_email}</span>` : ''}</div>
+      </div>
+      <div class="pv-info-cell">
+        <div class="pv-info-key">Agente</div>
+        <div class="pv-info-val">${pv.agent_name}${pv.agent_email ? `<br><span style="font-size:.72rem;color:var(--muted)">${pv.agent_email}</span>` : ''}</div>
+      </div>
+      <div class="pv-info-cell">
+        <div class="pv-info-key">Data creazione</div>
+        <div class="pv-info-val">${date}</div>
+      </div>
+      <div class="pv-info-cell">
+        <div class="pv-info-key">Stato</div>
+        <div class="pv-info-val"><span class="pv-status ${pv.status||'bozza'}">${(pv.status||'bozza').toUpperCase()}</span></div>
+      </div>
+    </div>
+
+    <table class="pv-items-table">
+      <thead><tr><th>Servizio</th><th>Q.tà</th><th>Prezzo unit.</th><th>Totale</th></tr></thead>
+      <tbody>${itemRows}</tbody>
+    </table>
+
+    <div class="pv-total-row">
+      ${pv.discount_pct > 0 ? `
+        <div><div class="pv-total-label">Subtotale</div><div style="font-family:'Orbitron',monospace;font-size:.85rem;color:var(--text)">${subtotal}</div></div>
+        <div><div class="pv-total-label">Sconto ${pv.discount_pct}%</div><div style="font-family:'Share Tech Mono',monospace;font-size:.85rem;color:var(--red)">−${(pv.discount_amount||0).toLocaleString('it-IT')} €</div></div>
+      ` : ''}
+      <div><div class="pv-total-label">Totale</div><div class="pv-total-val">${total}</div></div>
+    </div>
+
+    ${pv.notes ? `<div class="pv-info-key" style="margin-bottom:.4rem">Note</div><div class="pv-notes-box">${pv.notes.replace(/</g,'&lt;')}</div>` : ''}
+
+    <div class="pv-status-actions">${statusActions}</div>`;
+
+  document.getElementById('pv-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePvModal(){
+  document.getElementById('pv-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('pv-modal').addEventListener('click', e => {
+  if(e.target === e.currentTarget) closePvModal();
+});
+
+async function setPvStatus(id, newStatus){
+  if(newStatus === 'venduto'){
+    if(!confirm('Segnare come VENDUTO? Questa azione è irreversibile — il preventivo non potrà più essere modificato.')) return;
+  }
+  const { error } = await _sb.from('preventivi')
+    .update({ status: newStatus, updated_at: new Date().toISOString() })
+    .eq('id', id);
+  if(error){ alert('Errore: ' + error.message); return; }
+  closePvModal();
+  loadPreventivi();
+}
+
+async function deletePv(id, btn){
+  if(!confirm('Eliminare questo preventivo?')) return;
+  btn.disabled = true;
+  const { error } = await _sb.from('preventivi').delete().eq('id', id);
+  if(error){ alert('Errore: ' + error.message); btn.disabled = false; return; }
+  loadPreventivi();
+}
+
+// ===== AGENTI =====
+function toggleAgentForm(){
+  const form = document.getElementById('form-agente');
+  const isOpen = form.style.display !== 'none';
+  form.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen){
+    document.getElementById('ag-name').value = '';
+    document.getElementById('ag-email').value = '';
+    setFormMsg('ag-msg','','');
+  }
+}
+
+async function saveAgente(){
+  const name  = document.getElementById('ag-name').value.trim();
+  const email = document.getElementById('ag-email').value.trim();
+  if(!name || !email){ setFormMsg('ag-msg','Nome ed email sono obbligatori.','err'); return; }
+
+  const btn = document.getElementById('ag-save-btn');
+  btn.disabled = true; btn.textContent = '⟳ SALVATAGGIO...';
+
+  // 1. Salva in tabella agenti
+  const { error } = await _sb.from('agenti')
+    .insert({ name, email, role: 'agent', active: true });
+
+  if(error){
+    setFormMsg('ag-msg','Errore: ' + error.message,'err');
+    btn.disabled = false; btn.textContent = '▶ SALVA & INVIA INVITO';
+    return;
+  }
+
+  // 2. Invia invito via Supabase Auth (magic link) usando l'API serverless
+  try {
+    const r = await fetch('/api/invite-agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name })
+    });
+    const j = await r.json();
+    if(!r.ok) throw new Error(j.error || 'Invito non inviato');
+    setFormMsg('ag-msg', `✓ Agente salvato. Invito inviato a ${email}`, 'ok');
+  } catch(e){
+    // Salvataggio ok ma invito fallito — non bloccante
+    setFormMsg('ag-msg', `✓ Agente salvato. Invito non inviato (${e.message}) — invialo manualmente da Supabase`, 'ok');
+  }
+
+  btn.textContent = '▶ SALVA & INVIA INVITO';
+  btn.disabled = false;
+  setTimeout(() => { toggleAgentForm(); loadAgenti(); }, 1500);
+}
+
+async function loadAgenti(){
+  const container = document.getElementById('agenti-list');
+  container.innerHTML = '<div class="loading-row">> caricamento agenti_</div>';
+
+  const { data, error } = await _sb.from('agenti').select('*').order('name');
+  if(error){ container.innerHTML = `<div class="empty-state">⚠ ${error.message}</div>`; return; }
+  if(!data || !data.length){
+    container.innerHTML = '<div class="empty-state">> nessun agente — aggiungine uno_</div>'; return;
+  }
+
+  container.innerHTML = '';
+  const list = document.createElement('div');
+  list.className = 'ag-list';
+  data.forEach(ag => {
+    const initials = ag.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const row = document.createElement('div');
+    row.className = 'ag-row';
+    row.innerHTML = `
+      <div class="ag-avatar">${initials}</div>
+      <div>
+        <div class="ag-name">${ag.name.replace(/</g,'&lt;')}</div>
+        <div style="font-size:.6rem;color:var(--muted);margin-top:2px">${ag.active ? '● attivo' : '○ disattivato'}</div>
+      </div>
+      <div class="ag-email">${ag.email}</div>
+      <div><span class="ag-role ${ag.role}">${ag.role}</span></div>
+      <div class="ag-actions">
+        ${ag.role !== 'admin' ? `<button class="btn-danger" onclick="deleteAgente('${ag.id}','${ag.email}',this)">RIMUOVI</button>` : '<span style="font-size:.58rem;color:var(--muted);letter-spacing:.1em">SUPERADMIN</span>'}
+      </div>`;
+    list.appendChild(row);
+  });
+  container.appendChild(list);
+}
+
+async function deleteAgente(id, email, btn){
+  if(!confirm(`Rimuovere l'agente ${email}?`)) return;
+  btn.disabled = true;
+  const { error } = await _sb.from('agenti').delete().eq('id', id);
+  if(error){ alert('Errore: ' + error.message); btn.disabled = false; return; }
+  loadAgenti();
 }
 
 // ===== PREVIEW MODAL =====

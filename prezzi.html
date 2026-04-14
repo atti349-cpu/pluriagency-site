@@ -39,7 +39,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   color:var(--muted);text-align:right;line-height:1.8;}
 
 /* AGENT/CLIENT INFO */
-.meta-row{max-width:1100px;margin:2rem auto 0;padding:0 3rem;
+.meta-row{max-width:1100px;margin:0 auto;padding:0 3rem;
   display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
 .meta-field{display:flex;flex-direction:column;gap:.4rem;}
 .meta-label{font-family:'Share Tech Mono',monospace;font-size:.6rem;
@@ -48,6 +48,29 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   padding:.75rem 1rem;font-family:'Share Tech Mono',monospace;font-size:.9rem;
   outline:none;transition:border-color .2s;letter-spacing:.05em;}
 .meta-input:focus{border-color:var(--v);box-shadow:0 0 0 1px rgba(155,92,255,.2);}
+
+/* AGENT SELECTOR */
+.agent-section{max-width:1100px;margin:2rem auto 1.5rem;padding:0 3rem;}
+.agent-section-label{font-family:'Share Tech Mono',monospace;font-size:.6rem;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--v);margin-bottom:.8rem;}
+.agent-cards{display:flex;flex-wrap:wrap;gap:.6rem;}
+.agent-card{display:flex;align-items:center;gap:.6rem;
+  padding:.55rem 1rem;border:1px solid var(--border);background:var(--panel);
+  cursor:pointer;transition:all .18s;border-radius:2px;user-select:none;}
+.agent-card:hover{border-color:rgba(155,92,255,.4);background:rgba(155,92,255,.06);}
+.agent-card.selected{border-color:var(--v);background:rgba(155,92,255,.12);
+  box-shadow:0 0 12px rgba(155,92,255,.2);}
+.agent-card.selected .agent-card-name{color:var(--v);}
+.agent-card-avatar{width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,var(--v),var(--g3));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Orbitron',monospace;font-size:.55rem;font-weight:700;color:#fff;flex-shrink:0;}
+.agent-card-name{font-family:'Share Tech Mono',monospace;font-size:.72rem;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--text);white-space:nowrap;}
+.agent-card-role{font-size:.58rem;letter-spacing:.1em;color:var(--muted);margin-top:1px;}
+.agent-required-note{font-family:'Share Tech Mono',monospace;font-size:.6rem;
+  letter-spacing:.08em;color:#ff4a6a;margin-top:.6rem;display:none;}
+.agent-required-note.show{display:block;}
 .meta-input::placeholder{color:var(--muted);}
 
 /* LAYOUT */
@@ -217,14 +240,28 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 </header>
 
 <!-- AGENT / CLIENT INFO -->
-<div class="meta-row">
+<!-- SELETTORE AGENTE -->
+<div class="agent-section">
+  <div class="agent-section-label">// SELEZIONA AGENTE *</div>
+  <div class="agent-cards" id="agent-cards">
+    <div style="font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--muted);letter-spacing:.1em">
+      &gt; caricamento agenti_
+    </div>
+  </div>
+  <div class="agent-required-note" id="agent-required-note">⚠ seleziona il tuo nome prima di inviare</div>
+  <input type="hidden" id="agent-name" value="">
+  <input type="hidden" id="agent-email" value="">
+</div>
+
+<!-- DATI CLIENTE -->
+<div class="meta-row" style="margin-bottom:1.5rem">
   <div class="meta-field">
-    <label class="meta-label">NOME CLIENTE</label>
+    <label class="meta-label">NOME CLIENTE *</label>
     <input class="meta-input" id="client-name" type="text" placeholder="Es. Mario Rossi / Azienda SRL">
   </div>
   <div class="meta-field">
-    <label class="meta-label">NOME AGENTE</label>
-    <input class="meta-input" id="agent-name" type="text" placeholder="Es. Lorenzo Attinà">
+    <label class="meta-label">EMAIL CLIENTE</label>
+    <input class="meta-input" id="client-email" type="email" placeholder="Es. mario@azienda.it">
   </div>
 </div>
 
@@ -300,6 +337,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   <div style="margin-top:8px;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(107,107,128,0.4);letter-spacing:2px;">STRUMENTO INTERNO — NON CONDIVIDERE</div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 // ===== SERVICES DATA =====
 const CATS = [
@@ -676,12 +714,62 @@ function generatePDF(){
 // Struttura allineata alla tabella `preventivi` schema `agency`
 // Quando Supabase sarà connesso: sostituire il console.log con la fetch /api/save-quote
 
+// ===== AGENT SELECTOR =====
+async function loadAgenti(){
+  const container = document.getElementById('agent-cards');
+  try {
+    const cfg = await fetch('/api/config').then(r=>r.json());
+    if(cfg.error || !cfg.supabaseUrl) throw new Error('config mancante');
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const { data, error } = await sb
+      .from('agenti')
+      .select('id, name, email, avatar_url, role')
+      .eq('active', true)
+      .order('name');
+    if(error) throw error;
+    if(!data || !data.length) throw new Error('nessun agente');
+    renderAgentCards(data);
+  } catch(e){
+    // Fallback: nomi hardcoded dal team
+    renderAgentCards([
+      { id:'lorenzo', name:'Lorenzo', email:'', role:'admin' },
+      { id:'mattia', name:'Mattia', email:'', role:'agent' },
+      { id:'agente3', name:'Federico', email:'', role:'agent' }
+    ]);
+  }
+}
+
+function renderAgentCards(agents){
+  const container = document.getElementById('agent-cards');
+  container.innerHTML = agents.map(a => {
+    const initials = a.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    return `<div class="agent-card" data-name="${a.name}" data-email="${a.email||''}"
+      onclick="selectAgent(this,'${a.name}','${a.email||''}')">
+      <div class="agent-card-avatar">${initials}</div>
+      <div>
+        <div class="agent-card-name">${a.name}</div>
+        ${a.role==='admin' ? '<div class="agent-card-role">admin</div>' : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectAgent(el, name, email){
+  document.querySelectorAll('.agent-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('agent-name').value = name;
+  document.getElementById('agent-email').value = email;
+  document.getElementById('agent-required-note').classList.remove('show');
+}
+
 function buildQuotePayload(){
-  const clientName = document.getElementById('client-name').value.trim() || 'Cliente';
-  const agentName  = document.getElementById('agent-name').value.trim() || 'Agente';
-  const email      = document.getElementById('send-email').value.trim();
-  const notes      = document.getElementById('send-notes').value.trim();
-  const disc       = Math.min(MAX_DISCOUNT, parseFloat(document.getElementById('discount-val').value)||0);
+  const clientName  = document.getElementById('client-name').value.trim() || 'Cliente';
+  const clientEmail = document.getElementById('client-email').value.trim();
+  const agentName   = document.getElementById('agent-name').value.trim() || 'Agente';
+  const agentEmail  = document.getElementById('agent-email').value.trim();
+  const email       = clientEmail || document.getElementById('send-email').value.trim();
+  const notes       = document.getElementById('send-notes').value.trim();
+  const disc        = Math.min(MAX_DISCOUNT, parseFloat(document.getElementById('discount-val').value)||0);
 
   let sub = 0;
   const items = [];
@@ -703,8 +791,9 @@ function buildQuotePayload(){
 
   return {
     agent_name:      agentName,
+    agent_email:     agentEmail || null,
     client_name:     clientName,
-    client_email:    email,
+    client_email:    email || null,
     items,
     subtotal:        sub,
     discount_pct:    disc,
@@ -717,15 +806,24 @@ function buildQuotePayload(){
 }
 
 async function savePreventivo(payload){
-  // TODO — STEP 7e: sostituire con fetch('/api/save-quote') quando Supabase è configurato
-  // const r = await fetch('/api/save-quote', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-  // const { id } = await r.json();
-  // return id;
-  console.log('[PREVENTIVO] Payload pronto per Supabase:', JSON.stringify(payload, null, 2));
-  return null;
+  try {
+    const r = await fetch('/api/save-quote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const json = await r.json();
+    if(!r.ok || json.error) throw new Error(json.error || 'Errore salvataggio');
+    console.log('[PREVENTIVO] Salvato con ID:', json.id);
+    return json.id;
+  } catch(e){
+    console.warn('[PREVENTIVO] Salvataggio fallito:', e.message);
+    return null;
+  }
 }
 
 buildUI();
+loadAgenti();
 
 // ===== PDF GENERATION (jsPDF) =====
 async function buildPDFBase64(clientName, agentName, today, lines, sub, disc, saved, total, notes) {
@@ -873,6 +971,12 @@ async function sendQuote() {
   const toClient   = document.getElementById('send-to-client').checked;
   const disc       = parseFloat(document.getElementById('discount-val').value) || 0;
 
+  // Validazione agente obbligatorio
+  if (!agentName) {
+    document.getElementById('agent-required-note').classList.add('show');
+    document.getElementById('agent-cards').scrollIntoView({ behavior:'smooth', block:'center' });
+    return;
+  }
   if (!email && toClient) { alert('Inserisci email del cliente.'); return; }
   if (Object.keys(selected).length === 0) { alert('Seleziona almeno un servizio.'); return; }
 

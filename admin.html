@@ -510,7 +510,7 @@ async function sendMagicLink(){
 
   const { error } = await _sb.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: window.location.origin + '/admin' }
+    options: { emailRedirectTo: 'https://pluriagency.com/admin' }
   });
   if(error){
     setLoginMsg('Errore: ' + error.message, 'err');

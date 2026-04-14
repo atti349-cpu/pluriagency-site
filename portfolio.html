@@ -394,8 +394,11 @@ function buildGrid(cat){
   grid.innerHTML = filtered.map(p => {
     const catColor = CAT_COLORS[p.cat]||'#9b5cff';
     const catLabel = CAT_LABELS[p.cat]||p.cat;
+    const hStyle = p.h==='tall'?'height:280px':p.h==='short'?'height:160px':'height:220px';
     const imgHtml = p.img
-      ? `<div class="port-img-wrap" style="${p.h==='tall'?'height:280px':p.h==='short'?'height:160px':'height:220px'}"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>`
+      ? (p.mediaType === 'video'
+          ? `<div class="port-img-wrap" style="${hStyle}"><video src="${p.img}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video></div>`
+          : `<div class="port-img-wrap" style="${hStyle}"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>`)
       : `<div class="port-img-wrap">${makePlaceholder(p.color||catColor, p.pattern, p.h)}</div>`;
     return `<div class="port-card" onclick="openLightbox('${p.id}')">
       ${imgHtml}
@@ -463,16 +466,17 @@ async function initPortfolio(){
       projects.length = 0;
       data.forEach((item, i) => {
         projects.push({
-          id:      item.id,   // UUID stringa
-          cat:     item.type_tag || 'web',
-          h:       i % 3 === 0 ? 'tall' : i % 3 === 1 ? 'medium' : 'short',
-          name:    item.title,
-          client:  item.client_name || '',
-          desc:    item.description || '',
-          tags:    item.tags || [],
-          color:   CAT_COLORS[item.type_tag] || '#9b5cff',
-          img:     item.media_url || '',
-          pattern: PATTERNS[i % PATTERNS.length]
+          id:        item.id,
+          cat:       item.type_tag || 'web',
+          h:         i % 3 === 0 ? 'tall' : i % 3 === 1 ? 'medium' : 'short',
+          name:      item.title,
+          client:    item.client_name || '',
+          desc:      item.description || '',
+          tags:      item.tags || [],
+          color:     CAT_COLORS[item.type_tag] || '#9b5cff',
+          img:       item.media_url || '',
+          mediaType: item.media_type || 'image',
+          pattern:   PATTERNS[i % PATTERNS.length]
         });
       });
     }

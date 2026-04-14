@@ -302,8 +302,8 @@ function renderLayouts() {
             <div style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,0.2)">${l.sector.toUpperCase()}</div>
           </div>
         </div>
-        <div class="card-overlay">
-          <div class="card-overlay-btn">${l.available ? '&#9654; ANTEPRIMA' : '&#9654; RICHIEDI INFO'}</div>
+        <div class="card-overlay" ${l.htmlSnippet ? `onclick="openDemoPreview('${l.id}')"` : ''}>
+          <div class="card-overlay-btn">${l.htmlSnippet ? '&#9654; ANTEPRIMA' : l.available ? '&#9654; ANTEPRIMA' : '&#9654; RICHIEDI INFO'}</div>
         </div>
       </div>
       <div class="card-info">
@@ -322,7 +322,88 @@ function renderLayouts() {
   `).join('');
 }
 
-renderLayouts();
+// ===== SUPABASE INIT =====
+const SECTOR_LABELS = {
+  food:'Food & Beverage', studio:'Studio / Agency', store:'E-Commerce',
+  wellness:'Wellness', tech:'Tech / Startup', industria:'Industria', altro:'Altro'
+};
+const SECTOR_COLORS = {
+  food:['#ff6b35','#ff9a3c'], studio:['#9b5cff','#6b2fff'],
+  store:['#00cfff','#0055ff'], wellness:['#a8e6cf','#2d8653'],
+  tech:['#00cfff','#7c3aed'], industria:['#ffc04d','#ff8a00'], altro:['#9b5cff','#6b2fff']
+};
+
+async function initDemos(){
+  try {
+    const cfg = await fetch('/api/config').then(r => r.json());
+    if(cfg.error || !cfg.supabaseUrl) throw new Error('config mancante');
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
+      db: { schema: 'agency' }
+    });
+    const { data, error } = await sb
+      .from('demo_items')
+      .select('*')
+      .eq('visible', true)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: false });
+
+    if(!error && data && data.length > 0){
+      LAYOUTS.length = 0;
+      data.forEach(item => {
+        LAYOUTS.push({
+          id:          item.id,
+          cat:         item.type_tag || 'altro',
+          sector:      SECTOR_LABELS[item.type_tag] || item.type_tag || 'Altro',
+          name:        item.title.toUpperCase(),
+          desc:        item.description || '',
+          price:       item.price_range || 'su richiesta',
+          available:   true,
+          colors:      SECTOR_COLORS[item.type_tag] || ['#9b5cff','#6b2fff'],
+          htmlSnippet: item.html_snippet || null,
+          previewUrl:  item.preview_image_url || null
+        });
+      });
+    }
+  } catch(e){
+    console.log('[Demo] Dati statici:', e.message);
+  }
+  renderLayouts();
+}
+
+initDemos();
+
+// ===== PREVIEW IFRAME MODAL =====
+function openDemoPreview(id){
+  const layout = LAYOUTS.find(l => l.id == id || l.id === id);
+  if(!layout || !layout.htmlSnippet) return;
+  let modal = document.getElementById('demo-preview-modal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'demo-preview-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;padding:20px';
+    modal.innerHTML = `
+      <div style="width:100%;max-width:1100px;height:85vh;background:#fff;display:flex;flex-direction:column;position:relative">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#04060d;border-bottom:1px solid rgba(0,207,255,.15)">
+          <span id="demo-modal-title" style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--g1)">ANTEPRIMA</span>
+          <button onclick="closeDemoPreview()" style="background:transparent;border:1px solid rgba(0,207,255,.2);color:#4a6a88;width:28px;height:28px;cursor:pointer;font-size:13px;">✕</button>
+        </div>
+        <iframe id="demo-preview-iframe" sandbox="allow-scripts allow-same-origin" style="flex:1;border:none;width:100%"></iframe>
+      </div>`;
+    modal.addEventListener('click', e => { if(e.target===modal) closeDemoPreview(); });
+    document.body.appendChild(modal);
+  }
+  document.getElementById('demo-modal-title').textContent = 'ANTEPRIMA — ' + layout.name;
+  document.getElementById('demo-preview-iframe').srcdoc = layout.htmlSnippet;
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeDemoPreview(){
+  const modal = document.getElementById('demo-preview-modal');
+  if(modal){ modal.style.display='none'; document.getElementById('demo-preview-iframe').srcdoc=''; }
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeDemoPreview(); });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </body>
 </html>

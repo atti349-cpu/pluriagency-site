@@ -397,7 +397,7 @@ function buildGrid(cat){
     const imgHtml = p.img
       ? `<div class="port-img-wrap" style="${p.h==='tall'?'height:280px':p.h==='short'?'height:160px':'height:220px'}"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>`
       : `<div class="port-img-wrap">${makePlaceholder(p.color||catColor, p.pattern, p.h)}</div>`;
-    return `<div class="port-card" onclick="openLightbox(${p.id})">
+    return `<div class="port-card" onclick="openLightbox('${p.id}')">
       ${imgHtml}
       <div class="port-overlay"><div class="overlay-btn">&#9654; ESPLORA</div></div>
       <div class="port-meta">
@@ -444,9 +444,49 @@ function closeLightbox(){
 function closeLB(e){ if(e.target===document.getElementById('lightbox'))closeLightbox(); }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeLightbox(); });
 
-// Init
-buildGrid('all');
+// ===== SUPABASE INIT (carica da DB se disponibile, altrimenti usa dati statici) =====
+async function initPortfolio(){
+  try {
+    const cfg = await fetch('/api/config').then(r => r.json());
+    if(cfg.error || !cfg.supabaseUrl) throw new Error('config mancante');
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
+      db: { schema: 'agency' }
+    });
+    const { data, error } = await sb
+      .from('portfolio_items')
+      .select('*')
+      .eq('visible', true)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: false });
+
+    if(!error && data && data.length > 0){
+      const PATTERNS = ['grid','diagonal','dots','circles','waves','hex'];
+      projects.length = 0;
+      data.forEach((item, i) => {
+        projects.push({
+          id:      item.id,   // UUID stringa
+          cat:     item.type_tag || 'web',
+          h:       i % 3 === 0 ? 'tall' : i % 3 === 1 ? 'medium' : 'short',
+          name:    item.title,
+          client:  item.client_name || '',
+          desc:    item.description || '',
+          tags:    item.tags || [],
+          color:   CAT_COLORS[item.type_tag] || '#9b5cff',
+          img:     item.media_url || '',
+          pattern: PATTERNS[i % PATTERNS.length]
+        });
+      });
+    }
+  } catch(e){
+    // Supabase non ancora configurato o errore di rete — usa dati statici
+    console.log('[Portfolio] Dati statici:', e.message);
+  }
+  buildGrid('all');
+}
+
+initPortfolio();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
 <footer>
   <div class="footer-logo">PLURIAGENCY</div>

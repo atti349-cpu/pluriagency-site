@@ -247,10 +247,11 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
     <!-- DISCOUNT -->
     <div class="discount-row">
       <div>
-        <div class="discount-label">SCONTO</div>
+        <div class="discount-label">SCONTO <span style="font-size:.55rem;color:var(--muted);letter-spacing:.1em">(MAX 25%)</span></div>
+        <div id="discount-warn" style="display:none;font-family:'Share Tech Mono',monospace;font-size:.55rem;color:#ff6b8a;margin-top:.2rem;letter-spacing:.05em">▲ limite massimo applicato</div>
       </div>
       <div style="display:flex;align-items:center;gap:.4rem;">
-        <input class="discount-input" id="discount-val" type="number" min="0" max="100" value="0" oninput="recalc()">
+        <input class="discount-input" id="discount-val" type="number" min="0" max="25" value="0" oninput="recalc()">
         <span style="font-family:'Share Tech Mono',monospace;font-size:.8rem;color:var(--muted)">%</span>
       </div>
     </div>
@@ -458,8 +459,22 @@ function changeQty(id, dir, e){
   recalc(); renderSummary();
 }
 
+const MAX_DISCOUNT = 25;
+
 function recalc(){
-  const disc = Math.min(100, Math.max(0, parseFloat(document.getElementById('discount-val').value)||0));
+  const inputEl = document.getElementById('discount-val');
+  const raw = parseFloat(inputEl.value) || 0;
+  const disc = Math.min(MAX_DISCOUNT, Math.max(0, raw));
+
+  // Hard cap: corregge il valore e mostra avviso
+  const warnEl = document.getElementById('discount-warn');
+  if(raw > MAX_DISCOUNT){
+    inputEl.value = MAX_DISCOUNT;
+    if(warnEl) warnEl.style.display = 'block';
+  } else {
+    if(warnEl) warnEl.style.display = 'none';
+  }
+
   let sub = 0;
   Object.values(selected).forEach(s => { sub += s.priceUsed * s.qty; });
   const saved = sub * disc / 100;
@@ -527,22 +542,32 @@ function editPrice(id, amtEl){
   if(amtEl.querySelector('input')) return; // già in edit
   const {item, qty, priceUsed} = selected[id];
   const suffix = item.monthly ? '/mese' : item.yearly ? '/anno' : '';
+  const minPrice = item.price;
+  const maxPrice = item.priceMax > item.price ? item.priceMax : item.price;
   const input = document.createElement('input');
   input.type = 'number'; input.className = 's-price-input';
-  input.value = priceUsed; input.min = 0;
-  input.style.width = Math.max(50, String(priceUsed).length * 9 + 20) + 'px';
+  input.value = priceUsed;
+  input.min = minPrice;
+  input.max = maxPrice;
+  input.title = `Range: €${minPrice.toLocaleString('it-IT')} – €${maxPrice.toLocaleString('it-IT')}`;
+  input.style.width = Math.max(60, String(priceUsed).length * 9 + 20) + 'px';
   amtEl.textContent = '';
   amtEl.appendChild(input);
   input.focus(); input.select();
   const commit = () => {
-    const val = Math.max(0, parseFloat(input.value) || 0);
+    const raw = parseFloat(input.value);
+    // Clamp nel range definito dal servizio
+    const val = isNaN(raw) ? minPrice : Math.min(maxPrice, Math.max(minPrice, raw));
     selected[id].priceUsed = val;
     const total = val * qty;
     amtEl.textContent = `€${total.toLocaleString('it-IT')}${suffix}`;
     recalc();
   };
   input.addEventListener('blur', commit);
-  input.addEventListener('keydown', e => { if(e.key==='Enter'){ commit(); input.blur(); } if(e.key==='Escape'){ amtEl.textContent=`€${(priceUsed*qty).toLocaleString('it-IT')}${suffix}`; } });
+  input.addEventListener('keydown', e => {
+    if(e.key==='Enter'){ commit(); input.blur(); }
+    if(e.key==='Escape'){ amtEl.textContent=`€${(priceUsed*qty).toLocaleString('it-IT')}${suffix}`; }
+  });
 }
 
 
@@ -645,6 +670,59 @@ function generatePDF(){
   win.focus();
   // Small delay to let styles load before print dialog
   setTimeout(() => win.print(), 400);
+}
+
+// ===== SUPABASE PAYLOAD (predisposto per backoffice — STEP 7e) =====
+// Struttura allineata alla tabella `preventivi` schema `agency`
+// Quando Supabase sarà connesso: sostituire il console.log con la fetch /api/save-quote
+
+function buildQuotePayload(){
+  const clientName = document.getElementById('client-name').value.trim() || 'Cliente';
+  const agentName  = document.getElementById('agent-name').value.trim() || 'Agente';
+  const email      = document.getElementById('send-email').value.trim();
+  const notes      = document.getElementById('send-notes').value.trim();
+  const disc       = Math.min(MAX_DISCOUNT, parseFloat(document.getElementById('discount-val').value)||0);
+
+  let sub = 0;
+  const items = [];
+  Object.values(selected).forEach(({item, qty, priceUsed}) => {
+    const lineTotal = priceUsed * qty;
+    sub += lineTotal;
+    items.push({
+      id:         item.id,
+      name:       item.name,
+      qty,
+      unit_price: priceUsed,
+      total:      lineTotal,
+      monthly:    !!item.monthly,
+      yearly:     !!item.yearly
+    });
+  });
+  const disc_amount = Math.round(sub * disc / 100);
+  const total       = sub - disc_amount;
+
+  return {
+    agent_name:      agentName,
+    client_name:     clientName,
+    client_email:    email,
+    items,
+    subtotal:        sub,
+    discount_pct:    disc,
+    discount_amount: disc_amount,
+    total,
+    notes,
+    status:          'bozza',
+    created_at:      new Date().toISOString()
+  };
+}
+
+async function savePreventivo(payload){
+  // TODO — STEP 7e: sostituire con fetch('/api/save-quote') quando Supabase è configurato
+  // const r = await fetch('/api/save-quote', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  // const { id } = await r.json();
+  // return id;
+  console.log('[PREVENTIVO] Payload pronto per Supabase:', JSON.stringify(payload, null, 2));
+  return null;
 }
 
 buildUI();
@@ -847,6 +925,11 @@ async function sendQuote() {
       body: JSON.stringify(payload)
     });
     if (r.ok) {
+      // Salva preventivo per backoffice (predisposto STEP 7e — Supabase)
+      const quotePayload = buildQuotePayload();
+      quotePayload.status = 'inviato';
+      savePreventivo(quotePayload);
+
       btn.querySelector('span').textContent = '✓ INVIATO';
       setTimeout(() => {
         btn.querySelector('span').textContent = '↺ REINVIA';
@@ -864,7 +947,7 @@ async function sendQuote() {
   }
 }
 
-buildUI();
+
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </body>

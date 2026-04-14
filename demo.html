@@ -122,11 +122,28 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   transition:border-color .2s,transform .2s;cursor:pointer;position:relative;}
 .layout-card:hover{border-color:rgba(0,207,255,0.35);transform:translateY(-3px);}
 .layout-card:hover .card-overlay{opacity:1;}
-.card-preview{height:220px;position:relative;overflow:hidden;}
+.card-preview{height:220px;position:relative;overflow:hidden;background:#000;}
 .card-preview-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
   font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--muted);}
+
+/* Mini iframe preview */
+.card-iframe-wrap{position:absolute;inset:0;overflow:hidden;transition:opacity .35s;}
+.card-iframe{position:absolute;top:0;left:0;width:1440px;height:900px;
+  border:none;pointer-events:none;transform-origin:top left;}
+/* Desktop: mostra solo su hover */
+@media(hover:hover){
+  .card-iframe-wrap{opacity:0;}
+  .layout-card:hover .card-iframe-wrap{opacity:1;}
+}
+/* Mobile: sempre visibile */
+@media(hover:none){
+  .card-iframe-wrap{opacity:1;}
+}
+
 .card-overlay{position:absolute;inset:0;background:rgba(0,207,255,0.06);
-  display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;}
+  display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;
+  pointer-events:none;}
+@media(hover:hover){.card-overlay{pointer-events:auto;}}
 .card-overlay-btn{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;
   padding:10px 24px;border:1px solid var(--g1);color:var(--g1);background:rgba(4,6,13,0.8);}
 .card-info{padding:18px 20px 20px;border-top:1px solid var(--border);}
@@ -237,6 +254,7 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
   <div class="footer-info">hello@pluriagency.com &nbsp;·&nbsp; +39 389 688 1004 &nbsp;·&nbsp; Bologna, Italia &nbsp;·&nbsp; P.IVA 99999999999</div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 const LAYOUTS = [
   {
@@ -293,17 +311,27 @@ function makePlaceholderBg(colors) {
 function renderLayouts() {
   const grid = document.getElementById('layouts-grid');
   const filtered = activeFilter === 'all' ? LAYOUTS : LAYOUTS.filter(l=>l.cat===activeFilter);
-  grid.innerHTML = filtered.map(l => `
-    <div class="layout-card">
-      <div class="card-preview" style="background:${makePlaceholderBg(l.colors)}">
-        <div class="card-preview-inner">
-          <div style="text-align:center">
-            <div style="font-family:'Orbitron',monospace;font-size:22px;font-weight:900;letter-spacing:3px;color:${l.colors[0]};text-shadow:0 0 24px ${l.colors[0]}60;margin-bottom:10px">${l.name.split(' ').slice(0,1)[0]}</div>
-            <div style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,0.2)">${l.sector.toUpperCase()}</div>
-          </div>
-        </div>
-        <div class="card-overlay" ${l.htmlSnippet ? `onclick="openDemoPreview('${l.id}')"` : ''}>
-          <div class="card-overlay-btn">${l.htmlSnippet ? '&#9654; ANTEPRIMA' : l.available ? '&#9654; ANTEPRIMA' : '&#9654; RICHIEDI INFO'}</div>
+  const isMobileDevice = !window.matchMedia('(hover:hover)').matches;
+
+  grid.innerHTML = filtered.map(l => {
+    const hasPreview = !!l.htmlSnippet;
+    const placeholderBg = hasPreview ? '' : `style="background:${makePlaceholderBg(l.colors)}"`;
+    const previewInner = hasPreview
+      ? `<div class="card-iframe-wrap" data-id="${l.id}">
+           <iframe class="card-iframe" sandbox="allow-scripts allow-same-origin allow-forms" scrolling="no"></iframe>
+         </div>`
+      : `<div class="card-preview-inner">
+           <div style="text-align:center">
+             <div style="font-family:'Orbitron',monospace;font-size:22px;font-weight:900;letter-spacing:3px;color:${l.colors[0]};text-shadow:0 0 24px ${l.colors[0]}60;margin-bottom:10px">${l.name.split(' ').slice(0,1)[0]}</div>
+             <div style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,0.2)">${l.sector.toUpperCase()}</div>
+           </div>
+         </div>`;
+    return `
+    <div class="layout-card" onclick="openDemoPreview('${l.id}')">
+      <div class="card-preview" ${placeholderBg}>
+        ${previewInner}
+        <div class="card-overlay">
+          <div class="card-overlay-btn">${hasPreview ? '&#9654; ANTEPRIMA' : l.available ? '&#9654; ANTEPRIMA' : '&#9654; RICHIEDI INFO'}</div>
         </div>
       </div>
       <div class="card-info">
@@ -318,8 +346,64 @@ function renderLayouts() {
           <div class="card-badge ${l.available ? '' : 'soon'}">${l.available ? 'DISPONIBILE' : 'COMING SOON'}</div>
         </div>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
+
+  // Setup iframe lazy-load behavior after DOM render
+  requestAnimationFrame(() => setupCardPreviews(isMobileDevice));
+}
+
+function setupCardPreviews(isMobileDevice) {
+  const cards = document.querySelectorAll('.layout-card');
+  cards.forEach(card => {
+    const wrap = card.querySelector('.card-iframe-wrap');
+    if (!wrap) return;
+    const id = wrap.dataset.id;
+    const layout = LAYOUTS.find(l => String(l.id) === String(id));
+    if (!layout || !layout.htmlSnippet) return;
+
+    const iframe = wrap.querySelector('.card-iframe');
+    let loaded = false;
+
+    // Scale iframe to fit card preview
+    function scaleIframe() {
+      const w = card.offsetWidth || 300;
+      const scale = w / 1440;
+      iframe.style.transform = `scale(${scale})`;
+      iframe.style.height = Math.ceil(220 / scale) + 'px';
+    }
+
+    function loadIframe() {
+      if (loaded) return;
+      loaded = true;
+      scaleIframe();
+      iframe.srcdoc = layout.htmlSnippet;
+    }
+
+    if (isMobileDevice) {
+      // Mobile: load quando entra nel viewport
+      const obs = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) { loadIframe(); obs.disconnect(); }
+      }, { threshold: 0.1 });
+      obs.observe(card);
+    } else {
+      // Desktop: load al primo hover
+      card.addEventListener('mouseenter', loadIframe, { once: true });
+    }
+  });
+
+  // Resize handler
+  window.addEventListener('resize', () => {
+    document.querySelectorAll('.card-iframe-wrap').forEach(wrap => {
+      const card = wrap.closest('.layout-card');
+      const iframe = wrap.querySelector('.card-iframe');
+      if (!card || !iframe) return;
+      const w = card.offsetWidth || 300;
+      const scale = w / 1440;
+      iframe.style.transform = `scale(${scale})`;
+      iframe.style.height = Math.ceil(220 / scale) + 'px';
+    });
+  }, { passive: true });
 }
 
 // ===== SUPABASE INIT =====
@@ -373,29 +457,66 @@ initDemos();
 
 // ===== PREVIEW IFRAME MODAL =====
 function openDemoPreview(id){
-  const layout = LAYOUTS.find(l => l.id == id || l.id === id);
+  const layout = LAYOUTS.find(l => String(l.id) === String(id));
   if(!layout || !layout.htmlSnippet) return;
   let modal = document.getElementById('demo-preview-modal');
   if(!modal){
     modal = document.createElement('div');
     modal.id = 'demo-preview-modal';
-    modal.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;padding:20px';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:20px';
     modal.innerHTML = `
-      <div style="width:100%;max-width:1100px;height:85vh;background:#fff;display:flex;flex-direction:column;position:relative">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#04060d;border-bottom:1px solid rgba(0,207,255,.15)">
+      <div style="width:100%;max-width:1100px;height:88vh;background:#fff;display:flex;flex-direction:column;position:relative;border:1px solid rgba(0,207,255,.2)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#04060d;border-bottom:1px solid rgba(0,207,255,.15);flex-shrink:0">
           <span id="demo-modal-title" style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--g1)">ANTEPRIMA</span>
-          <button onclick="closeDemoPreview()" style="background:transparent;border:1px solid rgba(0,207,255,.2);color:#4a6a88;width:28px;height:28px;cursor:pointer;font-size:13px;">✕</button>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button id="demo-pause-btn" onclick="toggleDemoPreviewPause()"
+              style="background:transparent;border:1px solid rgba(0,207,255,.25);color:#4a6a88;
+                     padding:4px 12px;height:28px;cursor:pointer;font-family:'Share Tech Mono',monospace;
+                     font-size:9px;letter-spacing:2px;text-transform:uppercase;transition:all .2s">
+              ⏸ PAUSA
+            </button>
+            <button onclick="closeDemoPreview()" style="background:transparent;border:1px solid rgba(0,207,255,.2);color:#4a6a88;width:28px;height:28px;cursor:pointer;font-size:13px;">✕</button>
+          </div>
         </div>
-        <iframe id="demo-preview-iframe" sandbox="allow-scripts allow-same-origin" style="flex:1;border:none;width:100%"></iframe>
+        <iframe id="demo-preview-iframe" sandbox="allow-scripts allow-same-origin allow-forms"
+          style="flex:1;border:none;width:100%"></iframe>
       </div>`;
     modal.addEventListener('click', e => { if(e.target===modal) closeDemoPreview(); });
     document.body.appendChild(modal);
   }
+  const iframe = document.getElementById('demo-preview-iframe');
+  const pauseBtn = document.getElementById('demo-pause-btn');
   document.getElementById('demo-modal-title').textContent = 'ANTEPRIMA — ' + layout.name;
-  document.getElementById('demo-preview-iframe').srcdoc = layout.htmlSnippet;
+  iframe.srcdoc = layout.htmlSnippet;
+  iframe.dataset.paused = '0';
+  if(pauseBtn){ pauseBtn.textContent = '⏸ PAUSA'; pauseBtn.style.color='#4a6a88'; }
   modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
+
+function toggleDemoPreviewPause(){
+  const iframe = document.getElementById('demo-preview-iframe');
+  const btn = document.getElementById('demo-pause-btn');
+  if(!iframe) return;
+  const paused = iframe.dataset.paused === '1';
+  try {
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    if(paused){
+      // RIPRENDI
+      doc.querySelectorAll('*').forEach(el => { if(el.style) el.style.animationPlayState = ''; });
+      doc.querySelectorAll('video').forEach(v => { try{ v.play(); }catch(e){} });
+      iframe.dataset.paused = '0';
+      if(btn){ btn.textContent = '⏸ PAUSA'; btn.style.color='#4a6a88'; btn.style.borderColor='rgba(0,207,255,.25)'; }
+    } else {
+      // PAUSA
+      doc.querySelectorAll('*').forEach(el => { if(el.style) el.style.animationPlayState = 'paused'; });
+      doc.querySelectorAll('video').forEach(v => { try{ v.pause(); }catch(e){} });
+      iframe.dataset.paused = '1';
+      if(btn){ btn.textContent = '▶ RIPRENDI'; btn.style.color='var(--g1)'; btn.style.borderColor='rgba(0,207,255,.5)'; }
+    }
+  } catch(e){ console.log('pause error:', e); }
+}
+
 function closeDemoPreview(){
   const modal = document.getElementById('demo-preview-modal');
   if(modal){ modal.style.display='none'; document.getElementById('demo-preview-iframe').srcdoc=''; }
@@ -403,6 +524,5 @@ function closeDemoPreview(){
 }
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeDemoPreview(); });
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </body>
 </html>

@@ -440,6 +440,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 let _sb = null;
 let _editPortfolioId = null;
 let _editDemoId = null;
+const _demoItemsMap = {};  // id → item, evita JSON inline negli onclick
 
 async function init(){
   // Auth state: check for hash fragment from magic link
@@ -824,30 +825,34 @@ async function loadDemo(){
 }
 
 function buildDemoRow(item){
+  // Salva item nel map per evitare JSON inline (l'html_snippet rompe gli attributi onclick)
+  _demoItemsMap[item.id] = item;
+
   const row = document.createElement('div');
   row.className = 'demo-row' + (item.visible ? '' : ' hidden-item');
   const snippetLen = (item.html_snippet||'').length;
   const hiddenLabel = !item.visible ? ' <span style="color:var(--red);font-size:.5rem">[NASCOSTO]</span>' : '';
   row.innerHTML = `
     <div class="demo-row-info">
-      <div class="demo-row-name">${item.title}${hiddenLabel}</div>
+      <div class="demo-row-name">${item.title.replace(/</g,'&lt;')}${hiddenLabel}</div>
       <div class="demo-row-meta">
         <span>${item.type_tag||'—'}</span>
-        ${item.price_range ? `<span>${item.price_range}</span>` : ''}
+        ${item.price_range ? `<span>${item.price_range.replace(/</g,'&lt;')}</span>` : ''}
         <span>${snippetLen.toLocaleString('it-IT')} caratteri HTML</span>
         <span>${new Date(item.created_at).toLocaleDateString('it-IT')}</span>
       </div>
     </div>
     <div class="demo-row-actions">
-      <button class="btn-ghost" style="font-size:.55rem;padding:.3rem .6rem" onclick="previewDemo(${JSON.stringify(JSON.stringify(item))})">ANTEPRIMA</button>
-      <button class="btn-ghost" style="font-size:.55rem;padding:.3rem .6rem" onclick="editDemoItem(${JSON.stringify(JSON.stringify(item))})">MODIFICA</button>
+      <button class="btn-ghost" style="font-size:.55rem;padding:.3rem .6rem" onclick="previewDemo('${item.id}')">ANTEPRIMA</button>
+      <button class="btn-ghost" style="font-size:.55rem;padding:.3rem .6rem" onclick="editDemoItem('${item.id}')">MODIFICA</button>
       <button class="btn-danger" onclick="deleteDemoItem('${item.id}',this)">ELIMINA</button>
     </div>`;
   return row;
 }
 
-function editDemoItem(itemJson){
-  const item = JSON.parse(itemJson);
+function editDemoItem(id){
+  const item = _demoItemsMap[id];
+  if(!item) return;
   toggleDemoForm(item);
   document.getElementById('form-demo').scrollIntoView({ behavior:'smooth' });
 }
@@ -861,8 +866,9 @@ async function deleteDemoItem(id, btnEl){
 }
 
 // ===== PREVIEW MODAL =====
-function previewDemo(itemJson){
-  const item = JSON.parse(itemJson);
+function previewDemo(id){
+  const item = _demoItemsMap[id];
+  if(!item) return;
   const modal = document.getElementById('preview-modal');
   const iframe = document.getElementById('preview-iframe');
   document.getElementById('modal-title').textContent = 'ANTEPRIMA — ' + item.title;

@@ -338,7 +338,6 @@ async function initDemos(){
     const cfg = await fetch('/api/config').then(r => r.json());
     if(cfg.error || !cfg.supabaseUrl) throw new Error('config mancante');
     const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
-      db: { schema: 'agency' }
     });
     const { data, error } = await sb
       .from('demo_items')

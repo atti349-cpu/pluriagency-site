@@ -447,7 +447,6 @@ async function init(){
     const cfg = await fetch('/api/config').then(r => r.json());
     if(cfg.error) throw new Error(cfg.error);
     _sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
-      db: { schema: 'agency' }
     });
   } catch(e){
     showError('Configurazione Supabase mancante — aggiungere SUPABASE_URL e SUPABASE_ANON_KEY nelle env vars Vercel.');
@@ -498,9 +497,7 @@ async function sendMagicLink(){
     // init senza dashboard
     try {
       const cfg = await fetch('/api/config').then(r => r.json());
-      _sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
-        db: { schema: 'agency' }
-      });
+      _sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
     } catch(e){
       setLoginMsg('Configurazione Supabase mancante.','err');
       btn.disabled = false; btn.querySelector('span').textContent = '▶ INVIA LINK MAGICO';

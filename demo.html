@@ -126,8 +126,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .card-preview-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
   font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--muted);}
 
-/* Mini iframe preview */
-.card-iframe-wrap{position:absolute;inset:0;overflow:hidden;transition:opacity .35s;}
+/* Mini iframe preview — sovrapposto al placeholder gradiente */
+.card-preview-inner{position:relative;z-index:1;}
+.card-iframe-wrap{position:absolute;inset:0;overflow:hidden;transition:opacity .4s;z-index:2;}
 .card-iframe{position:absolute;top:0;left:0;width:1440px;height:900px;
   border:none;pointer-events:none;transform-origin:top left;}
 /* Desktop: mostra solo su hover */
@@ -135,9 +136,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   .card-iframe-wrap{opacity:0;}
   .layout-card:hover .card-iframe-wrap{opacity:1;}
 }
-/* Mobile: sempre visibile */
+/* Mobile: sempre visibile una volta caricato (classe .loaded aggiunta da JS) */
 @media(hover:none){
-  .card-iframe-wrap{opacity:1;}
+  .card-iframe-wrap{opacity:0;}
+  .card-iframe-wrap.loaded{opacity:1;}
 }
 
 .card-overlay{position:absolute;inset:0;background:rgba(0,207,255,0.06);
@@ -315,21 +317,22 @@ function renderLayouts() {
 
   grid.innerHTML = filtered.map(l => {
     const hasPreview = !!l.htmlSnippet;
-    const placeholderBg = hasPreview ? '' : `style="background:${makePlaceholderBg(l.colors)}"`;
-    const previewInner = hasPreview
+    // Il placeholder gradiente è SEMPRE visibile; l'iframe si sovrappone su hover/mobile
+    const iframeLayer = hasPreview
       ? `<div class="card-iframe-wrap" data-id="${l.id}">
            <iframe class="card-iframe" sandbox="allow-scripts allow-same-origin allow-forms" scrolling="no"></iframe>
          </div>`
-      : `<div class="card-preview-inner">
-           <div style="text-align:center">
-             <div style="font-family:'Orbitron',monospace;font-size:22px;font-weight:900;letter-spacing:3px;color:${l.colors[0]};text-shadow:0 0 24px ${l.colors[0]}60;margin-bottom:10px">${l.name.split(' ').slice(0,1)[0]}</div>
-             <div style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,0.2)">${l.sector.toUpperCase()}</div>
-           </div>
-         </div>`;
+      : '';
     return `
     <div class="layout-card" onclick="openDemoPreview('${l.id}')">
-      <div class="card-preview" ${placeholderBg}>
-        ${previewInner}
+      <div class="card-preview" style="background:${makePlaceholderBg(l.colors)}">
+        ${iframeLayer}
+        <div class="card-preview-inner">
+          <div style="text-align:center">
+            <div style="font-family:'Orbitron',monospace;font-size:22px;font-weight:900;letter-spacing:3px;color:${l.colors[0]};text-shadow:0 0 24px ${l.colors[0]}60;margin-bottom:10px">${l.name.split(' ').slice(0,1)[0]}</div>
+            <div style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,0.2)">${l.sector.toUpperCase()}</div>
+          </div>
+        </div>
         <div class="card-overlay">
           <div class="card-overlay-btn">${hasPreview ? '&#9654; ANTEPRIMA' : l.available ? '&#9654; ANTEPRIMA' : '&#9654; RICHIEDI INFO'}</div>
         </div>
@@ -381,9 +384,15 @@ function setupCardPreviews(isMobileDevice) {
     }
 
     if (isMobileDevice) {
-      // Mobile: load quando entra nel viewport
+      // Mobile: load quando entra nel viewport, poi mostra con .loaded
       const obs = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting) { loadIframe(); obs.disconnect(); }
+        if (entries[0].isIntersecting) {
+          loadIframe();
+          // Attendi che l'iframe sia parzialmente caricato prima del fade-in
+          iframe.addEventListener('load', () => wrap.classList.add('loaded'), { once: true });
+          setTimeout(() => wrap.classList.add('loaded'), 1200); // fallback
+          obs.disconnect();
+        }
       }, { threshold: 0.1 });
       obs.observe(card);
     } else {

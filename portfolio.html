@@ -88,6 +88,18 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   position:relative;overflow:hidden;}
 .port-placeholder .geo{position:absolute;border-style:solid;border-color:rgba(255,255,255,0.08);opacity:0.5;}
 
+/* IFRAME PREVIEW (items senza immagine ma con html_snippet) */
+.port-iframe-wrap .port-placeholder { position:absolute;inset:0;transition:opacity .4s; }
+.port-iframe-inner { position:absolute;inset:0;opacity:0;transition:opacity .4s;z-index:1; }
+/* Desktop: rivela su hover */
+@media(hover:hover){
+  .port-card:hover .port-iframe-wrap .port-iframe-inner { opacity:1; }
+  .port-card:hover .port-iframe-wrap .port-placeholder { opacity:0; }
+}
+/* Mobile: rivela quando entra nel viewport (gestito via JS + classe .revealed) */
+.port-iframe-wrap.revealed .port-iframe-inner { opacity:1; }
+.port-iframe-wrap.revealed .port-placeholder { opacity:0; }
+
 /* OVERLAY */
 .port-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   opacity:0;transition:opacity .25s;z-index:2;}
@@ -396,11 +408,21 @@ function buildGrid(cat){
     const catColor = CAT_COLORS[p.cat]||'#9b5cff';
     const catLabel = CAT_LABELS[p.cat]||p.cat;
     const hStyle = p.h==='tall'?'height:280px':p.h==='short'?'height:160px':'height:220px';
-    const imgHtml = p.img
-      ? (p.mediaType === 'video'
-          ? `<div class="port-img-wrap" style="${hStyle}"><video src="${p.img}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video></div>`
-          : `<div class="port-img-wrap" style="${hStyle}"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>`)
-      : `<div class="port-img-wrap">${makePlaceholder(p.color||catColor, p.pattern, p.h)}</div>`;
+    let imgHtml;
+    if(p.img){
+      imgHtml = p.mediaType === 'video'
+        ? `<div class="port-img-wrap" style="${hStyle}"><video src="${p.img}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video></div>`
+        : `<div class="port-img-wrap" style="${hStyle}"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>`;
+    } else if(p.htmlSnippet){
+      imgHtml = `<div class="port-img-wrap port-iframe-wrap" style="${hStyle};position:relative;overflow:hidden;background:#06060a" data-id="${p.id}">
+        <div class="port-iframe-inner">
+          <iframe class="port-preview-iframe" sandbox="allow-scripts allow-same-origin allow-forms" scrolling="no" style="position:absolute;top:0;left:0;width:1440px;height:900px;border:none;pointer-events:none;transform-origin:top left"></iframe>
+        </div>
+        ${makePlaceholder(p.color||catColor, p.pattern, p.h)}
+      </div>`;
+    } else {
+      imgHtml = `<div class="port-img-wrap">${makePlaceholder(p.color||catColor, p.pattern, p.h)}</div>`;
+    }
     return `<div class="port-card" onclick="openLightbox('${p.id}')">
       ${imgHtml}
       <div class="port-overlay"><div class="overlay-btn">&#9654; ESPLORA</div></div>
@@ -411,6 +433,49 @@ function buildGrid(cat){
       </div>
     </div>`;
   }).join('');
+
+  // Setup iframe previews per items senza immagine
+  requestAnimationFrame(setupPortfolioIframePreviews);
+}
+
+// ===== IFRAME PREVIEWS (portfolio items con html_snippet, senza immagine) =====
+function setupPortfolioIframePreviews(){
+  const isMobile = !window.matchMedia('(hover:hover)').matches;
+  document.querySelectorAll('.port-iframe-wrap[data-id]').forEach(wrap => {
+    const id = wrap.dataset.id;
+    const item = projects.find(p => String(p.id) === String(id));
+    if(!item || !item.htmlSnippet) return;
+
+    const iframe = wrap.querySelector('.port-preview-iframe');
+    let loaded = false;
+
+    function scaleAndLoad(){
+      if(loaded) return;
+      loaded = true;
+      const w = wrap.offsetWidth || 220;
+      const scale = w / 1440;
+      iframe.style.transform = `scale(${scale})`;
+      const h = parseInt(wrap.style.height) || 220;
+      iframe.style.height = Math.ceil(h / scale) + 'px';
+      iframe.srcdoc = item.htmlSnippet;
+    }
+
+    if(isMobile){
+      // Mobile: carica quando entra nel viewport, mostra con classe .revealed
+      const obs = new IntersectionObserver(entries => {
+        if(entries[0].isIntersecting){
+          scaleAndLoad();
+          wrap.classList.add('revealed');
+          obs.disconnect();
+        }
+      }, { threshold: 0.15 });
+      obs.observe(wrap);
+    } else {
+      // Desktop: carica al primo hover, mostra via CSS :hover
+      const card = wrap.closest('.port-card');
+      if(card) card.addEventListener('mouseenter', scaleAndLoad, { once: true });
+    }
+  });
 }
 
 // ===== FILTER =====
@@ -425,7 +490,7 @@ function filterCat(cat, btn){
 
 // ===== LIGHTBOX =====
 function openLightbox(id){
-  const p = projects.find(x=>x.id===id);
+  const p = projects.find(x=>String(x.id)===String(id));
   if(!p) return;
   const catColor = CAT_COLORS[p.cat]||'#9b5cff';
   document.getElementById('lb-cat').textContent = (CAT_LABELS[p.cat]||'').toUpperCase();
@@ -435,9 +500,22 @@ function openLightbox(id){
   document.getElementById('lb-desc').textContent = p.desc;
   document.getElementById('lb-tags').innerHTML = p.tags.map(t=>`<span class="lb-tag" style="border-color:${catColor}33;color:${catColor}">${t}</span>`).join('');
   const imgWrap = document.getElementById('lb-img-wrap');
-  imgWrap.innerHTML = p.img
-    ? `<img class="lb-img" src="${p.img}" alt="${p.name}">`
-    : makePlaceholder(p.color||catColor, p.pattern, 'tall').replace(`height:280px`, 'height:320px').replace(/<div style="width:100%;height:\d+px;/,'<div style="width:100%;height:320px;');
+  if(p.img){
+    if(p.mediaType === 'video'){
+      imgWrap.innerHTML = `<video class="lb-img" src="${p.img}" autoplay muted loop playsinline controls style="width:100%;max-height:480px;object-fit:contain;background:#000"></video>`;
+    } else {
+      imgWrap.innerHTML = `<img class="lb-img" src="${p.img}" alt="${p.name}">`;
+    }
+  } else if(p.htmlSnippet){
+    // Mostra iframe fullscreen del sito — srcdoc via JS per evitare escaping rotto
+    imgWrap.innerHTML = `<div style="width:100%;height:420px;position:relative;background:#000;overflow:hidden;border-radius:4px">
+      <iframe id="lb-snippet-iframe" sandbox="allow-scripts allow-same-origin allow-forms"
+        style="width:100%;height:100%;border:none"></iframe>
+    </div>`;
+    document.getElementById('lb-snippet-iframe').srcdoc = p.htmlSnippet;
+  } else {
+    imgWrap.innerHTML = makePlaceholder(p.color||catColor, p.pattern, 'tall').replace('height:280px','height:320px').replace(/<div style="width:100%;height:\d+px;/,'<div style="width:100%;height:320px;');
+  }
   document.getElementById('lightbox').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -467,17 +545,18 @@ async function initPortfolio(){
       projects.length = 0;
       data.forEach((item, i) => {
         projects.push({
-          id:        item.id,
-          cat:       item.type_tag || 'web',
-          h:         i % 3 === 0 ? 'tall' : i % 3 === 1 ? 'medium' : 'short',
-          name:      item.title,
-          client:    item.client_name || '',
-          desc:      item.description || '',
-          tags:      item.tags || [],
-          color:     CAT_COLORS[item.type_tag] || '#9b5cff',
-          img:       item.media_url || '',
-          mediaType: item.media_type || 'image',
-          pattern:   PATTERNS[i % PATTERNS.length]
+          id:          item.id,
+          cat:         item.type_tag || 'web',
+          h:           i % 3 === 0 ? 'tall' : i % 3 === 1 ? 'medium' : 'short',
+          name:        item.title,
+          client:      item.client_name || '',
+          desc:        item.description || '',
+          tags:        item.tags || [],
+          color:       CAT_COLORS[item.type_tag] || '#9b5cff',
+          img:         item.media_url || '',
+          mediaType:   item.media_type || 'image',
+          htmlSnippet: item.html_snippet || null,
+          pattern:     PATTERNS[i % PATTERNS.length]
         });
       });
     }

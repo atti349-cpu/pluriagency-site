@@ -298,7 +298,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
             </div>
             <div class="field">
               <label class="field-label">TAG TIPOLOGIA</label>
-              <select class="field-select" id="pf-type">
+              <select class="field-select" id="pf-type" onchange="togglePfHtmlField()">
                 <option value="web">WEB</option>
                 <option value="grafica">GRAFICA</option>
                 <option value="foto">FOTO &amp; VIDEO</option>
@@ -331,6 +331,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
               <label class="field-label">OPPURE URL IMMAGINE</label>
               <input class="field-input" id="pf-url" type="url" placeholder="https://...">
               <div class="field-hint">&gt; usato solo se non hai caricato un file</div>
+            </div>
+            <div class="field full" id="pf-html-field" style="display:none">
+              <label class="field-label">ANTEPRIMA HTML <span style="opacity:.5">(opzionale — usato se non hai immagine)</span></label>
+              <textarea class="field-input field-textarea code" id="pf-html"
+                placeholder="<!DOCTYPE html>&#10;<html>...&#10;Incolla qui il codice HTML del sito — comparirà come anteprima nella card"></textarea>
+              <div class="field-hint">&gt; visibile in portfolio quando non c'è immagine — hover desktop / tap mobile</div>
             </div>
             <div class="field full">
               <label class="field-check-row">
@@ -440,7 +446,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 let _sb = null;
 let _editPortfolioId = null;
 let _editDemoId = null;
-const _demoItemsMap = {};  // id → item, evita JSON inline negli onclick
+const _demoItemsMap = {};      // id → item, evita JSON inline negli onclick
+const _portfolioItemsMap = {}; // id → item
 
 async function init(){
   // Auth state: check for hash fragment from magic link
@@ -551,9 +558,15 @@ function togglePortfolioForm(item){
   form.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
 
+function togglePfHtmlField(){
+  const type = document.getElementById('pf-type').value;
+  const show = (type === 'web' || type === 'auto');
+  document.getElementById('pf-html-field').style.display = show ? 'block' : 'none';
+}
+
 function clearPortfolioForm(){
   _editPortfolioId = null;
-  ['pf-title','pf-client','pf-creator','pf-desc','pf-tags','pf-url'].forEach(id => {
+  ['pf-title','pf-client','pf-creator','pf-desc','pf-tags','pf-url','pf-html'].forEach(id => {
     document.getElementById(id).value = '';
   });
   document.getElementById('pf-file').value = '';
@@ -561,6 +574,7 @@ function clearPortfolioForm(){
   document.getElementById('pf-visible').checked = true;
   document.getElementById('pf-save-btn').textContent = '▶ SALVA ITEM';
   setFormMsg('pf-msg','','');
+  togglePfHtmlField();
 }
 
 function populatePortfolioForm(item){
@@ -571,11 +585,11 @@ function populatePortfolioForm(item){
   document.getElementById('pf-desc').value = item.description || '';
   document.getElementById('pf-tags').value = (item.tags || []).join(', ');
   document.getElementById('pf-url').value = item.media_url || '';
+  document.getElementById('pf-html').value = item.html_snippet || '';
   document.getElementById('pf-type').value = item.type_tag || 'web';
   document.getElementById('pf-visible').checked = item.visible !== false;
-  document.getElementById('pf-save-btn').querySelector
-    ? null : null; // btn è plain text
   document.getElementById('pf-save-btn').textContent = '▶ AGGIORNA ITEM';
+  togglePfHtmlField();
 }
 
 async function savePortfolioItem(){
@@ -604,17 +618,20 @@ async function savePortfolioItem(){
   const tagsRaw = document.getElementById('pf-tags').value.trim();
   const tags = tagsRaw ? tagsRaw.split(',').map(t=>t.trim()).filter(Boolean) : [];
 
+  const htmlSnippet = document.getElementById('pf-html').value.trim() || null;
+
   const payload = {
     title,
-    client_name: document.getElementById('pf-client').value.trim() || null,
-    creator_tag: document.getElementById('pf-creator').value.trim() || null,
-    description: document.getElementById('pf-desc').value.trim() || null,
-    type_tag:    document.getElementById('pf-type').value,
+    client_name:  document.getElementById('pf-client').value.trim() || null,
+    creator_tag:  document.getElementById('pf-creator').value.trim() || null,
+    description:  document.getElementById('pf-desc').value.trim() || null,
+    type_tag:     document.getElementById('pf-type').value,
     tags,
-    media_url:   mediaUrl || null,
-    media_type:  mediaType,
-    visible:     document.getElementById('pf-visible').checked,
-    updated_at:  new Date().toISOString()
+    media_url:    mediaUrl || null,
+    media_type:   mediaType,
+    html_snippet: htmlSnippet,
+    visible:      document.getElementById('pf-visible').checked,
+    updated_at:   new Date().toISOString()
   };
 
   let error;
@@ -687,16 +704,31 @@ async function loadPortfolio(){
 }
 
 function buildPortfolioCard(item){
+  // Salva nel map — evita JSON inline negli onclick
+  _portfolioItemsMap[item.id] = item;
+
   const card = document.createElement('div');
   card.className = 'item-card' + (item.visible ? '' : ' hidden-item');
 
-  const thumb = item.media_url
-    ? `<img class="item-thumb" src="${item.media_url}" alt="${item.title}" loading="lazy" onerror="this.outerHTML='<div class=\\'item-thumb-placeholder\\'>&gt; nessuna immagine</div>'">`
-    : `<div class="item-thumb-placeholder">&gt; nessuna immagine</div>`;
+  let thumb;
+  if(item.media_url){
+    if(item.media_type === 'video'){
+      thumb = `<video class="item-thumb" src="${item.media_url}" autoplay muted loop playsinline style="object-fit:cover"></video>`;
+    } else {
+      thumb = `<img class="item-thumb" src="${item.media_url}" alt="${item.title}" loading="lazy" onerror="this.outerHTML='<div class=\\'item-thumb-placeholder\\'>&gt; nessuna immagine</div>'">`;
+    }
+  } else if(item.html_snippet){
+    thumb = `<div class="item-thumb-placeholder" style="position:relative;overflow:hidden;background:#04060d;">
+      <span style="position:relative;z-index:2;font-size:.55rem;letter-spacing:.2em;opacity:.5">&gt; anteprima HTML</span>
+      <span style="position:absolute;top:4px;right:6px;z-index:2;font-family:monospace;font-size:.5rem;color:var(--v);opacity:.7">&lt;/&gt;</span>
+    </div>`;
+  } else {
+    thumb = `<div class="item-thumb-placeholder">&gt; nessuna immagine</div>`;
+  }
 
   const tagType = `<span class="item-tag type">${item.type_tag||'web'}</span>`;
   const tagCreator = item.creator_tag ? `<span class="item-tag">${item.creator_tag}</span>` : '';
-  const extraTags = (item.tags||[]).slice(0,2).map(t=>`<span class="item-tag">${t}</span>`).join('');
+  const extraTags = (item.tags||[]).slice(0,2).map(t=>`<span class="item-tag">${t.replace(/</g,'&lt;')}</span>`).join('');
   const hiddenBadge = !item.visible ? '<div class="badge-hidden">NASCOSTO</div>' : '';
 
   card.innerHTML = `
@@ -704,18 +736,19 @@ function buildPortfolioCard(item){
     ${thumb}
     <div class="item-body">
       <div class="item-tags">${tagType}${tagCreator}${extraTags}</div>
-      <div class="item-name">${item.title}</div>
-      <div class="item-client">${item.client_name||'—'}</div>
+      <div class="item-name">${item.title.replace(/</g,'&lt;')}</div>
+      <div class="item-client">${(item.client_name||'—').replace(/</g,'&lt;')}</div>
     </div>
     <div class="item-actions">
-      <button class="btn-ghost" style="font-size:.55rem;padding:.3rem .6rem" onclick="editPortfolioItem(${JSON.stringify(JSON.stringify(item))})">MODIFICA</button>
+      <button class="btn-ghost" style="font-size:.55rem;padding:.3rem .6rem" onclick="editPortfolioItem('${item.id}')">MODIFICA</button>
       <button class="btn-danger" onclick="deletePortfolioItem('${item.id}',this)">ELIMINA</button>
     </div>`;
   return card;
 }
 
-function editPortfolioItem(itemJson){
-  const item = JSON.parse(itemJson);
+function editPortfolioItem(id){
+  const item = _portfolioItemsMap[id];
+  if(!item) return;
   togglePortfolioForm(item);
   document.getElementById('form-portfolio').scrollIntoView({ behavior:'smooth' });
 }

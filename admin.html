@@ -492,7 +492,53 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
   /* Demo row */
   .demo-row{grid-template-columns:1fr;gap:.5rem;}
   .demo-row-actions{justify-content:flex-end;}
+  /* Token monitor mobile */
+  .tm-grid{grid-template-columns:1fr !important;}
+  .tm-stats{grid-template-columns:1fr 1fr 1fr;}
 }
+
+/* ══════════════════════════════════════
+   TOKEN MONITOR SECTION
+   ══════════════════════════════════════ */
+.tm-wrap{padding:.25rem 0;}
+.tm-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;flex-wrap:wrap;gap:.75rem;}
+.tm-eyebrow{font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.25em;text-transform:uppercase;color:var(--g3);margin-bottom:.4rem;}
+.tm-h1{font-family:'Orbitron',monospace;font-size:clamp(18px,3vw,28px);font-weight:900;letter-spacing:3px;color:var(--text);}
+.tm-controls{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;}
+.tm-countdown{font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.1em;color:var(--muted);}
+.tm-sync-btn{font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;padding:.5rem 1rem;border:1px solid var(--g3);color:var(--g3);background:transparent;cursor:pointer;transition:all .15s;}
+.tm-sync-btn:hover{background:rgba(0,207,255,.1);}
+.tm-sync-btn:disabled{opacity:.4;cursor:not-allowed;}
+.tm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;}
+.tm-card{background:var(--panel);border:1px solid var(--border);padding:1.1rem 1.25rem;transition:border-color .2s;}
+.tm-card:hover{border-color:rgba(155,92,255,.3);}
+.tm-card-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.9rem;gap:.5rem;}
+.tm-card-name{font-family:'Orbitron',monospace;font-size:.72rem;font-weight:700;letter-spacing:1px;color:var(--text);}
+.tm-card-id{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.05em;color:var(--muted);margin-top:3px;}
+.tm-badge{font-family:'Share Tech Mono',monospace;font-size:.5rem;padding:2px 7px;border-radius:2px;letter-spacing:1px;white-space:nowrap;}
+.tm-badge-ok{background:rgba(0,255,136,.08);color:var(--g1);border:1px solid rgba(0,255,136,.25);}
+.tm-badge-warn{background:rgba(255,107,53,.08);color:#ff6b35;border:1px solid rgba(255,107,53,.25);}
+.tm-badge-crit{background:rgba(255,74,106,.08);color:var(--red);border:1px solid rgba(255,74,106,.25);}
+.tm-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.8rem;}
+.tm-stat{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);padding:.6rem .7rem;}
+.tm-stat-label{font-family:'Share Tech Mono',monospace;font-size:.48rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.tm-stat-val{font-family:'Share Tech Mono',monospace;font-size:1rem;}
+.tm-stat-val.accent{color:var(--g3);}
+.tm-stat-val.ok{color:var(--g1);}
+.tm-stat-val.warn{color:#ff6b35;}
+.tm-stat-val.crit{color:var(--red);}
+.tm-bar-labels{display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:.48rem;color:var(--muted);margin-bottom:3px;}
+.tm-bar-track{height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;}
+.tm-bar-fill{height:100%;border-radius:2px;transition:width .6s ease;}
+.tm-bar-ok{background:var(--g1);}
+.tm-bar-warn{background:#ff6b35;}
+.tm-bar-crit{background:var(--red);}
+.tm-renewal{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.05em;color:var(--muted);margin-top:.65rem;display:flex;align-items:center;justify-content:space-between;}
+.tm-cache-tag{font-size:.45rem;background:rgba(155,92,255,.1);color:var(--v);padding:1px 5px;border-radius:2px;letter-spacing:.1em;}
+.tm-error-card{background:var(--panel);border:1px solid rgba(255,74,106,.2);padding:1rem 1.25rem;}
+.tm-error-msg{font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--red);letter-spacing:.05em;margin-top:.4rem;}
+.tm-empty{font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--muted);padding:2rem 0;text-align:center;}
+.tm-footer{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.05em;color:var(--muted);margin-top:1.25rem;}
 </style>
 </head>
 <body>
@@ -546,6 +592,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         <div class="sb-divider"></div>
         <div class="sb-section-label">SISTEMA</div>
         <button class="sb-item" id="nav-roadmap" onclick="switchSection('roadmap',this)">◈ ROADMAP</button>
+        <button class="sb-item" id="nav-tokens" onclick="switchSection('tokens',this)" style="display:none">◈ TOKEN MONITOR</button>
       </div>
       <div class="sb-user">
         <div class="sb-user-email" id="sb-email"></div>
@@ -765,6 +812,26 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         </div>
       </section>
 
+      <!-- === TOKEN MONITOR SECTION (super-admin only) === -->
+      <section id="section-tokens" style="display:none">
+        <div class="tm-wrap">
+          <div class="tm-topbar">
+            <div>
+              <div class="tm-eyebrow">// SISTEMA › TOKEN ANTHROPIC</div>
+              <div class="tm-h1">TOKEN MONITOR</div>
+            </div>
+            <div class="tm-controls">
+              <span class="tm-countdown" id="tm-countdown">CACHE: --:--</span>
+              <button class="tm-sync-btn" id="tm-sync-btn" onclick="tmForceRefresh()">↻ SYNC</button>
+            </div>
+          </div>
+          <div class="tm-grid" id="tm-cards">
+            <div class="tm-empty">&gt; caricamento token data_</div>
+          </div>
+          <div class="tm-footer" id="tm-footer"></div>
+        </div>
+      </section>
+
       <!-- === ROADMAP SECTION === -->
       <section id="section-roadmap" style="display:none">
         <div class="rm-page">
@@ -883,6 +950,13 @@ async function showDashboard(user){
     if(navRoadmap) navRoadmap.style.display = 'none';
   }
 
+  // Super-admin only: token monitor
+  if(_currentUserEmail === 'atti349@gmail.com'){
+    const navTokens = document.getElementById('nav-tokens');
+    if(navTokens) navTokens.style.display = 'flex';
+    tmStartCountdown();
+  }
+
   loadPortfolio();
 }
 
@@ -957,7 +1031,7 @@ function closeSidebarMobile(){
 
 function switchSection(name, btnEl){
   closeSidebarMobile();
-  ['portfolio','demo','preventivi','agenti','roadmap'].forEach(s => {
+  ['portfolio','demo','preventivi','agenti','roadmap','tokens'].forEach(s => {
     const sec = document.getElementById('section-'+s);
     if(sec) sec.style.display = s===name ? 'block' : 'none';
     const nav = document.getElementById('nav-'+s);
@@ -970,6 +1044,7 @@ function switchSection(name, btnEl){
   if(name==='preventivi') loadPreventivi();
   if(name==='agenti') loadAgenti();
   if(name==='roadmap') loadRoadmap();
+  if(name==='tokens') loadTokens();
 }
 
 // ===== PORTFOLIO =====
@@ -1905,6 +1980,186 @@ function rmInitData(){
       rmMkT('Fix board task → testo non visibile','high','S'),
     ]),
   ];
+}
+
+// ===== TOKEN MONITOR =====
+const TM_CACHE_TTL = 30 * 60 * 1000; // 30 minuti
+let _tmCountdown = TM_CACHE_TTL / 1000;
+let _tmInterval = null;
+let _tmLoaded = false;
+
+function tmFmtNum(n){
+  if(n === undefined || n === null) return '—';
+  if(n >= 1000000) return (n/1000000).toFixed(2)+'M';
+  if(n >= 1000) return Math.round(n/1000)+'K';
+  return n.toString();
+}
+
+function tmGetStatus(pct){
+  if(pct >= 85) return 'crit';
+  if(pct >= 65) return 'warn';
+  return 'ok';
+}
+
+function tmBadgeHtml(status){
+  const labels = {ok:'OPERATIVO', warn:'ATTENZIONE', crit:'CRITICO'};
+  return `<span class="tm-badge tm-badge-${status}">${labels[status]}</span>`;
+}
+
+function tmCacheKey(id){ return `pluriagency_token_cache_${id}`; }
+
+function tmLoadCache(id){
+  try {
+    const raw = localStorage.getItem(tmCacheKey(id));
+    if(!raw) return null;
+    const c = JSON.parse(raw);
+    if(Date.now() - c.fetchedAt > TM_CACHE_TTL) return null;
+    return c;
+  } catch { return null; }
+}
+
+function tmSaveCache(id, data){
+  try {
+    localStorage.setItem(tmCacheKey(id), JSON.stringify({data, fetchedAt: Date.now()}));
+  } catch(e){ console.warn('TM cache write failed:', e); }
+}
+
+async function tmFetchAccount(acc, forceRefresh){
+  if(!forceRefresh){
+    const cached = tmLoadCache(acc.id);
+    if(cached) return {...cached.data, fromCache: true};
+  }
+  try {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    const start = firstDay.toISOString().split('T')[0];
+    const end = today.toISOString().split('T')[0];
+    const res = await fetch(`/api/token-usage?id=${encodeURIComponent(acc.id)}&start=${start}&end=${end}`);
+    const json = await res.json();
+    if(json.error && json.used === undefined) throw new Error(json.error);
+    const data = {
+      id: acc.id,
+      name: acc.name,
+      used: json.used || 0,
+      limit: acc.monthlyLimit || 1000000,
+      renewal: acc.renewalDate || '—',
+      apiError: json.error || null,
+    };
+    tmSaveCache(acc.id, data);
+    return {...data, fromCache: false};
+  } catch(err){
+    return {id: acc.id, name: acc.name, error: err.message};
+  }
+}
+
+async function loadTokens(forceRefresh = false){
+  if(_tmLoaded && !forceRefresh) return;
+  const container = document.getElementById('tm-cards');
+  const syncBtn = document.getElementById('tm-sync-btn');
+  if(!container) return;
+
+  container.innerHTML = '<div class="tm-empty">&gt; caricamento token data_</div>';
+  if(syncBtn) syncBtn.disabled = true;
+
+  try {
+    const res = await fetch('/api/token-usage?action=accounts');
+    const json = await res.json();
+    if(json.error) throw new Error(json.error);
+
+    const accounts = json.accounts || [];
+    if(!accounts.length){
+      container.innerHTML = '<div class="tm-empty">&gt; nessun account configurato — aggiungi TOKEN_ACCOUNTS_JSON nelle env Vercel_</div>';
+      if(syncBtn) syncBtn.disabled = false;
+      return;
+    }
+
+    if(forceRefresh){
+      accounts.forEach(acc => localStorage.removeItem(tmCacheKey(acc.id)));
+    }
+
+    const results = await Promise.all(accounts.map(acc => tmFetchAccount(acc, forceRefresh)));
+    tmRenderCards(results);
+
+    const footer = document.getElementById('tm-footer');
+    if(footer) footer.textContent = `// LAST SYNC: ${new Date().toLocaleTimeString('it-IT')}`;
+
+    _tmCountdown = TM_CACHE_TTL / 1000;
+    _tmLoaded = true;
+  } catch(err){
+    container.innerHTML = `<div class="tm-error-card"><div class="tm-card-name" style="color:var(--text)">ERRORE CONFIGURAZIONE</div><div class="tm-error-msg">⚠ ${err.message}</div></div>`;
+  }
+
+  if(syncBtn) syncBtn.disabled = false;
+}
+
+function tmRenderCards(results){
+  const container = document.getElementById('tm-cards');
+  if(!container || !results.length){
+    if(container) container.innerHTML = '<div class="tm-empty">&gt; nessun dato disponibile_</div>';
+    return;
+  }
+  container.innerHTML = results.map(acc => {
+    if(acc.error){
+      return `<div class="tm-error-card">
+        <div class="tm-card-name" style="color:var(--text)">${acc.name}</div>
+        <div class="tm-error-msg">⚠ ${acc.error}</div>
+      </div>`;
+    }
+    const pct = Math.min(100, Math.round((acc.used / acc.limit) * 100));
+    const remaining = Math.max(0, acc.limit - acc.used);
+    const status = tmGetStatus(pct);
+    return `<div class="tm-card">
+      <div class="tm-card-head">
+        <div>
+          <div class="tm-card-name">${acc.name}</div>
+          <div class="tm-card-id">ID: ${acc.id}${acc.apiError ? ' &nbsp;|&nbsp; <span style="color:var(--red)">API ERR</span>' : ''}</div>
+        </div>
+        ${tmBadgeHtml(status)}
+      </div>
+      <div class="tm-stats">
+        <div class="tm-stat">
+          <div class="tm-stat-label">USATI</div>
+          <div class="tm-stat-val accent">${tmFmtNum(acc.used)}</div>
+        </div>
+        <div class="tm-stat">
+          <div class="tm-stat-label">RIMANENTI</div>
+          <div class="tm-stat-val ${status}">${tmFmtNum(remaining)}</div>
+        </div>
+        <div class="tm-stat">
+          <div class="tm-stat-label">UTILIZZO</div>
+          <div class="tm-stat-val ${status}">${pct}%</div>
+        </div>
+      </div>
+      <div class="tm-bar-labels"><span>0</span><span>LIMITE: ${tmFmtNum(acc.limit)}</span></div>
+      <div class="tm-bar-track"><div class="tm-bar-fill tm-bar-${status}" style="width:${pct}%"></div></div>
+      <div class="tm-renewal">
+        <span>⟳ RINNOVO: ${acc.renewal}</span>
+        ${acc.fromCache ? '<span class="tm-cache-tag">CACHE</span>' : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function tmForceRefresh(){
+  _tmLoaded = false;
+  loadTokens(true);
+}
+
+function tmStartCountdown(){
+  if(_tmInterval) return; // già avviato
+  _tmInterval = setInterval(() => {
+    _tmCountdown = Math.max(0, _tmCountdown - 1);
+    const el = document.getElementById('tm-countdown');
+    if(!el) return;
+    if(_tmCountdown <= 0){
+      el.textContent = 'PRONTO PER SYNC';
+      _tmCountdown = TM_CACHE_TTL / 1000;
+    } else {
+      const m = Math.floor(_tmCountdown / 60).toString().padStart(2,'0');
+      const s = (_tmCountdown % 60).toString().padStart(2,'0');
+      el.textContent = `CACHE: ${m}:${s}`;
+    }
+  }, 1000);
 }
 
 // ===== BOOT =====

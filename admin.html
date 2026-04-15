@@ -420,6 +420,79 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .rm-empty-t { padding:18px; text-align:center; color:var(--rm-text3); font-size:10px; letter-spacing:.1em; text-transform:uppercase; border:1px dashed var(--rm-border); border-radius:2px; }
 .rm-toast { position:fixed; bottom:20px; right:20px; z-index:500; background:var(--panel); border:1px solid var(--rm-border2); border-radius:2px; padding:10px 16px; font-size:10px; color:var(--rm-neon); letter-spacing:.1em; text-transform:uppercase; transform:translateY(50px); opacity:0; transition:all .22s ease; pointer-events:none; box-shadow:var(--rm-neon-glow); }
 .rm-toast.show { transform:translateY(0); opacity:1; }
+
+/* ===== MOBILE RESPONSIVE ===== */
+.mob-topbar{
+  display:none;align-items:center;gap:1rem;
+  padding:.75rem 1.25rem;background:var(--panel);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100;
+}
+.mob-logo{
+  font-family:'Orbitron',monospace;font-size:12px;font-weight:900;
+  letter-spacing:3px;color:var(--g1);
+  text-shadow:0 0 12px rgba(0,255,136,.3);flex:1;
+}
+.mob-hamburger{
+  background:transparent;border:1px solid var(--border);
+  width:36px;height:36px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:5px;padding:0;flex-shrink:0;
+  transition:border-color .15s;
+}
+.mob-hamburger:hover{border-color:var(--v);}
+.mob-hamburger span{
+  display:block;width:18px;height:1.5px;
+  background:var(--text);transition:all .22s;
+  transform-origin:center;
+}
+.mob-hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg);}
+.mob-hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0);}
+.mob-hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg);}
+.sidebar-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.72);z-index:149;
+  backdrop-filter:blur(2px);
+}
+.sidebar-overlay.open{display:block;}
+@media(max-width:768px){
+  .mob-topbar{display:flex;}
+  .admin-wrap{flex-direction:column;}
+  .sidebar{
+    position:fixed;left:calc(-1 * var(--sb) - 2px);top:0;
+    height:100vh;z-index:150;
+    transition:left .25s ease;
+    box-shadow:none;
+  }
+  .sidebar.open{
+    left:0;
+    box-shadow:4px 0 32px rgba(0,0,0,.6);
+  }
+  .admin-main{padding:1.5rem 1rem;max-width:100%;}
+  .form-grid{grid-template-columns:1fr !important;}
+  .field.full{grid-column:1 !important;}
+  .section-head{flex-direction:column;align-items:flex-start;}
+  /* Preventivi — stack su mobile */
+  .pv-row{grid-template-columns:1fr auto;grid-template-rows:auto auto auto;}
+  .pv-total{text-align:left;}
+  .pv-date{text-align:left;}
+  .pv-actions{grid-column:1/-1;padding-top:.25rem;}
+  /* Agenti — stack su mobile */
+  .ag-row{grid-template-columns:auto 1fr;grid-template-rows:auto auto;}
+  .ag-role{grid-column:2;}
+  .ag-actions{grid-column:1/-1;padding-top:.25rem;}
+  /* Roadmap stats — 2 colonne invece di 4 */
+  .rm-stats-strip{grid-template-columns:1fr 1fr;}
+  .rm-stat-cell:nth-child(2){border-right:none;}
+  .rm-stat-cell:nth-child(3){border-top:1px solid var(--rm-border);}
+  .rm-stat-cell:nth-child(4){border-top:1px solid var(--rm-border);border-right:none;}
+  /* Modal preventivo */
+  .pv-info-grid{grid-template-columns:1fr;}
+  .pv-modal-wrap{margin:0;max-width:100%;}
+  /* Demo row */
+  .demo-row{grid-template-columns:1fr;gap:.5rem;}
+  .demo-row-actions{justify-content:flex-end;}
+}
 </style>
 </head>
 <body>
@@ -443,6 +516,17 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 
 <!-- ===== DASHBOARD ===== -->
 <div id="screen-dashboard">
+
+  <!-- TOPBAR MOBILE -->
+  <div class="mob-topbar">
+    <div class="mob-logo">PLURIAGENCY</div>
+    <button class="mob-hamburger" id="mob-hamburger" onclick="toggleSidebar()" aria-label="Apri menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <!-- OVERLAY SFONDO -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
   <div class="admin-wrap">
 
     <!-- SIDEBAR -->
@@ -851,7 +935,28 @@ async function logout(){
 }
 
 // ===== NAVIGATION =====
+function toggleSidebar(){
+  const sb = document.querySelector('.sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  const btn = document.getElementById('mob-hamburger');
+  const isOpen = sb.classList.toggle('open');
+  ov.classList.toggle('open', isOpen);
+  btn.classList.toggle('open', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+function closeSidebarMobile(){
+  if(window.innerWidth > 768) return;
+  const sb = document.querySelector('.sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  const btn = document.getElementById('mob-hamburger');
+  sb.classList.remove('open');
+  ov.classList.remove('open');
+  btn.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
 function switchSection(name, btnEl){
+  closeSidebarMobile();
   ['portfolio','demo','preventivi','agenti','roadmap'].forEach(s => {
     const sec = document.getElementById('section-'+s);
     if(sec) sec.style.display = s===name ? 'block' : 'none';

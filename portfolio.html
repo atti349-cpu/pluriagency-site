@@ -413,6 +413,14 @@ function buildGrid(cat){
       imgHtml = p.mediaType === 'video'
         ? `<div class="port-img-wrap" style="${hStyle}"><video src="${p.img}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video></div>`
         : `<div class="port-img-wrap" style="${hStyle}"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>`;
+    } else if(p.siteUrl){
+      // Anteprima sito live via iframe src (interattiva se il sito lo permette)
+      imgHtml = `<div class="port-img-wrap port-iframe-wrap port-siteurl-wrap" style="${hStyle};position:relative;overflow:hidden;background:#06060a" data-id="${p.id}" data-siteurl="${encodeURIComponent(p.siteUrl)}">
+        <div class="port-iframe-inner">
+          <iframe class="port-preview-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" scrolling="no" style="position:absolute;top:0;left:0;width:1440px;height:900px;border:none;pointer-events:none;transform-origin:top left"></iframe>
+        </div>
+        ${makePlaceholder(p.color||catColor, p.pattern, p.h)}
+      </div>`;
     } else if(p.htmlSnippet){
       imgHtml = `<div class="port-img-wrap port-iframe-wrap" style="${hStyle};position:relative;overflow:hidden;background:#06060a" data-id="${p.id}">
         <div class="port-iframe-inner">
@@ -438,13 +446,16 @@ function buildGrid(cat){
   requestAnimationFrame(setupPortfolioIframePreviews);
 }
 
-// ===== IFRAME PREVIEWS (portfolio items con html_snippet, senza immagine) =====
+// ===== IFRAME PREVIEWS (portfolio items con html_snippet o site_url, senza immagine) =====
 function setupPortfolioIframePreviews(){
   const isMobile = !window.matchMedia('(hover:hover)').matches;
   document.querySelectorAll('.port-iframe-wrap[data-id]').forEach(wrap => {
-    const id = wrap.dataset.id;
-    const item = projects.find(p => String(p.id) === String(id));
-    if(!item || !item.htmlSnippet) return;
+    const id      = wrap.dataset.id;
+    const item    = projects.find(p => String(p.id) === String(id));
+    const isSiteUrl = wrap.classList.contains('port-siteurl-wrap');
+    if(!item) return;
+    if(!isSiteUrl && !item.htmlSnippet) return;
+    if(isSiteUrl && !item.siteUrl) return;
 
     const iframe = wrap.querySelector('.port-preview-iframe');
     let loaded = false;
@@ -457,11 +468,17 @@ function setupPortfolioIframePreviews(){
       iframe.style.transform = `scale(${scale})`;
       const h = parseInt(wrap.style.height) || 220;
       iframe.style.height = Math.ceil(h / scale) + 'px';
-      iframe.srcdoc = item.htmlSnippet;
+
+      if(isSiteUrl){
+        // Sito live: usa src (potenzialmente interattivo se il sito lo permette)
+        iframe.src = item.siteUrl;
+      } else {
+        // HTML snippet locale: usa srcdoc
+        iframe.srcdoc = item.htmlSnippet;
+      }
     }
 
     if(isMobile){
-      // Mobile: carica quando entra nel viewport, mostra con classe .revealed
       const obs = new IntersectionObserver(entries => {
         if(entries[0].isIntersecting){
           scaleAndLoad();
@@ -471,7 +488,6 @@ function setupPortfolioIframePreviews(){
       }, { threshold: 0.15 });
       obs.observe(wrap);
     } else {
-      // Desktop: carica al primo hover, mostra via CSS :hover
       const card = wrap.closest('.port-card');
       if(card) card.addEventListener('mouseenter', scaleAndLoad, { once: true });
     }
@@ -498,7 +514,11 @@ function openLightbox(id){
   document.getElementById('lb-title').textContent = p.name;
   document.getElementById('lb-client').textContent = '> ' + p.client;
   document.getElementById('lb-desc').textContent = p.desc;
-  document.getElementById('lb-tags').innerHTML = p.tags.map(t=>`<span class="lb-tag" style="border-color:${catColor}33;color:${catColor}">${t}</span>`).join('');
+  const teamHtml = (p.teamMembers||[]).length > 0
+    ? p.teamMembers.map(n=>`<span class="lb-tag" style="border-color:rgba(155,92,255,.4);color:#c89bff">👤 ${n}</span>`).join('')
+    : '';
+  document.getElementById('lb-tags').innerHTML =
+    p.tags.map(t=>`<span class="lb-tag" style="border-color:${catColor}33;color:${catColor}">${t}</span>`).join('') + teamHtml;
   const imgWrap = document.getElementById('lb-img-wrap');
   if(p.img){
     if(p.mediaType === 'video'){
@@ -506,8 +526,28 @@ function openLightbox(id){
     } else {
       imgWrap.innerHTML = `<img class="lb-img" src="${p.img}" alt="${p.name}">`;
     }
+  } else if(p.siteUrl){
+    // Sito live in lightbox — interattivo con pointer-events abilitati
+    const safeUrl = p.siteUrl.replace(/"/g,'&quot;');
+    imgWrap.innerHTML = `<div style="width:100%;height:460px;position:relative;background:#000;overflow:hidden;">
+      <iframe id="lb-siteurl-iframe"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        src="${safeUrl}"
+        style="width:100%;height:100%;border:none"></iframe>
+      <div id="lb-site-overlay" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:rgba(4,6,13,.88)">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--muted);letter-spacing:.1em">&gt; sito non embeddable (X-Frame-Options)</div>
+        <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--g1);border:1px solid var(--g1);padding:8px 20px;text-decoration:none;letter-spacing:.1em">&gt; APRI SITO &#8599;</a>
+      </div>
+    </div>`;
+    // Se il sito blocca l'embedding, mostra overlay con link diretto
+    setTimeout(() => {
+      const fr = document.getElementById('lb-siteurl-iframe');
+      if(fr){
+        fr.onerror = () => { const ov = document.getElementById('lb-site-overlay'); if(ov){ ov.style.display='flex'; } };
+        try { fr.contentDocument; } catch(e) { const ov = document.getElementById('lb-site-overlay'); if(ov){ ov.style.display='flex'; } }
+      }
+    }, 1500);
   } else if(p.htmlSnippet){
-    // Mostra iframe fullscreen del sito — srcdoc via JS per evitare escaping rotto
     imgWrap.innerHTML = `<div style="width:100%;height:420px;position:relative;background:#000;overflow:hidden;border-radius:4px">
       <iframe id="lb-snippet-iframe" sandbox="allow-scripts allow-same-origin allow-forms"
         style="width:100%;height:100%;border:none"></iframe>
@@ -556,6 +596,8 @@ async function initPortfolio(){
           img:         item.media_url || '',
           mediaType:   item.media_type || 'image',
           htmlSnippet: item.html_snippet || null,
+          siteUrl:     item.site_url || null,
+          teamMembers: item.team_members || [],
           pattern:     PATTERNS[i % PATTERNS.length]
         });
       });

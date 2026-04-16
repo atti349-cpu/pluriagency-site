@@ -539,6 +539,27 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .tm-error-msg{font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--red);letter-spacing:.05em;margin-top:.4rem;}
 .tm-empty{font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--muted);padding:2rem 0;text-align:center;}
 .tm-footer{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.05em;color:var(--muted);margin-top:1.25rem;}
+
+/* ===== TEAM PICKER ===== */
+.team-picker{display:flex;flex-wrap:wrap;gap:.4rem;min-height:28px;align-items:flex-start;}
+.team-chip{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.15em;
+  text-transform:uppercase;padding:4px 10px;border:1px solid var(--border);color:var(--muted);
+  cursor:pointer;user-select:none;transition:all .15s;}
+.team-chip:hover{border-color:var(--border2);color:var(--text);}
+.team-chip.selected{border-color:var(--v);color:var(--v);background:var(--v-dim);}
+
+/* ===== SITE URL PREVIEW (admin portfolio form) ===== */
+.site-url-preview-wrap{display:none;margin-top:.5rem;border:1px solid var(--border);overflow:hidden;position:relative;}
+.site-url-preview-inner{width:100%;height:180px;position:relative;background:#000;overflow:hidden;}
+.site-url-preview-inner iframe{position:absolute;top:0;left:0;width:1440px;height:900px;border:none;transform-origin:top left;}
+.site-url-preview-blocked{padding:.7rem;text-align:center;font-family:'Share Tech Mono',monospace;
+  font-size:.55rem;color:var(--muted);letter-spacing:.08em;line-height:1.8;}
+.site-url-preview-label{font-family:'Share Tech Mono',monospace;font-size:.48rem;letter-spacing:.15em;
+  color:var(--muted);padding:3px 8px;border-top:1px solid var(--border);background:rgba(0,0,0,.4);}
+.site-url-open-btn{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:.55rem;
+  letter-spacing:.1em;padding:4px 12px;border:1px solid var(--g3);color:var(--g3);
+  text-decoration:none;text-transform:uppercase;transition:all .15s;margin-top:.4rem;}
+.site-url-open-btn:hover{background:rgba(0,207,255,.1);}
 </style>
 </head>
 <body>
@@ -656,17 +677,34 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
                 <div class="upload-progress-bar" id="pf-upload-bar"></div>
               </div>
             </div>
-            <div class="field">
-              <label class="field-label">OPPURE URL IMMAGINE</label>
-              <input class="field-input" id="pf-url" type="url" placeholder="https://...">
-              <div class="field-hint">&gt; usato solo se non hai caricato un file</div>
+            <div class="field" id="pf-url-wrap">
+              <label class="field-label" id="pf-url-label">OPPURE URL IMMAGINE</label>
+              <input class="field-input" id="pf-url" type="url" placeholder="https://..." oninput="pfUrlInput()">
+              <div class="field-hint" id="pf-url-hint">&gt; usato solo se non hai caricato un file</div>
+              <!-- ANTEPRIMA LIVE — solo WEB con URL SITO -->
+              <div class="site-url-preview-wrap" id="pf-site-preview">
+                <div class="site-url-preview-inner" id="pf-site-preview-inner">
+                  <iframe id="pf-site-iframe" sandbox="allow-scripts allow-same-origin allow-forms" style="pointer-events:none"></iframe>
+                </div>
+                <div class="site-url-preview-blocked" id="pf-site-blocked" style="display:none">
+                  &gt; sito bloccato da X-Frame-Options — carica uno screenshot manualmente<br>
+                  <a id="pf-site-extlink" href="#" target="_blank" rel="noopener noreferrer" class="site-url-open-btn">&gt; APRI SITO IN NUOVA SCHEDA</a>
+                </div>
+                <div class="site-url-preview-label">&gt; anteprima live — alcuni siti bloccano l'embedding</div>
+              </div>
             </div>
             <div class="field full" id="pf-html-field" style="display:none;grid-column:1/-1">
               <label class="field-label">ANTEPRIMA HTML <span style="opacity:.5">(opzionale — usato se non hai immagine)</span></label>
               <textarea class="field-input field-textarea code" id="pf-html"
                 style="width:100%;min-height:220px;resize:vertical"
+                oninput="pfHtmlInput()"
                 placeholder="<!DOCTYPE html>&#10;<html>...&#10;Incolla qui il codice HTML del sito — comparirà come anteprima nella card portfolio (hover desktop / tap mobile)"></textarea>
               <div class="field-hint">&gt; visibile in portfolio quando non c'è immagine — hover desktop / tap mobile</div>
+            </div>
+            <div class="field full">
+              <label class="field-label">TEAM — CHI HA LAVORATO AL PROGETTO <span style="opacity:.5">(opzionale)</span></label>
+              <div class="team-picker" id="pf-team-picker"><span style="font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--muted);opacity:.5">&gt; caricamento team_</span></div>
+              <div class="field-hint">&gt; seleziona uno o più membri del team — click per attivare/disattivare</div>
             </div>
             <div class="field full">
               <label class="field-check-row">
@@ -734,6 +772,11 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
               <textarea class="field-input field-textarea code" id="dm-html"
                 placeholder="<!DOCTYPE html>&#10;<html>...&#10;Incolla qui il codice HTML completo del layout demo"></textarea>
               <div class="field-hint">&gt; HTML completo — verrà visualizzato in iframe su demo.html</div>
+            </div>
+            <div class="field full">
+              <label class="field-label">TEAM — CHI HA LAVORATO AL PROGETTO <span style="opacity:.5">(opzionale)</span></label>
+              <div class="team-picker" id="dm-team-picker"><span style="font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--muted);opacity:.5">&gt; caricamento team_</span></div>
+              <div class="field-hint">&gt; seleziona uno o più membri del team — click per attivare/disattivare</div>
             </div>
             <div class="field full">
               <label class="field-check-row">
@@ -895,6 +938,9 @@ let _editPortfolioId = null;
 let _editDemoId = null;
 const _demoItemsMap = {};      // id → item, evita JSON inline negli onclick
 const _portfolioItemsMap = {}; // id → item
+let _agentiList = [];          // nomi agenti per team picker (cache)
+let _pfTeamMembers = [];       // selezione corrente nel form portfolio
+let _dmTeamMembers = [];       // selezione corrente nel form demo
 
 async function init(){
   // Auth state: check for hash fragment from magic link
@@ -1055,16 +1101,108 @@ function togglePortfolioForm(item){
   form.style.display = 'block';
   if(item){ populatePortfolioForm(item); } else { clearPortfolioForm(); }
   form.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  loadAgentiForPicker().then(() => renderTeamPicker('pf-team-picker', _pfTeamMembers));
 }
 
 function togglePfHtmlField(){
-  const type = document.getElementById('pf-type').value;
-  const show = (type === 'web' || type === 'auto');
-  document.getElementById('pf-html-field').style.display = show ? 'block' : 'none';
+  const type    = document.getElementById('pf-type').value;
+  const isWeb   = type === 'web';
+  const showHtml = (type === 'web' || type === 'auto');
+  const urlWrap  = document.getElementById('pf-url-wrap');
+  const urlLabel = document.getElementById('pf-url-label');
+  const urlHint  = document.getElementById('pf-url-hint');
+  const urlInput = document.getElementById('pf-url');
+
+  if(isWeb){
+    // WEB: campo URL diventa "URL SITO", full-width, sopra HTML
+    urlWrap.style.gridColumn  = '1/-1';
+    urlLabel.textContent       = 'URL SITO (anteprima iframe)';
+    urlHint.textContent        = '> inserisci l\'URL del sito — anteprima interattiva nella card portfolio (se il sito lo permette)';
+    urlInput.placeholder       = 'https://nomesito.it';
+    // Mutual exclusion: aggiorna visibilità HTML in base al valore attuale dell'URL
+    pfUrlInput();
+  } else {
+    // Non-WEB: campo URL è "URL IMMAGINE", half-width standard
+    urlWrap.style.gridColumn  = '';
+    urlLabel.textContent       = 'OPPURE URL IMMAGINE';
+    urlHint.textContent        = '> usato solo se non hai caricato un file';
+    urlInput.placeholder       = 'https://...';
+    hideSitePreview();
+    document.getElementById('pf-html-field').style.display = showHtml ? 'block' : 'none';
+  }
+}
+
+// ===== MUTUAL EXCLUSION: URL SITO ↔ HTML SNIPPET (solo WEB) =====
+let _pfSitePreviewTimer = null;
+
+function pfUrlInput(){
+  const type   = document.getElementById('pf-type').value;
+  if(type !== 'web') return;
+  const urlVal = document.getElementById('pf-url').value.trim();
+  if(urlVal){
+    // URL SITO compilato → nasconde HTML snippet
+    document.getElementById('pf-html-field').style.display = 'none';
+    showSitePreview(urlVal);
+  } else {
+    // URL vuoto → mostra HTML snippet
+    document.getElementById('pf-html-field').style.display = 'block';
+    hideSitePreview();
+  }
+}
+
+function pfHtmlInput(){
+  const type    = document.getElementById('pf-type').value;
+  if(type !== 'web') return;
+  const htmlVal = document.getElementById('pf-html').value.trim();
+  if(htmlVal){
+    // HTML compilato → svuota e nasconde URL SITO + preview
+    document.getElementById('pf-url').value = '';
+    hideSitePreview();
+  }
+}
+
+function showSitePreview(url){
+  const wrap    = document.getElementById('pf-site-preview');
+  const inner   = document.getElementById('pf-site-preview-inner');
+  const iframe  = document.getElementById('pf-site-iframe');
+  const blocked = document.getElementById('pf-site-blocked');
+  const extLink = document.getElementById('pf-site-extlink');
+
+  wrap.style.display    = 'block';
+  blocked.style.display = 'none';
+  iframe.style.display  = 'block';
+  if(extLink) extLink.href = url;
+
+  // Scala iframe al contenitore
+  const scale = (inner.offsetWidth || 600) / 1440;
+  iframe.style.transform = `scale(${scale})`;
+  iframe.style.height    = Math.ceil(180 / scale) + 'px';
+
+  clearTimeout(_pfSitePreviewTimer);
+  _pfSitePreviewTimer = setTimeout(() => {
+    iframe.onerror = null;
+    // Se il sito ha X-Frame-Options il load non triggera errore — usiamo timeout fallback
+    iframe.onload = () => {
+      try { iframe.contentDocument; } // Blocca se cross-origin
+      catch(e){
+        blocked.style.display = 'block';
+        iframe.style.display  = 'none';
+      }
+    };
+    iframe.src = url;
+  }, 700);
+}
+
+function hideSitePreview(){
+  const wrap = document.getElementById('pf-site-preview');
+  if(wrap){ wrap.style.display = 'none'; }
+  const iframe = document.getElementById('pf-site-iframe');
+  if(iframe){ clearTimeout(_pfSitePreviewTimer); iframe.src = 'about:blank'; }
 }
 
 function clearPortfolioForm(){
   _editPortfolioId = null;
+  _pfTeamMembers   = [];
   ['pf-title','pf-client','pf-creator','pf-desc','pf-tags','pf-url','pf-html'].forEach(id => {
     document.getElementById(id).value = '';
   });
@@ -1073,22 +1211,34 @@ function clearPortfolioForm(){
   document.getElementById('pf-visible').checked = true;
   document.getElementById('pf-save-btn').textContent = '▶ SALVA ITEM';
   setFormMsg('pf-msg','','');
+  hideSitePreview();
   togglePfHtmlField();
+  renderTeamPicker('pf-team-picker', _pfTeamMembers);
 }
 
 function populatePortfolioForm(item){
   _editPortfolioId = item.id;
-  document.getElementById('pf-title').value = item.title || '';
-  document.getElementById('pf-client').value = item.client_name || '';
+  _pfTeamMembers   = Array.isArray(item.team_members) ? [...item.team_members] : [];
+  document.getElementById('pf-title').value   = item.title || '';
+  document.getElementById('pf-client').value  = item.client_name || '';
   document.getElementById('pf-creator').value = item.creator_tag || '';
-  document.getElementById('pf-desc').value = item.description || '';
-  document.getElementById('pf-tags').value = (item.tags || []).join(', ');
-  document.getElementById('pf-url').value = item.media_url || '';
-  document.getElementById('pf-html').value = item.html_snippet || '';
-  document.getElementById('pf-type').value = item.type_tag || 'web';
+  document.getElementById('pf-desc').value    = item.description || '';
+  document.getElementById('pf-tags').value    = (item.tags || []).join(', ');
+  document.getElementById('pf-type').value    = item.type_tag || 'web';
   document.getElementById('pf-visible').checked = item.visible !== false;
   document.getElementById('pf-save-btn').textContent = '▶ AGGIORNA ITEM';
+
+  // WEB: site_url ha priorità su media_url; HTML e site_url si escludono a vicenda
+  if(item.site_url){
+    document.getElementById('pf-url').value  = item.site_url;
+    document.getElementById('pf-html').value = '';
+  } else {
+    document.getElementById('pf-url').value  = item.media_url || '';
+    document.getElementById('pf-html').value = item.html_snippet || '';
+  }
+
   togglePfHtmlField();
+  renderTeamPicker('pf-team-picker', _pfTeamMembers);
 }
 
 async function savePortfolioItem(){
@@ -1098,14 +1248,19 @@ async function savePortfolioItem(){
   const btn = document.getElementById('pf-save-btn');
   btn.disabled = true; btn.textContent = '⟳ SALVATAGGIO...';
 
-  let mediaUrl = document.getElementById('pf-url').value.trim();
+  const type        = document.getElementById('pf-type').value;
+  const urlFieldVal = document.getElementById('pf-url').value.trim();
+
+  // Per WEB: campo URL = site_url; per le altre categorie: campo URL = media_url
+  let siteUrl   = (type === 'web' && urlFieldVal) ? urlFieldVal : null;
+  let mediaUrl  = (type !== 'web' && urlFieldVal) ? urlFieldVal : null;
   let mediaType = 'url';
 
-  // Upload file se presente
+  // Upload file: va sempre in media_url
   const fileInput = document.getElementById('pf-file');
   if(fileInput.files && fileInput.files[0]){
     try {
-      mediaUrl = await uploadPortfolioFile(fileInput.files[0]);
+      mediaUrl  = await uploadPortfolioFile(fileInput.files[0]);
       mediaType = fileInput.files[0].type.startsWith('video') ? 'video' : 'image';
     } catch(e){
       setFormMsg('pf-msg','Errore upload file: '+e.message,'err');
@@ -1114,9 +1269,8 @@ async function savePortfolioItem(){
     }
   }
 
-  const tagsRaw = document.getElementById('pf-tags').value.trim();
-  const tags = tagsRaw ? tagsRaw.split(',').map(t=>t.trim()).filter(Boolean) : [];
-
+  const tagsRaw     = document.getElementById('pf-tags').value.trim();
+  const tags        = tagsRaw ? tagsRaw.split(',').map(t=>t.trim()).filter(Boolean) : [];
   const htmlSnippet = document.getElementById('pf-html').value.trim() || null;
 
   const payload = {
@@ -1124,11 +1278,13 @@ async function savePortfolioItem(){
     client_name:  document.getElementById('pf-client').value.trim() || null,
     creator_tag:  document.getElementById('pf-creator').value.trim() || null,
     description:  document.getElementById('pf-desc').value.trim() || null,
-    type_tag:     document.getElementById('pf-type').value,
+    type_tag:     type,
     tags,
     media_url:    mediaUrl || null,
     media_type:   mediaType,
-    html_snippet: htmlSnippet,
+    html_snippet: siteUrl ? null : htmlSnippet, // se ho site_url, non serve html_snippet
+    site_url:     siteUrl || null,
+    team_members: _pfTeamMembers,
     visible:      document.getElementById('pf-visible').checked,
     updated_at:   new Date().toISOString()
   };
@@ -1216,6 +1372,11 @@ function buildPortfolioCard(item){
     } else {
       thumb = `<img class="item-thumb" src="${item.media_url}" alt="${item.title}" loading="lazy" onerror="this.outerHTML='<div class=\\'item-thumb-placeholder\\'>&gt; nessuna immagine</div>'">`;
     }
+  } else if(item.site_url){
+    thumb = `<div class="item-thumb-placeholder" style="position:relative;overflow:hidden;background:#04060d;">
+      <span style="position:relative;z-index:2;font-size:.55rem;letter-spacing:.2em;opacity:.5">&gt; sito live</span>
+      <span style="position:absolute;top:4px;right:6px;z-index:2;font-family:monospace;font-size:.5rem;color:var(--g3);opacity:.8">🔗</span>
+    </div>`;
   } else if(item.html_snippet){
     thumb = `<div class="item-thumb-placeholder" style="position:relative;overflow:hidden;background:#04060d;">
       <span style="position:relative;z-index:2;font-size:.55rem;letter-spacing:.2em;opacity:.5">&gt; anteprima HTML</span>
@@ -1225,16 +1386,17 @@ function buildPortfolioCard(item){
     thumb = `<div class="item-thumb-placeholder">&gt; nessuna immagine</div>`;
   }
 
-  const tagType = `<span class="item-tag type">${item.type_tag||'web'}</span>`;
+  const tagType    = `<span class="item-tag type">${item.type_tag||'web'}</span>`;
   const tagCreator = item.creator_tag ? `<span class="item-tag">${item.creator_tag}</span>` : '';
-  const extraTags = (item.tags||[]).slice(0,2).map(t=>`<span class="item-tag">${t.replace(/</g,'&lt;')}</span>`).join('');
+  const extraTags  = (item.tags||[]).slice(0,2).map(t=>`<span class="item-tag">${t.replace(/</g,'&lt;')}</span>`).join('');
+  const teamTags   = (item.team_members||[]).map(n=>`<span class="item-tag" style="border-color:rgba(155,92,255,.4);color:var(--v2)">👤 ${n.replace(/</g,'&lt;')}</span>`).join('');
   const hiddenBadge = !item.visible ? '<div class="badge-hidden">NASCOSTO</div>' : '';
 
   card.innerHTML = `
     ${hiddenBadge}
     ${thumb}
     <div class="item-body">
-      <div class="item-tags">${tagType}${tagCreator}${extraTags}</div>
+      <div class="item-tags">${tagType}${tagCreator}${extraTags}${teamTags}</div>
       <div class="item-name">${item.title.replace(/</g,'&lt;')}</div>
       <div class="item-client">${(item.client_name||'—').replace(/</g,'&lt;')}</div>
     </div>
@@ -1268,10 +1430,12 @@ function toggleDemoForm(item){
   form.style.display = 'block';
   if(item){ populateDemoForm(item); } else { clearDemoForm(); }
   form.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  loadAgentiForPicker().then(() => renderTeamPicker('dm-team-picker', _dmTeamMembers));
 }
 
 function clearDemoForm(){
-  _editDemoId = null;
+  _editDemoId    = null;
+  _dmTeamMembers = [];
   ['dm-title','dm-price','dm-thumb','dm-desc','dm-html'].forEach(id => {
     document.getElementById(id).value = '';
   });
@@ -1279,10 +1443,12 @@ function clearDemoForm(){
   document.getElementById('dm-visible').checked = true;
   document.getElementById('dm-save-btn').textContent = '▶ SALVA DEMO';
   setFormMsg('dm-msg','','');
+  renderTeamPicker('dm-team-picker', _dmTeamMembers);
 }
 
 function populateDemoForm(item){
-  _editDemoId = item.id;
+  _editDemoId    = item.id;
+  _dmTeamMembers = Array.isArray(item.team_members) ? [...item.team_members] : [];
   document.getElementById('dm-title').value = item.title || '';
   document.getElementById('dm-type').value  = item.type_tag || 'food';
   document.getElementById('dm-price').value = item.price_range || '';
@@ -1291,6 +1457,7 @@ function populateDemoForm(item){
   document.getElementById('dm-html').value  = item.html_snippet || '';
   document.getElementById('dm-visible').checked = item.visible !== false;
   document.getElementById('dm-save-btn').textContent = '▶ AGGIORNA DEMO';
+  renderTeamPicker('dm-team-picker', _dmTeamMembers);
 }
 
 async function saveDemoItem(){
@@ -1309,6 +1476,7 @@ async function saveDemoItem(){
     preview_image_url: document.getElementById('dm-thumb').value.trim() || null,
     description:       document.getElementById('dm-desc').value.trim() || null,
     html_snippet:      snippet,
+    team_members:      _dmTeamMembers,
     visible:           document.getElementById('dm-visible').checked,
     updated_at:        new Date().toISOString()
   };
@@ -1362,8 +1530,11 @@ function buildDemoRow(item){
 
   const row = document.createElement('div');
   row.className = 'demo-row' + (item.visible ? '' : ' hidden-item');
-  const snippetLen = (item.html_snippet||'').length;
+  const snippetLen  = (item.html_snippet||'').length;
   const hiddenLabel = !item.visible ? ' <span style="color:var(--red);font-size:.5rem">[NASCOSTO]</span>' : '';
+  const teamLabel   = (item.team_members||[]).length > 0
+    ? `<span style="color:var(--v2)">👤 ${item.team_members.map(n=>n.replace(/</g,'&lt;')).join(', ')}</span>`
+    : '';
   row.innerHTML = `
     <div class="demo-row-info">
       <div class="demo-row-name">${item.title.replace(/</g,'&lt;')}${hiddenLabel}</div>
@@ -1371,6 +1542,7 @@ function buildDemoRow(item){
         <span>${item.type_tag||'—'}</span>
         ${item.price_range ? `<span>${item.price_range.replace(/</g,'&lt;')}</span>` : ''}
         <span>${snippetLen.toLocaleString('it-IT')} caratteri HTML</span>
+        ${teamLabel}
         <span>${new Date(item.created_at).toLocaleDateString('it-IT')}</span>
       </div>
     </div>
@@ -1599,6 +1771,7 @@ async function saveAgente(){
 
   btn.textContent = '▶ SALVA & INVIA INVITO';
   btn.disabled = false;
+  _agentiList = []; // Reset cache team picker — si ricarica alla prossima apertura form
   setTimeout(() => { toggleAgentForm(); loadAgenti(); }, 1500);
 }
 
@@ -1669,6 +1842,40 @@ function setFormMsg(id, msg, type){
   if(!el) return;
   el.textContent = msg;
   el.className = 'form-msg' + (type ? ' '+type : '');
+}
+
+// ===== TEAM PICKER =====
+async function loadAgentiForPicker(){
+  if(_agentiList.length > 0) return; // già in cache
+  if(!_sb) return;
+  const { data, error } = await _sb.from('agenti').select('name').order('name');
+  if(!error && data) _agentiList = data.map(a => a.name).filter(Boolean);
+}
+
+function renderTeamPicker(containerId, selectedArr){
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  if(_agentiList.length === 0){
+    container.innerHTML = '<span style="font-family:\'Share Tech Mono\',monospace;font-size:.55rem;color:var(--muted);opacity:.5">&gt; nessun membro disponibile — aggiungi prima gli agenti_</span>';
+    return;
+  }
+  container.innerHTML = '';
+  _agentiList.forEach(name => {
+    const chip = document.createElement('span');
+    chip.className = 'team-chip' + (selectedArr.includes(name) ? ' selected' : '');
+    chip.textContent = name;
+    chip.addEventListener('click', () => {
+      const idx = selectedArr.indexOf(name);
+      if(idx >= 0){
+        selectedArr.splice(idx, 1);
+        chip.classList.remove('selected');
+      } else {
+        selectedArr.push(name);
+        chip.classList.add('selected');
+      }
+    });
+    container.appendChild(chip);
+  });
 }
 
 // ===== ROADMAP =====

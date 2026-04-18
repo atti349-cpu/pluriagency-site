@@ -472,6 +472,10 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script>
+// Redirect Supabase auth tokens (invite/magic-link) to admin panel
+if(location.hash && location.hash.includes('access_token=')){
+  location.replace('/admin' + location.hash);
+}
 // ===== SERVICES DATA =====
 const services = [
   { key:'web', name:'WEB', color:0x00ff88, colorHex:'#00ff88',

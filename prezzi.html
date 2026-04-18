@@ -293,11 +293,21 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
       </div>
     </div>
 
+    <!-- IVA TOGGLE -->
+    <div class="discount-row" style="margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border)">
+      <div class="discount-label">IVA 22%</div>
+      <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+        <input type="checkbox" id="iva-toggle" onchange="recalc()" style="accent-color:var(--v);cursor:pointer;width:14px;height:14px">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--muted)">includi</span>
+      </label>
+    </div>
+
     <!-- TOTAL -->
     <div class="total-row">
-      <div class="total-label">TOTALE STIMATO</div>
+      <div class="total-label" id="total-label">TOTALE STIMATO</div>
       <div class="total-value" id="total-value">€ 0</div>
       <div class="total-saved" id="total-saved" style="display:none"></div>
+      <div class="total-saved" id="total-iva" style="display:none;color:var(--g3)"></div>
     </div>
 
     <!-- SEND -->
@@ -510,6 +520,7 @@ function recalc(){
   const inputEl = document.getElementById('discount-val');
   const raw = parseFloat(inputEl.value) || 0;
   const disc = Math.min(MAX_DISCOUNT, Math.max(0, raw));
+  const ivaActive = document.getElementById('iva-toggle')?.checked || false;
 
   // Hard cap: corregge il valore e mostra avviso
   const warnEl = document.getElementById('discount-warn');
@@ -523,15 +534,31 @@ function recalc(){
   let sub = 0;
   Object.values(selected).forEach(s => { sub += s.priceUsed * s.qty; });
   const saved = sub * disc / 100;
-  const total = sub - saved;
+  const imponibile = sub - saved;
+  const ivaAmount = ivaActive ? Math.round(imponibile * 0.22) : 0;
+  const total = imponibile + ivaAmount;
+
+  const totalLabel = document.getElementById('total-label');
+  if(totalLabel) totalLabel.textContent = ivaActive ? 'TOTALE IVA INCLUSA' : 'TOTALE STIMATO';
 
   document.getElementById('total-value').textContent = `€ ${total.toLocaleString('it-IT', {maximumFractionDigits:0})}`;
+
   const savedEl = document.getElementById('total-saved');
   if(disc > 0 && saved > 0){
     savedEl.style.display = 'block';
-    savedEl.textContent = `▼ sconto ${disc}% = −€${Math.round(saved).toLocaleString('it-IT')}`;
+    savedEl.textContent = `▼ sconto ${disc}% = -€${Math.round(saved).toLocaleString('it-IT')}`;
   } else {
     savedEl.style.display = 'none';
+  }
+
+  const ivaEl = document.getElementById('total-iva');
+  if(ivaEl){
+    if(ivaActive){
+      ivaEl.style.display = 'block';
+      ivaEl.textContent = `▲ IVA 22% = +€${ivaAmount.toLocaleString('it-IT')}`;
+    } else {
+      ivaEl.style.display = 'none';
+    }
   }
 
   // Update counter badge
@@ -588,21 +615,18 @@ function editPrice(id, amtEl){
   const {item, qty, priceUsed} = selected[id];
   const suffix = item.monthly ? '/mese' : item.yearly ? '/anno' : '';
   const minPrice = item.price;
-  const maxPrice = item.priceMax > item.price ? item.priceMax : item.price;
   const input = document.createElement('input');
   input.type = 'number'; input.className = 's-price-input';
   input.value = priceUsed;
   input.min = minPrice;
-  input.max = maxPrice;
-  input.title = `Range: €${minPrice.toLocaleString('it-IT')} – €${maxPrice.toLocaleString('it-IT')}`;
+  input.title = `Minimo: €${minPrice.toLocaleString('it-IT')} — nessun massimo`;
   input.style.width = Math.max(60, String(priceUsed).length * 9 + 20) + 'px';
   amtEl.textContent = '';
   amtEl.appendChild(input);
   input.focus(); input.select();
   const commit = () => {
     const raw = parseFloat(input.value);
-    // Clamp nel range definito dal servizio
-    const val = isNaN(raw) ? minPrice : Math.min(maxPrice, Math.max(minPrice, raw));
+    const val = isNaN(raw) ? minPrice : Math.max(minPrice, raw);
     selected[id].priceUsed = val;
     const total = val * qty;
     amtEl.textContent = `€${total.toLocaleString('it-IT')}${suffix}`;
@@ -623,6 +647,7 @@ function generatePDF(){
   const agentName = document.getElementById('agent-name').value.trim() || 'Agente';
   const notes = document.getElementById('send-notes').value.trim();
   const disc = parseFloat(document.getElementById('discount-val').value)||0;
+  const ivaActive = document.getElementById('iva-toggle')?.checked || false;
 
   let sub = 0;
   const linesRows = [];
@@ -630,22 +655,40 @@ function generatePDF(){
     const line = priceUsed * qty;
     sub += line;
     const suffix = item.monthly ? '/mese' : item.yearly ? '/anno' : '';
-    const qtyTxt = qty > 1 ? ` ×${qty}` : '';
+    const qtyTxt = qty > 1 ? ` x${qty}` : '';
     linesRows.push(`
       <tr>
         <td style="padding:9px 0;border-bottom:1px solid rgba(155,92,255,0.12);font-size:14px;color:#e8e8f0">${item.name}${qtyTxt}</td>
-        <td style="padding:9px 0;border-bottom:1px solid rgba(155,92,255,0.12);font-size:14px;color:#c89bff;text-align:right;white-space:nowrap">€${line.toLocaleString('it-IT')}${suffix}</td>
+        <td style="padding:9px 0;border-bottom:1px solid rgba(155,92,255,0.12);font-size:14px;color:#c89bff;text-align:right;white-space:nowrap">\u20AC${line.toLocaleString('it-IT')}${suffix}</td>
       </tr>`);
   });
-  const saved = Math.round(sub * disc / 100);
-  const total = sub - saved;
+  const saved      = Math.round(sub * disc / 100);
+  const imponibile = sub - saved;
+  const ivaAmount  = ivaActive ? Math.round(imponibile * 0.22) : 0;
+  const total      = imponibile + ivaAmount;
   const today = new Date().toLocaleDateString('it-IT', {day:'2-digit',month:'long',year:'numeric'});
 
   const discountRow = disc > 0 ? `
     <tr>
       <td style="padding:8px 0;font-size:12px;color:#6b6b80;letter-spacing:1px">SCONTO ${disc}%</td>
-      <td style="padding:8px 0;font-size:14px;color:#00ff88;text-align:right">−€${saved.toLocaleString('it-IT')}</td>
+      <td style="padding:8px 0;font-size:14px;color:#00ff88;text-align:right">-\u20AC${saved.toLocaleString('it-IT')}</td>
     </tr>` : '';
+
+  const ivaRow = ivaActive ? `
+    <tr>
+      <td style="padding:8px 0;font-size:12px;color:#6b6b80;letter-spacing:1px">IMPONIBILE</td>
+      <td style="padding:8px 0;font-size:13px;color:#e8e8f0;text-align:right">\u20AC${imponibile.toLocaleString('it-IT')}</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 0;font-size:12px;color:#00cfff;letter-spacing:1px">IVA 22%</td>
+      <td style="padding:8px 0;font-size:14px;color:#00cfff;text-align:right">+\u20AC${ivaAmount.toLocaleString('it-IT')}</td>
+    </tr>` : '';
+
+  const ivaNote = ivaActive
+    ? `Prezzi IVA inclusa (22%) · indicativi soggetti a conferma`
+    : `IVA esclusa · prezzi indicativi soggetti a conferma`;
+
+  const totalLabel = ivaActive ? 'TOTALE IVA INCLUSA' : 'TOTALE STIMATO';
 
   const notesSection = notes ? `
     <div style="margin-top:28px;padding:16px;background:rgba(155,92,255,0.06);border:1px solid rgba(155,92,255,0.15)">
@@ -687,12 +730,13 @@ function generatePDF(){
         <td style="padding:8px 0;border-top:1px solid rgba(155,92,255,0.2);font-size:14px;color:#e8e8f0;text-align:right">€${sub.toLocaleString('it-IT')}</td>
       </tr>
       ${discountRow}
+      ${ivaRow}
       <tr>
-        <td style="padding:14px 0 0;font-size:11px;letter-spacing:3px;color:#9b5cff;text-transform:uppercase">TOTALE STIMATO</td>
-        <td style="padding:14px 0 0;font-size:24px;font-weight:900;color:#c89bff;text-align:right">€${total.toLocaleString('it-IT')}</td>
+        <td style="padding:14px 0 0;font-size:11px;letter-spacing:3px;color:#9b5cff;text-transform:uppercase">${totalLabel}</td>
+        <td style="padding:14px 0 0;font-size:24px;font-weight:900;color:#c89bff;text-align:right">\u20AC${total.toLocaleString('it-IT')}</td>
       </tr>
     </table>
-    <div style="font-size:11px;color:#6b6b80;margin-top:8px;font-style:italic">IVA esclusa · prezzi indicativi soggetti a conferma</div>
+    <div style="font-size:11px;color:#6b6b80;margin-top:8px;font-style:italic">${ivaNote}</div>
     ${notesSection}
   </div>
 
@@ -777,6 +821,7 @@ function buildQuotePayload(){
   const email       = clientEmail || document.getElementById('send-email').value.trim();
   const notes       = document.getElementById('send-notes').value.trim();
   const disc        = Math.min(MAX_DISCOUNT, parseFloat(document.getElementById('discount-val').value)||0);
+  const ivaActive   = document.getElementById('iva-toggle')?.checked || false;
 
   let sub = 0;
   const items = [];
@@ -794,7 +839,10 @@ function buildQuotePayload(){
     });
   });
   const disc_amount = Math.round(sub * disc / 100);
-  const total       = sub - disc_amount;
+  const imponibile  = sub - disc_amount;
+  const iva_pct     = ivaActive ? 22 : 0;
+  const iva_amount  = ivaActive ? Math.round(imponibile * 0.22) : 0;
+  const total       = imponibile + iva_amount;
 
   return {
     agent_name:      agentName,
@@ -805,6 +853,8 @@ function buildQuotePayload(){
     subtotal:        sub,
     discount_pct:    disc,
     discount_amount: disc_amount,
+    iva_pct,
+    iva_amount,
     total,
     notes,
     status:          'bozza',
@@ -833,7 +883,7 @@ buildUI();
 loadAgenti();
 
 // ===== PDF GENERATION (jsPDF) =====
-async function buildPDFBase64(clientName, agentName, today, lines, sub, disc, saved, total, notes) {
+async function buildPDFBase64(clientName, agentName, today, lines, sub, disc, saved, ivaPct, ivaAmount, total, notes) {
   if (!window.jspdf) throw new Error('jsPDF non caricato');
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
@@ -906,18 +956,35 @@ async function buildPDFBase64(clientName, agentName, today, lines, sub, disc, sa
   doc.line(M, y, PW - M, y);
   y += 7;
 
-  // Discount line if present
-  if (disc > 0) {
+  // Subtotale + sconto + IVA rows
+  const hasDiscount = disc > 0 && saved > 0;
+  const hasIva = ivaPct > 0 && ivaAmount > 0;
+  if (hasDiscount || hasIva) {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(120, 120, 120);
     doc.text('Subtotale', M, y);
-    doc.text(`€${sub.toLocaleString('it-IT')}`, PW - M, y, { align: 'right' });
+    doc.text(`\u20AC${sub.toLocaleString('it-IT')}`, PW - M, y, { align: 'right' });
     y += 7;
-    doc.setTextColor(40, 140, 80);
-    doc.text(`Sconto ${disc}%`, M, y);
-    doc.text(`−€${Math.round(saved).toLocaleString('it-IT')}`, PW - M, y, { align: 'right' });
-    y += 8;
+    if (hasDiscount) {
+      doc.setTextColor(40, 140, 80);
+      doc.text(`Sconto ${disc}%`, M, y);
+      doc.text(`-\u20AC${Math.round(saved).toLocaleString('it-IT')}`, PW - M, y, { align: 'right' });
+      y += 7;
+    }
+    if (hasIva) {
+      const imponibile = sub - Math.round(saved);
+      doc.setTextColor(120, 120, 120);
+      doc.text('Imponibile', M, y);
+      doc.text(`\u20AC${imponibile.toLocaleString('it-IT')}`, PW - M, y, { align: 'right' });
+      y += 7;
+      doc.setTextColor(0, 140, 200);
+      doc.text(`IVA ${ivaPct}%`, M, y);
+      doc.text(`+\u20AC${ivaAmount.toLocaleString('it-IT')}`, PW - M, y, { align: 'right' });
+      y += 8;
+    } else {
+      y += 1;
+    }
   }
 
   // Total box
@@ -926,17 +993,17 @@ async function buildPDFBase64(clientName, agentName, today, lines, sub, disc, sa
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(200, 200, 200);
-  doc.text('TOTALE STIMATO', M + 5, y + 8);
+  doc.text(hasIva ? 'TOTALE IVA INCLUSA' : 'TOTALE STIMATO', M + 5, y + 8);
   doc.setFontSize(15);
   doc.setTextColor(255, 255, 255);
-  doc.text(`€${total.toLocaleString('it-IT')}`, PW - M - 5, y + 9, { align: 'right' });
+  doc.text(`\u20AC${total.toLocaleString('it-IT')}`, PW - M - 5, y + 9, { align: 'right' });
   y += 22;
 
   // IVA note
   doc.setFontSize(8);
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(170, 170, 170);
-  doc.text('IVA esclusa · prezzi indicativi soggetti a conferma ufficiale', M, y);
+  doc.text(hasIva ? 'Prezzi IVA inclusa (22%) · indicativi soggetti a conferma ufficiale' : 'IVA esclusa · prezzi indicativi soggetti a conferma ufficiale', M, y);
   y += 12;
 
   // Notes
@@ -987,42 +1054,49 @@ async function sendQuote() {
   if (!email && toClient) { alert('Inserisci email del cliente.'); return; }
   if (Object.keys(selected).length === 0) { alert('Seleziona almeno un servizio.'); return; }
 
+  const ivaActive = document.getElementById('iva-toggle')?.checked || false;
+
   let sub = 0;
   const lines = [];
   Object.values(selected).forEach(({ item, qty, priceUsed }) => {
     const line   = priceUsed * qty;
     sub += line;
     const suffix = item.monthly ? '/mese' : item.yearly ? '/anno' : '';
-    lines.push(`${item.name}${qty > 1 ? ' ×' + qty : ''}: €${line.toLocaleString('it-IT')}${suffix}`);
+    lines.push(`${item.name}${qty > 1 ? ' x' + qty : ''}: \u20AC${line.toLocaleString('it-IT')}${suffix}`);
   });
-  const saved = Math.round(sub * disc / 100);
-  const total = sub - saved;
+  const saved      = Math.round(sub * disc / 100);
+  const imponibile = sub - saved;
+  const ivaPct     = ivaActive ? 22 : 0;
+  const ivaAmount  = ivaActive ? Math.round(imponibile * 0.22) : 0;
+  const total      = imponibile + ivaAmount;
   const today = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
 
   const btn = document.getElementById('send-btn');
-  btn.querySelector('span').textContent = '⟳ GENERAZIONE PDF...';
+  btn.querySelector('span').textContent = '\u29f3 GENERAZIONE PDF...';
   btn.disabled = true;
 
   let pdfBase64 = null;
   try {
-    pdfBase64 = await buildPDFBase64(clientName || 'Cliente', agentName || 'Agente', today, lines, sub, disc, saved, total, notes);
+    pdfBase64 = await buildPDFBase64(clientName || 'Cliente', agentName || 'Agente', today, lines, sub, disc, saved, ivaPct, ivaAmount, total, notes);
   } catch(e) {
     console.warn('PDF gen failed:', e);
-    btn.querySelector('span').textContent = '⟳ INVIO...';
+    btn.querySelector('span').textContent = '\u29f3 INVIO...';
   }
 
-  btn.querySelector('span').textContent = '⟳ INVIO...';
+  btn.querySelector('span').textContent = '\u29f3 INVIO...';
 
   const payload = {
-    agentName:  agentName  || 'Agente',
-    clientName: clientName || 'Cliente',
+    agentName:   agentName  || 'Agente',
+    clientName:  clientName || 'Cliente',
     clientEmail: email,
     toAgency,
     toClient,
     lines,
-    subtotal:  sub,
-    discount:  disc,
+    subtotal:    sub,
+    discount:    disc,
     saved,
+    ivaPct,
+    ivaAmount,
     total,
     notes,
     pdfBase64,

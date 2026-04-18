@@ -6,7 +6,7 @@ module.exports = async function handler(req, res) {
   const {
     agentName, clientName, clientEmail,
     toAgency, toClient,
-    lines, subtotal, discount, saved, total, notes,
+    lines, subtotal, discount, saved, ivaPct, ivaAmount, total, notes,
     pdfBase64, pdfFilename
   } = req.body || {};
 
@@ -18,7 +18,7 @@ module.exports = async function handler(req, res) {
   const resend = new Resend(process.env.RESEND_API_KEY);
   const today = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
 
-  const plainText = buildQuotePlain({ agentName, clientName, clientEmail, lines, subtotal, discount, saved, total, notes, today });
+  const plainText = buildQuotePlain({ agentName, clientName, clientEmail, lines, subtotal, discount, saved, ivaPct, ivaAmount, total, notes, today });
   const attachment = pdfBase64
     ? [{ filename: pdfFilename || 'Preventivo.pdf', content: Buffer.from(pdfBase64, 'base64') }]
     : undefined;
@@ -33,7 +33,7 @@ module.exports = async function handler(req, res) {
         from: 'PLURIAGENCY Preventivi <hello@pluriagency.com>',
         to: ['hello@pluriagency.com'],
         subject: `[Preventivo] ${clientName} — ${today}`,
-        html: buildAgencyHTML({ agentName, clientName, clientEmail, lines, subtotal, discount, saved, total, notes, today }),
+        html: buildAgencyHTML({ agentName, clientName, clientEmail, lines, subtotal, discount, saved, ivaPct, ivaAmount, total, notes, today }),
         text: plainText,
         attachments: attachment
       }).then(r => { if (r.error) errors.push(r.error); return r; })
@@ -48,7 +48,7 @@ module.exports = async function handler(req, res) {
         to: [clientEmail],
         replyTo: 'hello@pluriagency.com',
         subject: `Il tuo preventivo Pluriagency — ${today}`,
-        html: buildClientHTML({ agentName, clientName, lines, subtotal, discount, saved, total, notes, today }),
+        html: buildClientHTML({ agentName, clientName, lines, subtotal, discount, saved, ivaPct, ivaAmount, total, notes, today }),
         text: plainText,
         attachments: attachment
       }).then(r => { if (r.error) errors.push(r.error); return r; })
@@ -72,7 +72,7 @@ module.exports = async function handler(req, res) {
 // ──────────────────────────────────────────────────────────────────────────────
 // INTERNAL email (hello@pluriagency.com) — includes client contact info
 // ──────────────────────────────────────────────────────────────────────────────
-function buildAgencyHTML({ agentName, clientName, clientEmail, lines, subtotal, discount, saved, total, notes, today }) {
+function buildAgencyHTML({ agentName, clientName, clientEmail, lines, subtotal, discount, saved, ivaPct, ivaAmount, total, notes, today }) {
   const linesHtml = lines.map(l => {
     const i = l.indexOf(': ');
     const name = i > -1 ? l.slice(0, i) : l;
@@ -83,10 +83,22 @@ function buildAgencyHTML({ agentName, clientName, clientEmail, lines, subtotal, 
     </tr>`;
   }).join('');
 
+  const imponibile = subtotal - Math.round(saved || 0);
   const discountRow = discount > 0 ? `<tr>
     <td style="padding:7px 0;font-size:12px;color:#888">Sconto ${discount}%</td>
-    <td style="padding:7px 0;font-size:13px;color:#2a7a4a;text-align:right;font-weight:600">−€${Math.round(saved).toLocaleString('it-IT')}</td>
+    <td style="padding:7px 0;font-size:13px;color:#2a7a4a;text-align:right;font-weight:600">-€${Math.round(saved).toLocaleString('it-IT')}</td>
   </tr>` : '';
+
+  const ivaRow = ivaPct > 0 ? `<tr>
+    <td style="padding:7px 0;font-size:12px;color:#888">Imponibile</td>
+    <td style="padding:7px 0;font-size:13px;color:#333;text-align:right">€${imponibile.toLocaleString('it-IT')}</td>
+  </tr><tr>
+    <td style="padding:7px 0;font-size:12px;color:#1a6ebf">IVA ${ivaPct}%</td>
+    <td style="padding:7px 0;font-size:13px;color:#1a6ebf;text-align:right;font-weight:600">+€${Math.round(ivaAmount||0).toLocaleString('it-IT')}</td>
+  </tr>` : '';
+
+  const totalLabel = ivaPct > 0 ? 'TOTALE IVA INCLUSA' : 'TOTALE STIMATO';
+  const ivaNote = ivaPct > 0 ? 'Prezzi IVA inclusa (22%) · indicativi soggetti a conferma ufficiale' : 'IVA esclusa · prezzi indicativi';
 
   const notesHtml = notes ? `<div style="margin-top:20px;padding:14px 16px;background:#f9f9f9;border-left:3px solid #ddd">
     <div style="font-size:10px;letter-spacing:2px;color:#aaa;text-transform:uppercase;margin-bottom:6px">NOTE</div>
@@ -130,15 +142,16 @@ function buildAgencyHTML({ agentName, clientName, clientEmail, lines, subtotal, 
       ${linesHtml}
       <tr><td colspan="2" style="padding:3px 0"></td></tr>
       ${discountRow}
+      ${ivaRow}
       <tr><td colspan="2" style="padding:3px 0"></td></tr>
       <tr><td colspan="2">
         <div style="background:#1c1c1c;padding:12px 16px">
-          <span style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:2px">Totale stimato</span>
+          <span style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:2px">${totalLabel}</span>
           <span style="font-size:18px;font-weight:700;color:#fff;float:right">€${total.toLocaleString('it-IT')}</span>
         </div>
       </td></tr>
     </table>
-    <p style="font-size:11px;color:#bbb;margin:6px 0 0;font-style:italic">IVA esclusa · prezzi indicativi</p>
+    <p style="font-size:11px;color:#bbb;margin:6px 0 0;font-style:italic">${ivaNote}</p>
     ${notesHtml}
   </td></tr>
 
@@ -156,7 +169,7 @@ function buildAgencyHTML({ agentName, clientName, clientEmail, lines, subtotal, 
 // ──────────────────────────────────────────────────────────────────────────────
 // CLIENT email — friendly, mobile-first, minimal
 // ──────────────────────────────────────────────────────────────────────────────
-function buildClientHTML({ agentName, clientName, lines, subtotal, discount, saved, total, notes, today }) {
+function buildClientHTML({ agentName, clientName, lines, subtotal, discount, saved, ivaPct, ivaAmount, total, notes, today }) {
   const linesHtml = lines.map(l => {
     const i = l.indexOf(': ');
     const name = i > -1 ? l.slice(0, i) : l;
@@ -167,10 +180,22 @@ function buildClientHTML({ agentName, clientName, lines, subtotal, discount, sav
     </tr>`;
   }).join('');
 
+  const imponibile = subtotal - Math.round(saved || 0);
   const discountRow = discount > 0 ? `<tr>
     <td style="padding:7px 0;font-size:13px;color:#888">Sconto ${discount}%</td>
-    <td style="padding:7px 0;font-size:13px;color:#2a7a4a;text-align:right;font-weight:600">−€${Math.round(saved).toLocaleString('it-IT')}</td>
+    <td style="padding:7px 0;font-size:13px;color:#2a7a4a;text-align:right;font-weight:600">-€${Math.round(saved).toLocaleString('it-IT')}</td>
   </tr>` : '';
+
+  const ivaRow = ivaPct > 0 ? `<tr>
+    <td style="padding:7px 0;font-size:12px;color:#888">Imponibile</td>
+    <td style="padding:7px 0;font-size:13px;color:#333;text-align:right">€${imponibile.toLocaleString('it-IT')}</td>
+  </tr><tr>
+    <td style="padding:7px 0;font-size:12px;color:#1a6ebf">IVA ${ivaPct}%</td>
+    <td style="padding:7px 0;font-size:13px;color:#1a6ebf;text-align:right;font-weight:600">+€${Math.round(ivaAmount||0).toLocaleString('it-IT')}</td>
+  </tr>` : '';
+
+  const totalLabel = ivaPct > 0 ? 'TOTALE IVA INCLUSA' : 'TOTALE STIMATO';
+  const ivaNote = ivaPct > 0 ? 'Prezzi IVA inclusa (22%) · indicativi soggetti a conferma ufficiale' : 'IVA esclusa · prezzi indicativi soggetti a conferma ufficiale';
 
   const notesHtml = notes ? `<div style="margin-top:20px;padding:14px 16px;background:#f9f9f9;border-left:3px solid #ddd">
     <div style="font-size:10px;letter-spacing:2px;color:#aaa;text-transform:uppercase;margin-bottom:6px">NOTE</div>
@@ -203,15 +228,16 @@ function buildClientHTML({ agentName, clientName, lines, subtotal, discount, sav
       ${linesHtml}
       <tr><td colspan="2" style="padding:3px 0"></td></tr>
       ${discountRow}
+      ${ivaRow}
       <tr><td colspan="2" style="padding:3px 0"></td></tr>
       <tr><td colspan="2">
         <div style="background:#1c1c1c;padding:12px 16px">
-          <span style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:2px">Totale stimato</span>
+          <span style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:2px">${totalLabel}</span>
           <span style="font-size:18px;font-weight:700;color:#fff;float:right">€${total.toLocaleString('it-IT')}</span>
         </div>
       </td></tr>
     </table>
-    <p style="font-size:11px;color:#bbb;margin:6px 0 0;font-style:italic">IVA esclusa · prezzi indicativi soggetti a conferma ufficiale</p>
+    <p style="font-size:11px;color:#bbb;margin:6px 0 0;font-style:italic">${ivaNote}</p>
     ${notesHtml}
   </td></tr>
 
@@ -235,10 +261,14 @@ function buildClientHTML({ agentName, clientName, lines, subtotal, discount, sav
 // ──────────────────────────────────────────────────────────────────────────────
 // PLAIN TEXT fallback
 // ──────────────────────────────────────────────────────────────────────────────
-function buildQuotePlain({ agentName, clientName, clientEmail, lines, subtotal, discount, saved, total, notes, today }) {
+function buildQuotePlain({ agentName, clientName, clientEmail, lines, subtotal, discount, saved, ivaPct, ivaAmount, total, notes, today }) {
   const sep = '─'.repeat(44);
   const linesText = lines.map(l => `  • ${l}`).join('\n');
-  const discountLine = discount > 0 ? `  Sconto ${discount}%: -€${Math.round(saved).toLocaleString('it-IT')}\n` : '';
+  const imponibile = subtotal - Math.round(saved || 0);
+  const discountLine = discount > 0 ? `  Sconto ${discount}%: -EUR ${Math.round(saved).toLocaleString('it-IT')}\n` : '';
+  const ivaLine = ivaPct > 0 ? `  Imponibile: EUR ${imponibile.toLocaleString('it-IT')}\n  IVA ${ivaPct}%: +EUR ${Math.round(ivaAmount||0).toLocaleString('it-IT')}\n` : '';
+  const totalLabel = ivaPct > 0 ? 'TOTALE IVA INCLUSA' : 'TOTALE STIMATO';
+  const ivaNota = ivaPct > 0 ? 'Prezzi IVA inclusa (22%)' : 'IVA esclusa';
   const notesText = notes ? `\nNOTE\n${sep}\n${notes}\n` : '';
   const emailLine = clientEmail ? `Email cliente: ${clientEmail}\n` : '';
   return `PLURIAGENCY — PREVENTIVO SERVIZI
@@ -252,9 +282,9 @@ ${sep}
 ${linesText}
 
 ${sep}
-Subtotale: €${subtotal.toLocaleString('it-IT')}
-${discountLine}TOTALE STIMATO: €${total.toLocaleString('it-IT')}
-IVA esclusa · prezzi indicativi soggetti a conferma
+Subtotale: EUR ${subtotal.toLocaleString('it-IT')}
+${discountLine}${ivaLine}${totalLabel}: EUR ${total.toLocaleString('it-IT')}
+${ivaNota} · prezzi indicativi soggetti a conferma
 ${notesText}
 ${sep}
 PLURIAGENCY · hello@pluriagency.com · +39 389 688 1004 · Bologna, Italia`;

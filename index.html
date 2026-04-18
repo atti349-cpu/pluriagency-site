@@ -869,6 +869,10 @@ async function sendBrief(){
         site:'pluriagency.com'
       })});
     if(r.ok){
+      // Salva lead su Supabase (fire & forget — non blocca l'UX)
+      fetch('/api/save-lead',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({nome:name,email,messaggio:msg,area:briefActiveCat.toUpperCase(),servizi:briefSelected,fonte:'homepage'})
+      }).catch(()=>{});
       showBriefToast();
       btn.querySelector('span').textContent='✓ SEGNALE TRASMESSO';
       setTimeout(()=>{btn.querySelector('span').textContent='▶ SEND SIGNAL';btn.disabled=false;},5000);

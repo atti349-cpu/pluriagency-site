@@ -388,7 +388,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .rm-task-row.done .rm-task-grip { display:none; }
 .rm-badge { font-size:9px; padding:2px 7px; border-radius:2px; cursor:pointer; font-weight:600; flex-shrink:0; letter-spacing:.06em; text-transform:uppercase; margin-top:3px; transition:all .12s; border:1px solid transparent; white-space:nowrap; font-family:var(--rm-mono); }
 .rm-cx-none{background:transparent;color:var(--rm-text3);border-color:var(--rm-border);}
-.rm-cx-s{background:var(--rm-cyan-dim);color:var(--rm-cyan);border-color:rgba(0,212,255,.25);}
+.rm-cx-s{background:rgba(0,255,136,.06);color:var(--rm-neon);border-color:rgba(0,255,136,.2);}
 .rm-cx-m{background:var(--rm-amb-dim);color:var(--rm-amber);border-color:rgba(255,170,0,.25);}
 .rm-cx-l{background:var(--rm-pur-dim);color:var(--rm-purple);border-color:rgba(167,139,250,.3);}
 .rm-cx-xl{background:var(--rm-red-dim);color:var(--rm-red);border-color:rgba(255,68,68,.25);}
@@ -396,9 +396,46 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .rm-p-low{background:rgba(0,255,136,.06);color:var(--rm-neon2);border-color:rgba(0,255,136,.2);}
 .rm-p-med{background:var(--rm-amb-dim);color:var(--rm-amber);border-color:rgba(255,170,0,.25);}
 .rm-p-high{background:var(--rm-red-dim);color:var(--rm-red);border-color:rgba(255,68,68,.25);}
+.rm-p-block{background:repeating-linear-gradient(45deg,rgba(255,136,0,.08),rgba(255,136,0,.08) 3px,rgba(255,136,0,.03) 3px,rgba(255,136,0,.03) 6px);color:#ff8800;border-color:rgba(255,136,0,.4);}
+/* fixed-width badges */
+.rm-badge-cx{min-width:28px;text-align:center;justify-content:center;}
+.rm-badge-p{min-width:52px;text-align:center;justify-content:center;}
 .rm-task-del { width:16px; height:16px; display:flex; align-items:center; justify-content:center; color:var(--rm-text3); cursor:pointer; border-radius:2px; font-size:9px; opacity:0; flex-shrink:0; margin-top:2px; transition:all .12s; }
 .rm-task-row:hover .rm-task-del { opacity:1; }
 .rm-task-del:hover { background:var(--rm-red-dim); color:var(--rm-red); }
+/* ── WIP PANEL ── */
+.rm-wip-panel{background:linear-gradient(135deg,rgba(0,255,136,.04) 0%,rgba(0,255,136,.02) 100%);border:1px solid rgba(0,255,136,.28);border-radius:3px;margin-bottom:10px;transition:border-color .2s,background .2s;}
+.rm-wip-panel.wip-dragover{border-color:var(--rm-neon);background:rgba(0,255,136,.07);box-shadow:0 0 18px rgba(0,255,136,.12);}
+.rm-wip-hdr{display:flex;align-items:center;gap:7px;padding:7px 12px 6px;border-bottom:1px solid rgba(0,255,136,.12);}
+.rm-wip-icon{font-size:10px;color:var(--rm-neon);animation:rm-pulse 2s ease infinite;}
+@keyframes rm-pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.rm-wip-label{font-size:9px;letter-spacing:.2em;color:var(--rm-neon);text-transform:uppercase;font-weight:700;}
+.rm-wip-count{font-size:9px;color:var(--rm-text3);margin-left:auto;}
+.rm-wip-list{padding:5px 8px;display:flex;flex-direction:column;gap:3px;min-height:22px;}
+.rm-wip-empty{padding:10px;text-align:center;color:var(--rm-text3);font-size:10px;letter-spacing:.1em;font-style:italic;}
+.rm-wip-row{display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.12);border-radius:2px;transition:background .12s;cursor:grab;}
+.rm-wip-row.t-drag{opacity:.25;}
+.rm-wip-row.t-over-top{border-top:1px solid var(--rm-neon);box-shadow:0 -2px 8px rgba(0,255,136,.2);}
+.rm-wip-row.t-over-bot{border-bottom:1px solid var(--rm-neon);box-shadow:0 2px 8px rgba(0,255,136,.2);}
+.rm-wip-row:hover{background:rgba(0,255,136,.08);}
+.rm-wip-grip{color:var(--rm-text3);font-size:12px;opacity:.35;flex-shrink:0;line-height:1;cursor:grab;}
+.rm-wip-row:hover .rm-wip-grip{opacity:.8;color:var(--rm-neon);}
+.rm-wip-text{flex:1;font-size:12px;color:var(--rm-text);line-height:1.4;word-break:break-word;}
+/* PRONTA button */
+.rm-pronta-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.4);color:var(--rm-neon);font-family:var(--rm-mono);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .15s;white-space:nowrap;flex-shrink:0;}
+.rm-pronta-btn:hover{background:var(--rm-neon);color:var(--rm-bg);box-shadow:0 0 14px rgba(0,255,136,.55),0 0 28px rgba(0,255,136,.2);transform:translateY(-1px);}
+.rm-pronta-btn:active{transform:translateY(0);}
+@keyframes rm-pronta-flash{0%{box-shadow:0 0 0 rgba(0,255,136,0)}40%{box-shadow:0 0 22px rgba(0,255,136,.9),0 0 44px rgba(0,255,136,.4)}100%{box-shadow:0 0 0 rgba(0,255,136,0)}}
+.rm-pronta-btn.flash{animation:rm-pronta-flash .45s ease;}
+/* Inline add-task input */
+.rm-add-input-wrap{display:flex;align-items:center;gap:0;margin-bottom:8px;border:1px solid rgba(0,255,136,.18);border-radius:2px;background:var(--rm-bg3);transition:border-color .15s,background .15s;}
+.rm-add-input-wrap:focus-within{border-color:var(--rm-neon);background:rgba(0,255,136,.03);}
+.rm-add-prompt{font-family:var(--rm-mono);font-size:12px;color:var(--rm-neon);padding:0 8px;opacity:.65;flex-shrink:0;user-select:none;}
+.rm-add-input{flex:1;background:transparent;border:none;color:var(--rm-text);font-family:var(--rm-mono);font-size:11px;padding:8px 4px;letter-spacing:.04em;outline:none;}
+.rm-add-input::placeholder{color:var(--rm-text3);}
+.rm-add-go{font-family:var(--rm-mono);font-size:9px;color:var(--rm-text3);background:transparent;border:none;border-left:1px solid var(--rm-border);padding:6px 10px;cursor:pointer;letter-spacing:.1em;transition:color .12s;flex-shrink:0;text-transform:uppercase;}
+.rm-add-input-wrap:focus-within .rm-add-go{color:var(--rm-neon);}
+.rm-add-go:hover{color:var(--rm-neon);}
 .rm-task-row.t-drag { opacity:.25; }
 .rm-task-row.t-over-top { border-top:1px solid var(--rm-neon); box-shadow:0 -2px 8px rgba(0,255,136,.2); }
 .rm-task-row.t-over-bot { border-bottom:1px solid var(--rm-neon); box-shadow:0 2px 8px rgba(0,255,136,.2); }
@@ -609,7 +646,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         <div class="sb-divider"></div>
         <div class="sb-section-label">GESTIONE</div>
         <button class="sb-item" id="nav-preventivi" onclick="switchSection('preventivi',this)">◈ PREVENTIVI</button>
-        <button class="sb-item" id="nav-agenti" onclick="switchSection('agenti',this)">◈ AGENTI</button>
+        <button class="sb-item" id="nav-leads" onclick="switchSection('leads',this)" style="display:none">◈ LEADS</button>
+        <button class="sb-item" id="nav-clienti" onclick="switchSection('clienti',this)">◈ CLIENTI</button>
+        <button class="sb-item" id="nav-agenti" onclick="switchSection('agenti',this)" style="display:none">◈ AGENTI</button>
+        <button class="sb-item" id="nav-team" onclick="switchSection('team',this)" style="display:none">◈ TEAM</button>
         <div class="sb-divider"></div>
         <div class="sb-section-label">SISTEMA</div>
         <button class="sb-item" id="nav-roadmap" onclick="switchSection('roadmap',this)">◈ ROADMAP</button>
@@ -805,7 +845,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
             <div class="section-eyebrow">// GESTIONE TRATTATIVE</div>
             <h1 class="section-h1">PREVENTIVI</h1>
           </div>
-          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
             <select id="pv-filter-status" class="field-select" style="font-size:.6rem;padding:.4rem .7rem" onchange="loadPreventivi()">
               <option value="">TUTTI GLI STATI</option>
               <option value="bozza">BOZZA</option>
@@ -814,12 +854,146 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
               <option value="venduto">VENDUTO ✓</option>
               <option value="rifiutato">RIFIUTATO</option>
             </select>
+            <button class="btn-add" onclick="toggleNewPvForm()">+ NUOVO PREVENTIVO</button>
           </div>
         </div>
+
+        <!-- FORM CREA NUOVO PREVENTIVO -->
+        <div id="form-nuovo-pv" style="display:none;background:var(--panel);border:1px solid var(--border);padding:1.25rem 1.5rem;margin-bottom:1.5rem">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.25em;color:var(--v);text-transform:uppercase;margin-bottom:1rem">// NUOVO PREVENTIVO</div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem">
+            <div>
+              <div class="field-label">CLIENTE *</div>
+              <input id="npv-client-name" class="field-input" type="text" placeholder="Nome / Azienda">
+            </div>
+            <div>
+              <div class="field-label">EMAIL CLIENTE</div>
+              <input id="npv-client-email" class="field-input" type="email" placeholder="cliente@email.com">
+            </div>
+            <div>
+              <div class="field-label">AGENTE *</div>
+              <select id="npv-agent" class="field-select" style="width:100%">
+                <option value="">Seleziona agente...</option>
+              </select>
+            </div>
+            <div>
+              <div class="field-label">SCONTO <span style="font-size:.5rem;color:var(--muted)">(MAX 25%)</span></div>
+              <div style="display:flex;gap:.4rem;align-items:center">
+                <input id="npv-discount" class="field-input" type="number" min="0" max="25" value="0" oninput="npvRecalc()" style="width:80px">
+                <span style="font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--muted)">%</span>
+                <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer;margin-left:.5rem">
+                  <input type="checkbox" id="npv-iva" onchange="npvRecalc()" style="accent-color:var(--v)">
+                  <span style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)">IVA 22%</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-label" style="margin-bottom:.5rem">SERVIZI</div>
+          <div style="display:flex;gap:.5rem;margin-bottom:.5rem">
+            <input id="npv-svc-search" class="field-input" type="text" placeholder="Cerca servizio..." oninput="npvFilterServices()" style="flex:1">
+          </div>
+          <div id="npv-svc-list" style="max-height:220px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);padding:.5rem;margin-bottom:.75rem"></div>
+
+          <div class="field-label" style="margin-bottom:.35rem">SERVIZI SELEZIONATI</div>
+          <div id="npv-selected-lines" style="min-height:36px;font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--muted);margin-bottom:.75rem">> nessun servizio selezionato</div>
+
+          <div style="display:flex;gap:1.5rem;align-items:center;margin-bottom:.75rem">
+            <div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)" id="npv-total-label">TOTALE: <span style="color:var(--g1);font-size:.85rem" id="npv-total">€ 0</span></div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--muted)" id="npv-iva-line" style="display:none"></div>
+          </div>
+
+          <div>
+            <div class="field-label" style="margin-bottom:.35rem">NOTE</div>
+            <textarea id="npv-notes" class="field-input" style="width:100%;min-height:60px;resize:vertical" placeholder="Note interne al preventivo..."></textarea>
+          </div>
+
+          <div style="display:flex;gap:.5rem;margin-top:1rem;flex-wrap:wrap">
+            <button class="btn-primary" onclick="saveNuovoPv('bozza')">SALVA BOZZA</button>
+            <button class="btn-ghost" onclick="toggleNewPvForm()">ANNULLA</button>
+          </div>
+          <div id="npv-msg" style="font-family:'Share Tech Mono',monospace;font-size:.6rem;margin-top:.5rem;min-height:14px"></div>
+        </div>
+
         <div id="preventivi-list">
           <div class="loading-row">&gt; caricamento preventivi_</div>
         </div>
       </section>
+
+      <!-- === LEADS SECTION (admin only) === -->
+      <section id="section-leads" style="display:none">
+        <div class="section-head">
+          <div>
+            <div class="section-eyebrow">// ACQUISIZIONE</div>
+            <h1 class="section-h1">LEADS</h1>
+          </div>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <select id="lead-filter-stato" class="field-select" style="font-size:.6rem;padding:.4rem .7rem" onchange="loadLeads()">
+              <option value="">TUTTI</option>
+              <option value="nuovo">NUOVI</option>
+              <option value="contattato">CONTATTATI</option>
+              <option value="gestito">GESTITI</option>
+            </select>
+          </div>
+        </div>
+        <div id="leads-list"><div class="loading-row">&gt; caricamento leads_</div></div>
+      </section>
+
+      <!-- LEAD MODAL -->
+      <div id="lead-modal" class="modal-overlay">
+        <div class="modal-box" style="max-width:600px">
+          <button class="modal-close" onclick="closeLeadModal()">&#215;</button>
+          <div class="modal-title" id="lead-modal-title">LEAD</div>
+          <div id="lead-modal-body"></div>
+        </div>
+      </div>
+
+      <!-- === CLIENTI SECTION === -->
+      <section id="section-clienti" style="display:none">
+        <div class="section-head">
+          <div>
+            <div class="section-eyebrow">// GESTIONE</div>
+            <h1 class="section-h1">CLIENTI</h1>
+          </div>
+          <button class="btn-add" onclick="toggleClienteForm()">+ NUOVO CLIENTE</button>
+        </div>
+
+        <!-- FORM NUOVO CLIENTE -->
+        <div id="form-cliente" style="display:none;background:var(--panel);border:1px solid var(--border);padding:1.25rem 1.5rem;margin-bottom:1.5rem">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.25em;color:var(--v);text-transform:uppercase;margin-bottom:1rem">// NUOVO CLIENTE</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem">
+            <div><div class="field-label">NOME / RAGIONE SOCIALE *</div><input id="cl-name" class="field-input" type="text" placeholder="Es. Mario Rossi / Azienda SRL"></div>
+            <div><div class="field-label">EMAIL *</div><input id="cl-email" class="field-input" type="email" placeholder="info@azienda.it"></div>
+            <div><div class="field-label">REFERENTE</div><input id="cl-referente" class="field-input" type="text" placeholder="Nome cognome responsabile"></div>
+            <div><div class="field-label">TELEFONO</div><input id="cl-telefono" class="field-input" type="text" placeholder="+39 333 000 0000"></div>
+            <div><div class="field-label">P.IVA / CF</div><input id="cl-piva" class="field-input" type="text" placeholder="IT00000000000"></div>
+            <div><div class="field-label">INDIRIZZO</div><input id="cl-indirizzo" class="field-input" type="text" placeholder="Via Roma 1, Bologna (BO)"></div>
+            <div><div class="field-label">IBAN</div><input id="cl-iban" class="field-input" type="text" placeholder="IT00 X000 0000 0000 0000 0000 000"></div>
+            <div>
+              <div class="field-label">AGENTE RESPONSABILE</div>
+              <select id="cl-agent" class="field-select" style="width:100%"><option value="">Seleziona agente...</option></select>
+            </div>
+          </div>
+          <div><div class="field-label" style="margin-bottom:.35rem">NOTE</div><textarea id="cl-note" class="field-input" style="width:100%;min-height:60px;resize:vertical" placeholder="Note interne..."></textarea></div>
+          <div style="display:flex;gap:.5rem;margin-top:1rem">
+            <button class="btn-primary" onclick="saveCliente()">SALVA CLIENTE</button>
+            <button class="btn-ghost" onclick="toggleClienteForm()">ANNULLA</button>
+          </div>
+          <div id="cl-msg" style="font-family:'Share Tech Mono',monospace;font-size:.6rem;margin-top:.5rem;min-height:14px"></div>
+        </div>
+
+        <div id="clienti-list"><div class="loading-row">&gt; caricamento clienti_</div></div>
+      </section>
+
+      <!-- CLIENTE MODAL -->
+      <div id="cliente-modal" class="modal-overlay">
+        <div class="modal-box" style="max-width:700px">
+          <button class="modal-close" onclick="closeClienteModal()">&#215;</button>
+          <div class="modal-title" id="cliente-modal-title">CLIENTE</div>
+          <div id="cliente-modal-body"></div>
+        </div>
+      </div>
 
       <!-- === AGENTI SECTION === -->
       <section id="section-agenti" style="display:none">
@@ -852,6 +1026,89 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 
         <div id="agenti-list">
           <div class="loading-row">&gt; caricamento agenti_</div>
+        </div>
+      </section>
+
+      <!-- === TEAM SECTION === -->
+      <section id="section-team" style="display:none">
+        <div class="section-head">
+          <div>
+            <div class="section-eyebrow">// GESTIONE TEAM CARDS</div>
+            <h1 class="section-h1">TEAM</h1>
+          </div>
+          <button class="btn-add" onclick="toggleTeamForm()">+ NUOVA CARD</button>
+        </div>
+
+        <!-- FORM CREA / MODIFICA TEAM CARD -->
+        <div class="admin-form" id="form-team" style="display:none">
+          <input type="hidden" id="tc-id">
+          <div class="form-grid">
+            <div class="field">
+              <label class="field-label">NOME COMPLETO *</label>
+              <input class="field-input" id="tc-nome" type="text" placeholder="Es. Matteo Rossi">
+            </div>
+            <div class="field">
+              <label class="field-label">SLUG URL *</label>
+              <input class="field-input" id="tc-slug" type="text" placeholder="Es. matteo (usato in /team/matteo)">
+            </div>
+            <div class="field">
+              <label class="field-label">RUOLO</label>
+              <input class="field-input" id="tc-ruolo" type="text" placeholder="Es. Frontend Developer">
+            </div>
+            <div class="field">
+              <label class="field-label">COLLEGA AGENTE</label>
+              <select class="field-input" id="tc-agente-select">
+                <option value="">— nessun collegamento —</option>
+              </select>
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label class="field-label">URL FOTO / AVATAR</label>
+              <input class="field-input" id="tc-foto" type="url" placeholder="https://...">
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label class="field-label">BIO</label>
+              <textarea class="field-input" id="tc-bio" rows="4" placeholder="Descrizione per la pagina portfolio personale..."></textarea>
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label class="field-label">SKILLS (separati da virgola)</label>
+              <input class="field-input" id="tc-skills" type="text" placeholder="Es. HTML/CSS, JavaScript, React, Figma">
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label class="field-label">STATS (JSON array) — es. [{"num":"6","label":"Progetti Live"},{"num":"3+","label":"Anni"}]</label>
+              <textarea class="field-input" id="tc-stats" rows="3" placeholder='[{"num":"6","label":"Progetti Live"},{"num":"3+","label":"Anni Esperienza"},{"num":"100%","label":"Deploy Rate"},{"num":"∞","label":"Iterazioni"}]'></textarea>
+            </div>
+          </div>
+          <div class="form-grid" style="margin-top:0.75rem">
+            <div class="field">
+              <label class="field-label">LINKEDIN (URL)</label>
+              <input class="field-input" id="tc-linkedin" type="url" placeholder="https://linkedin.com/in/...">
+            </div>
+            <div class="field">
+              <label class="field-label">INSTAGRAM (URL)</label>
+              <input class="field-input" id="tc-instagram" type="url" placeholder="https://instagram.com/...">
+            </div>
+            <div class="field">
+              <label class="field-label">GITHUB (URL)</label>
+              <input class="field-input" id="tc-github" type="url" placeholder="https://github.com/...">
+            </div>
+            <div class="field">
+              <label class="field-label">SITO PERSONALE (URL)</label>
+              <input class="field-input" id="tc-website" type="url" placeholder="https://...">
+            </div>
+          </div>
+          <div style="margin-top:1rem;display:flex;align-items:center;gap:0.75rem">
+            <input type="checkbox" id="tc-attiva" checked style="accent-color:var(--g1);width:1rem;height:1rem">
+            <label for="tc-attiva" class="field-label" style="margin:0">CARD ATTIVA (visibile nella pagina portfolio)</label>
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" onclick="saveTeamCard()">&#9654; SALVA CARD</button>
+            <button class="btn-ghost" onclick="toggleTeamForm()">ANNULLA</button>
+          </div>
+          <div class="form-msg" id="tc-msg"></div>
+        </div>
+
+        <div id="team-list">
+          <div class="loading-row">&gt; caricamento team cards_</div>
         </div>
       </section>
 
@@ -948,6 +1205,7 @@ async function init(){
     const cfg = await fetch('/api/config').then(r => r.json());
     if(cfg.error) throw new Error(cfg.error);
     _sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
+      auth: { detectSessionInUrl: true, persistSession: true }
     });
   } catch(e){
     showError('Configurazione Supabase mancante — aggiungere SUPABASE_URL e SUPABASE_ANON_KEY nelle env vars Vercel.');
@@ -988,13 +1246,13 @@ async function showDashboard(user){
     .maybeSingle();
   _currentUserRole = agentProfile?.role || 'agent';
 
-  // Agente normale: nascondi sezioni admin-only
-  if(_currentUserRole !== 'admin'){
-    const navAgenti = document.getElementById('nav-agenti');
-    if(navAgenti) navAgenti.style.display = 'none';
-    const navRoadmap = document.getElementById('nav-roadmap');
-    if(navRoadmap) navRoadmap.style.display = 'none';
-  }
+  const isAdmin = _currentUserRole === 'admin';
+
+  // Sezioni admin-only: LEADS, AGENTI, ROADMAP, TEAM
+  ['nav-leads','nav-agenti','nav-roadmap','nav-team'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.display = isAdmin ? 'flex' : 'none';
+  });
 
   // Super-admin only: token monitor
   if(_currentUserEmail === 'atti349@gmail.com'){
@@ -1077,7 +1335,7 @@ function closeSidebarMobile(){
 
 function switchSection(name, btnEl){
   closeSidebarMobile();
-  ['portfolio','demo','preventivi','agenti','roadmap','tokens'].forEach(s => {
+  ['portfolio','demo','preventivi','leads','clienti','agenti','team','roadmap','tokens'].forEach(s => {
     const sec = document.getElementById('section-'+s);
     if(sec) sec.style.display = s===name ? 'block' : 'none';
     const nav = document.getElementById('nav-'+s);
@@ -1088,7 +1346,10 @@ function switchSection(name, btnEl){
   if(name==='demo' && !document.getElementById('demo-list').querySelector('.demo-row'))
     loadDemo();
   if(name==='preventivi') loadPreventivi();
+  if(name==='leads') loadLeads();
+  if(name==='clienti') loadClienti();
   if(name==='agenti') loadAgenti();
+  if(name==='team') loadTeamCards();
   if(name==='roadmap') loadRoadmap();
   if(name==='tokens') loadTokens();
 }
@@ -1683,14 +1944,49 @@ function openPvModal(id){
     <div class="pv-total-row">
       ${pv.discount_pct > 0 ? `
         <div><div class="pv-total-label">Subtotale</div><div style="font-family:'Orbitron',monospace;font-size:.85rem;color:var(--text)">${subtotal}</div></div>
-        <div><div class="pv-total-label">Sconto ${pv.discount_pct}%</div><div style="font-family:'Share Tech Mono',monospace;font-size:.85rem;color:var(--red)">−${(pv.discount_amount||0).toLocaleString('it-IT')} €</div></div>
+        <div><div class="pv-total-label">Sconto ${pv.discount_pct}%</div><div style="font-family:'Share Tech Mono',monospace;font-size:.85rem;color:var(--red)">-${(pv.discount_amount||0).toLocaleString('it-IT')} EUR</div></div>
       ` : ''}
-      <div><div class="pv-total-label">Totale</div><div class="pv-total-val">${total}</div></div>
+      ${pv.iva_pct > 0 ? `
+        <div><div class="pv-total-label">IVA ${pv.iva_pct}%</div><div style="font-family:'Share Tech Mono',monospace;font-size:.85rem;color:var(--g3)">+${(pv.iva_amount||0).toLocaleString('it-IT')} EUR</div></div>
+      ` : ''}
+      <div><div class="pv-total-label">${pv.iva_pct > 0 ? 'TOTALE IVA INCLUSA' : 'TOTALE'}</div><div class="pv-total-val">${total}</div></div>
     </div>
 
-    ${pv.notes ? `<div class="pv-info-key" style="margin-bottom:.4rem">Note</div><div class="pv-notes-box">${pv.notes.replace(/</g,'&lt;')}</div>` : ''}
+    ${pv.notes ? `<div class="pv-info-key" style="margin-bottom:.4rem;margin-top:1rem">Note preventivo</div><div class="pv-notes-box">${pv.notes.replace(/</g,'&lt;')}</div>` : ''}
 
-    <div class="pv-status-actions">${statusActions}</div>`;
+    <div class="pv-status-actions">${statusActions}</div>
+
+    <div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1rem">
+      <div class="pv-info-key" style="margin-bottom:.75rem">NOTE TEAM <span style="font-size:.5rem;color:var(--muted);letter-spacing:.05em">(visibili solo agli assegnati)</span></div>
+      <div id="pv-notes-log" style="margin-bottom:.75rem">${buildNotesLog(pv.notes_log)}</div>
+      ${!isLocked ? `
+      <div style="display:flex;gap:.5rem;align-items:flex-end">
+        <textarea id="pv-note-input" placeholder="Aggiungi nota..." style="flex:1;background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:.6rem .8rem;font-family:'Share Tech Mono',monospace;font-size:.65rem;resize:vertical;min-height:60px;outline:none;letter-spacing:.04em"></textarea>
+        <button class="btn-primary" style="font-size:.55rem;padding:.5rem .8rem;white-space:nowrap" onclick="addPvNote('${id}')">+ NOTA</button>
+      </div>` : ''}
+    </div>
+
+    <div style="margin-top:1.25rem;border-top:1px solid var(--border);padding-top:1rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div>
+        <div class="pv-info-key" style="margin-bottom:.5rem">ASSEGNA CLIENTE</div>
+        ${pv.client_id ? `<div style="font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--g1)">✓ Cliente assegnato: ${pv.client_name}</div>` : `
+        <div style="display:flex;gap:.4rem">
+          <input id="pv-assign-client-input" class="field-input" type="email" placeholder="email@cliente.it" style="font-size:.62rem;padding:.4rem .6rem">
+          <button class="btn-ghost" style="font-size:.55rem;padding:.35rem .6rem;white-space:nowrap" onclick="assignClientToPv('${id}')">CERCA</button>
+        </div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:.52rem;color:var(--muted);margin-top:.3rem">cerca cliente per email, poi assegna</div>
+        `}
+      </div>
+      <div>
+        <div class="pv-info-key" style="margin-bottom:.5rem">COLLABORATORI</div>
+        <div id="pv-collab-list" style="margin-bottom:.4rem">${buildCollaboratorsList(pv.collaborators, id)}</div>
+        ${!isLocked ? `
+        <div style="display:flex;gap:.4rem">
+          <input id="pv-collab-input" class="field-input" type="email" placeholder="email@agente.it" style="font-size:.62rem;padding:.4rem .6rem">
+          <button class="btn-ghost" style="font-size:.55rem;padding:.35rem .6rem;white-space:nowrap" onclick="addCollaboratorToPv('${id}')">+ ADD</button>
+        </div>` : ''}
+      </div>
+    </div>`;
 
   document.getElementById('pv-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -1722,6 +2018,704 @@ async function deletePv(id, btn){
   const { error } = await _sb.from('preventivi').delete().eq('id', id);
   if(error){ alert('Errore: ' + error.message); btn.disabled = false; return; }
   loadPreventivi();
+}
+
+function buildNotesLog(notesLog){
+  const entries = Array.isArray(notesLog) ? notesLog : [];
+  if(!entries.length) return `<div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)">nessuna nota del team</div>`;
+  return entries.slice().reverse().map(n => {
+    const date = new Date(n.date).toLocaleDateString('it-IT', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    return `<div style="background:var(--panel2);border:1px solid var(--border);padding:.6rem .8rem;margin-bottom:.4rem;border-radius:2px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:.25rem">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--v)">${n.author || '—'}</span>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.5rem;color:var(--muted)">${date}</span>
+      </div>
+      <div style="font-size:.75rem;color:var(--text);line-height:1.5">${(n.text||'').replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>
+    </div>`;
+  }).join('');
+}
+
+async function addPvNote(pvId){
+  const input = document.getElementById('pv-note-input');
+  const text = input?.value.trim();
+  if(!text) return;
+
+  const pv = _preventiviMap[pvId];
+  if(!pv) return;
+
+  const existingLog = Array.isArray(pv.notes_log) ? pv.notes_log : [];
+  const newEntry = { text, date: new Date().toISOString(), author: _currentUserEmail };
+  const newLog = [...existingLog, newEntry];
+
+  const { error } = await _sb.from('preventivi')
+    .update({ notes_log: newLog, updated_at: new Date().toISOString() })
+    .eq('id', pvId);
+
+  if(error){ alert('Errore salvataggio nota: ' + error.message); return; }
+
+  pv.notes_log = newLog;
+  input.value = '';
+  const logEl = document.getElementById('pv-notes-log');
+  if(logEl) logEl.innerHTML = buildNotesLog(newLog);
+}
+
+// ===== NUOVO PREVENTIVO DA ADMIN =====
+const NPV_CATS = [
+  {id:'web',label:'WEB',items:[
+    {id:'web-az-b',name:'Sito Aziendale Basic',price:1700},{id:'web-az-p',name:'Digital Showroom 3D',price:2500},
+    {id:'web-ris-b',name:'Sito Ristorante Basic',price:1500},{id:'web-ris-p',name:'Sistema Vendita Ristorante',price:2500},
+    {id:'web-pro-b',name:'Sito Professionista Basic',price:1500},{id:'web-pro-p',name:'Digital Identity Tool',price:2200},
+    {id:'web-dev-h',name:'Costo Sviluppo Orario',price:20},
+  ]},
+  {id:'grafica',label:'GRAFICA',items:[
+    {id:'g-logo',name:'Logo Design',price:150},{id:'g-brand',name:'Brand Kit Completo',price:300},
+    {id:'g-loc',name:'Locandina / Flyer',price:80},{id:'g-broch',name:'Brochure / Catalogo',price:150},
+    {id:'g-deck',name:'Deck / Presentazione',price:150},{id:'g-music',name:'Grafica Musica & Eventi',price:80},
+    {id:'g-card',name:'Business Card',price:150},{id:'g-dev-h',name:'Costo Sviluppo Orario',price:20},
+  ]},
+  {id:'foto',label:'FOTO/VIDEO',items:[
+    {id:'f-base',name:'Shooting Base',price:200},{id:'f-pro',name:'Shooting Pro Multi-camera',price:500},
+    {id:'v-reel',name:'Reel / Short Video',price:150},{id:'v-ist',name:'Video Istituzionale',price:500},
+    {id:'foto-dev-h',name:'Costo Sviluppo Orario',price:20},
+  ]},
+  {id:'treed',label:'3D',items:[
+    {id:'3d-base',name:'Modello 3D Base',price:150},{id:'3d-render',name:'Rendering Prodotto',price:500},
+    {id:'3d-anim',name:'Animazione 3D',price:400},{id:'3d-cgi',name:'Scena CGI / Visual',price:600},
+    {id:'treed-dev-h',name:'Costo Sviluppo Orario',price:20},
+  ]},
+  {id:'auto',label:'AUTOMAZIONI',items:[
+    {id:'auto-email',name:'Email Automation & CRM',price:400},{id:'auto-chat',name:'Chatbot AI Personalizzato',price:600},
+    {id:'auto-dash',name:'Dashboard Analytics',price:500},{id:'auto-flow',name:'Workflow Personalizzato',price:350},
+    {id:'auto-dev-h',name:'Costo Sviluppo Orario',price:20},
+  ]},
+  {id:'pack',label:'PACCHETTI',items:[
+    {id:'p-media',name:'Sistema Media Ristorante',price:300,monthly:true},{id:'p-senior',name:'Shooting Senior — Team',price:600},
+    {id:'p-lancio',name:'Lancio Prodotto',price:800},{id:'p-kit',name:'Kit Identità Fisica + Digitale',price:2800},
+    {id:'p-tutor',name:'Marketing Tutoring',price:500},{id:'p-retainer',name:'Retainer Grafica Mensile',price:350,monthly:true},
+  ]},
+  {id:'maint',label:'MANUTENZIONE',items:[
+    {id:'m-basic',name:'Basic Care',price:100,yearly:true},{id:'m-std',name:'Standard Care',price:250,yearly:true},
+    {id:'m-prem',name:'Premium Care',price:500,yearly:true},{id:'mc-mod',name:'Modifica Contenuto',price:30},
+    {id:'mc-pag',name:'Nuova Pagina / Sezione',price:150},{id:'mc-blog',name:'Setup Blog',price:300},
+    {id:'maint-dev-h',name:'Costo Sviluppo Orario',price:20},
+  ]},
+];
+const NPV_ALL = NPV_CATS.flatMap(c => c.items.map(i => ({...i, cat: c.label})));
+const _npvSelected = {}; // id → {item, qty, price}
+
+function toggleNewPvForm(){
+  const form = document.getElementById('form-nuovo-pv');
+  const isOpen = form.style.display !== 'none';
+  form.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen){
+    npvReset();
+    npvPopulateAgentSelect();
+    npvRenderServiceList('');
+  }
+}
+
+function npvReset(){
+  ['npv-client-name','npv-client-email','npv-notes','npv-svc-search'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  const disc = document.getElementById('npv-discount'); if(disc) disc.value = '0';
+  const iva = document.getElementById('npv-iva'); if(iva) iva.checked = false;
+  Object.keys(_npvSelected).forEach(k => delete _npvSelected[k]);
+  npvRecalc(); npvRenderSelectedLines();
+  const msg = document.getElementById('npv-msg'); if(msg) msg.textContent = '';
+}
+
+async function npvPopulateAgentSelect(){
+  const sel = document.getElementById('npv-agent');
+  if(!sel || !_sb) return;
+  sel.innerHTML = '<option value="">Seleziona agente...</option>';
+  const { data } = await _sb.from('agenti').select('name, email, role').eq('active', true).order('name');
+  if(data) data.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a.name;
+    opt.dataset.email = a.email || '';
+    opt.textContent = a.name + (a.role === 'admin' ? ' (admin)' : '');
+    sel.appendChild(opt);
+  });
+}
+
+function npvFilterServices(){
+  const q = document.getElementById('npv-svc-search')?.value || '';
+  npvRenderServiceList(q);
+}
+
+function npvRenderServiceList(query){
+  const container = document.getElementById('npv-svc-list');
+  if(!container) return;
+  const q = query.toLowerCase().trim();
+  const filtered = q ? NPV_ALL.filter(i => i.name.toLowerCase().includes(q) || i.cat.toLowerCase().includes(q)) : NPV_ALL;
+  if(!filtered.length){ container.innerHTML = `<div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)">nessun servizio trovato</div>`; return; }
+  container.innerHTML = filtered.map(item => {
+    const sel = _npvSelected[item.id];
+    const suffix = item.monthly ? '/mese' : item.yearly ? '/anno' : '';
+    const price = sel ? sel.price : item.price;
+    return `<div id="npv-item-${item.id}" style="display:flex;align-items:center;gap:.6rem;padding:.4rem .5rem;cursor:pointer;border-bottom:1px solid var(--border);background:${sel ? 'var(--v-dim)' : 'transparent'}" onclick="npvToggleItem('${item.id}')">
+      <div style="width:12px;height:12px;border:1px solid ${sel ? 'var(--v)' : 'var(--muted)'};background:${sel ? 'var(--v)' : 'transparent'};flex-shrink:0"></div>
+      <div style="flex:1;font-family:'Share Tech Mono',monospace;font-size:.6rem;color:${sel ? 'var(--v)' : 'var(--text)'}">${item.name} <span style="color:var(--muted);font-size:.52rem">${item.cat}</span></div>
+      ${sel ? `<div style="display:flex;align-items:center;gap:.3rem">
+        <button onclick="npvQty('${item.id}',-1,event)" style="width:18px;height:18px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:10px">-</button>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.6rem;min-width:16px;text-align:center">${sel.qty}</span>
+        <button onclick="npvQty('${item.id}',1,event)" style="width:18px;height:18px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:10px">+</button>
+        <input type="number" value="${price}" min="${item.price}" style="width:60px;background:var(--panel2);border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.6rem;padding:2px 4px;text-align:right" onclick="event.stopPropagation()" onchange="npvSetPrice('${item.id}',this.value)">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.5rem;color:var(--muted)">${suffix}</span>
+      </div>` : `<span style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)">${item.price}\u20AC${suffix}</span>`}
+    </div>`;
+  }).join('');
+}
+
+function npvToggleItem(id){
+  const item = NPV_ALL.find(i => i.id === id);
+  if(!item) return;
+  if(_npvSelected[id]) delete _npvSelected[id];
+  else _npvSelected[id] = {item, qty: 1, price: item.price};
+  npvRecalc(); npvRenderSelectedLines(); npvRenderServiceList(document.getElementById('npv-svc-search')?.value || '');
+}
+
+function npvQty(id, dir, e){
+  e.stopPropagation();
+  if(!_npvSelected[id]) return;
+  _npvSelected[id].qty = Math.max(1, _npvSelected[id].qty + dir);
+  npvRecalc(); npvRenderSelectedLines(); npvRenderServiceList(document.getElementById('npv-svc-search')?.value || '');
+}
+
+function npvSetPrice(id, val){
+  if(!_npvSelected[id]) return;
+  const raw = parseFloat(val);
+  _npvSelected[id].price = isNaN(raw) ? _npvSelected[id].item.price : Math.max(_npvSelected[id].item.price, raw);
+  npvRecalc(); npvRenderSelectedLines();
+}
+
+function npvRecalc(){
+  let sub = 0;
+  Object.values(_npvSelected).forEach(s => { sub += s.price * s.qty; });
+  const disc = Math.min(25, Math.max(0, parseFloat(document.getElementById('npv-discount')?.value)||0));
+  const ivaActive = document.getElementById('npv-iva')?.checked || false;
+  const saved = Math.round(sub * disc / 100);
+  const imponibile = sub - saved;
+  const ivaAmount = ivaActive ? Math.round(imponibile * 0.22) : 0;
+  const total = imponibile + ivaAmount;
+  const totalEl = document.getElementById('npv-total');
+  const labelEl = document.getElementById('npv-total-label');
+  const ivaLineEl = document.getElementById('npv-iva-line');
+  if(totalEl) totalEl.textContent = `\u20AC ${total.toLocaleString('it-IT')}`;
+  if(labelEl) labelEl.innerHTML = `${ivaActive ? 'TOTALE IVA INCLUSA' : 'TOTALE'}: <span style="color:var(--g1);font-size:.85rem" id="npv-total">\u20AC ${total.toLocaleString('it-IT')}</span>`;
+  if(ivaLineEl) ivaLineEl.textContent = disc > 0 || ivaActive ? `sconto -\u20AC${saved} | IVA +\u20AC${ivaAmount}` : '';
+}
+
+function npvRenderSelectedLines(){
+  const el = document.getElementById('npv-selected-lines');
+  if(!el) return;
+  const entries = Object.values(_npvSelected);
+  if(!entries.length){ el.innerHTML = '> nessun servizio selezionato'; return; }
+  el.innerHTML = entries.map(s => {
+    const suffix = s.item.monthly ? '/mese' : s.item.yearly ? '/anno' : '';
+    return `<div style="display:flex;justify-content:space-between;padding:.2rem 0;border-bottom:1px solid var(--border)">
+      <span style="color:var(--text)">${s.item.name}${s.qty>1 ? ' x'+s.qty : ''}</span>
+      <span style="color:var(--v)">\u20AC${(s.price*s.qty).toLocaleString('it-IT')}${suffix}</span>
+    </div>`;
+  }).join('');
+}
+
+async function saveNuovoPv(status){
+  const clientName = document.getElementById('npv-client-name')?.value.trim();
+  const clientEmail = document.getElementById('npv-client-email')?.value.trim();
+  const agentSel = document.getElementById('npv-agent');
+  const agentName = agentSel?.options[agentSel.selectedIndex]?.value || '';
+  const agentEmail = agentSel?.options[agentSel.selectedIndex]?.dataset?.email || '';
+  const notes = document.getElementById('npv-notes')?.value.trim();
+  const disc = Math.min(25, parseFloat(document.getElementById('npv-discount')?.value)||0);
+  const ivaActive = document.getElementById('npv-iva')?.checked || false;
+  const msgEl = document.getElementById('npv-msg');
+
+  if(!clientName){ if(msgEl) msgEl.textContent = '⚠ Nome cliente obbligatorio'; return; }
+  if(!agentName){ if(msgEl) msgEl.textContent = '⚠ Seleziona agente'; return; }
+  if(!Object.keys(_npvSelected).length){ if(msgEl) msgEl.textContent = '⚠ Aggiungi almeno un servizio'; return; }
+
+  let sub = 0;
+  const items = [];
+  Object.values(_npvSelected).forEach(({item, qty, price}) => {
+    const lineTotal = price * qty;
+    sub += lineTotal;
+    items.push({id: item.id, name: item.name, qty, unit_price: price, total: lineTotal, monthly: !!item.monthly, yearly: !!item.yearly});
+  });
+  const disc_amount = Math.round(sub * disc / 100);
+  const imponibile = sub - disc_amount;
+  const iva_pct = ivaActive ? 22 : 0;
+  const iva_amount = ivaActive ? Math.round(imponibile * 0.22) : 0;
+  const total = imponibile + iva_amount;
+
+  if(msgEl) msgEl.textContent = '> salvataggio...';
+
+  const r = await fetch('/api/save-quote', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ agent_name: agentName, agent_email: agentEmail, client_name: clientName, client_email: clientEmail || null, items, subtotal: sub, discount_pct: disc, discount_amount: disc_amount, iva_pct, iva_amount, total, notes, status })
+  });
+  const json = await r.json();
+  if(!r.ok || json.error){
+    if(msgEl) msgEl.textContent = '⚠ Errore: ' + (json.error || 'salvataggio fallito');
+    return;
+  }
+  if(msgEl) msgEl.textContent = `✓ Preventivo salvato (ID: ${json.id})`;
+  setTimeout(() => { toggleNewPvForm(); loadPreventivi(); }, 1200);
+}
+
+// ===== ASSEGNA CLIENTE + COLLABORATORI (modal preventivo) =====
+async function assignClientToPv(pvId){
+  const input = document.getElementById('pv-assign-client-input');
+  const email = input?.value.trim();
+  if(!email){ alert('Inserisci email cliente'); return; }
+
+  const { data: clientRow } = await _sb.from('clienti').select('id,name').eq('email', email).maybeSingle();
+  if(!clientRow){ alert('Cliente non trovato. Crea prima il cliente nella sezione Clienti.'); return; }
+
+  const { error } = await _sb.from('preventivi')
+    .update({ client_id: clientRow.id, client_name: clientRow.name, client_email: email, updated_at: new Date().toISOString() })
+    .eq('id', pvId);
+  if(error){ alert('Errore: ' + error.message); return; }
+  _preventiviMap[pvId] = {..._preventiviMap[pvId], client_id: clientRow.id, client_name: clientRow.name, client_email: email};
+  alert(`✓ Cliente "${clientRow.name}" assegnato`);
+  closePvModal(); loadPreventivi();
+}
+
+async function addCollaboratorToPv(pvId){
+  const input = document.getElementById('pv-collab-input');
+  const email = input?.value.trim().toLowerCase();
+  if(!email){ alert('Inserisci email collaboratore'); return; }
+  const pv = _preventiviMap[pvId];
+  if(!pv) return;
+  const existing = Array.isArray(pv.collaborators) ? pv.collaborators : [];
+  if(existing.includes(email)){ alert('Già collaboratore'); return; }
+  const newList = [...existing, email];
+  const { error } = await _sb.from('preventivi')
+    .update({ collaborators: newList, updated_at: new Date().toISOString() })
+    .eq('id', pvId);
+  if(error){ alert('Errore: ' + error.message); return; }
+  pv.collaborators = newList;
+  input.value = '';
+  const collabEl = document.getElementById('pv-collab-list');
+  if(collabEl) collabEl.innerHTML = buildCollaboratorsList(newList, pvId);
+  alert(`✓ ${email} aggiunto come collaboratore`);
+}
+
+function buildCollaboratorsList(collaborators, pvId){
+  const list = Array.isArray(collaborators) ? collaborators : [];
+  if(!list.length) return `<span style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)">nessun collaboratore</span>`;
+  return list.map(email => `<span style="display:inline-flex;align-items:center;gap:.3rem;background:var(--panel2);border:1px solid var(--border);padding:.2rem .5rem;margin:.15rem;font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--text)">
+    ${email}
+    <button onclick="removeCollaborator('${pvId}','${email}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:10px;padding:0" title="Rimuovi">✕</button>
+  </span>`).join('');
+}
+
+async function removeCollaborator(pvId, email){
+  const pv = _preventiviMap[pvId];
+  if(!pv) return;
+  const newList = (pv.collaborators || []).filter(e => e !== email);
+  const { error } = await _sb.from('preventivi')
+    .update({ collaborators: newList, updated_at: new Date().toISOString() })
+    .eq('id', pvId);
+  if(error){ alert('Errore: ' + error.message); return; }
+  pv.collaborators = newList;
+  const collabEl = document.getElementById('pv-collab-list');
+  if(collabEl) collabEl.innerHTML = buildCollaboratorsList(newList, pvId);
+}
+
+// ===== LEADS =====
+const _leadsMap = {};
+
+async function loadLeads(){
+  const container = document.getElementById('leads-list');
+  container.innerHTML = '<div class="loading-row">> caricamento leads_</div>';
+  const stato = document.getElementById('lead-filter-stato')?.value || '';
+  let q = _sb.from('leads').select('*').order('created_at', {ascending: false});
+  if(stato) q = q.eq('stato', stato);
+  const { data, error } = await q;
+  if(error){ container.innerHTML = `<div class="empty-state">\u26a0 ${error.message}</div>`; return; }
+  if(!data?.length){ container.innerHTML = '<div class="empty-state">> nessun lead_</div>'; return; }
+  container.innerHTML = '';
+  const list = document.createElement('div'); list.className = 'ag-list';
+  data.forEach(l => { _leadsMap[l.id] = l; list.appendChild(buildLeadRow(l)); });
+  container.appendChild(list);
+}
+
+function buildLeadRow(l){
+  const row = document.createElement('div'); row.className = 'ag-row';
+  const date = new Date(l.created_at).toLocaleDateString('it-IT');
+  const statoColors = {nuovo:'var(--g3)',contattato:'var(--v)',gestito:'var(--muted)',convertito:'var(--g1)'};
+  row.innerHTML = `
+    <div style="flex:1">
+      <div class="ag-name">${(l.nome||'Anonimo').replace(/</g,'&lt;')}</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)">${l.email||''}${l.area ? ' · '+l.area : ''}</div>
+    </div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--muted);text-align:right">${date}<br><span style="color:${statoColors[l.stato]||'var(--muted)'}">${(l.stato||'nuovo').toUpperCase()}</span></div>
+    <div style="display:flex;gap:.4rem">
+      <button class="btn-ghost" style="font-size:.55rem;padding:.3rem .6rem" onclick="openLeadModal('${l.id}')">DETTAGLIO</button>
+      ${l.stato !== 'convertito' ? `<button class="btn-primary" style="font-size:.5rem;padding:.3rem .6rem;white-space:nowrap" onclick="openPromuoviLead('${l.id}')">+ CLIENTE</button>` : `<span style="font-family:'Share Tech Mono',monospace;font-size:.52rem;color:var(--g1)">✓ CONVERTITO</span>`}
+    </div>`;
+  return row;
+}
+
+function openLeadModal(id){
+  const l = _leadsMap[id];
+  if(!l) return;
+  document.getElementById('lead-modal-title').textContent = `LEAD — ${(l.nome||l.email||'').toUpperCase()}`;
+  const gestori = Array.isArray(l.gestori) ? l.gestori : [];
+  document.getElementById('lead-modal-body').innerHTML = `
+    <div class="pv-info-grid" style="margin-bottom:1rem">
+      <div class="pv-info-cell"><div class="pv-info-key">Nome</div><div class="pv-info-val">${l.nome||'—'}</div></div>
+      <div class="pv-info-cell"><div class="pv-info-key">Email</div><div class="pv-info-val">${l.email||'—'}</div></div>
+      <div class="pv-info-cell"><div class="pv-info-key">Fonte</div><div class="pv-info-val">${l.fonte||'—'}</div></div>
+      <div class="pv-info-cell"><div class="pv-info-key">Area richiesta</div><div class="pv-info-val">${l.area||'—'}</div></div>
+      <div class="pv-info-cell" style="grid-column:1/-1"><div class="pv-info-key">Messaggio</div><div class="pv-info-val" style="white-space:pre-wrap">${(l.messaggio||'—').replace(/</g,'&lt;')}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <div>
+        <div class="pv-info-key" style="margin-bottom:.4rem">STATO</div>
+        <select id="lead-stato-sel" class="field-select" style="width:100%" onchange="updateLeadStato('${id}',this.value)">
+          <option value="nuovo" ${l.stato==='nuovo'?'selected':''}>NUOVO</option>
+          <option value="contattato" ${l.stato==='contattato'?'selected':''}>CONTATTATO</option>
+          <option value="gestito" ${l.stato==='gestito'?'selected':''}>GESTITO</option>
+        </select>
+      </div>
+      <div>
+        <div class="pv-info-key" style="margin-bottom:.4rem">GESTORI</div>
+        <div id="lead-gestori-list" style="margin-bottom:.3rem">${gestori.length ? gestori.join(', ') : '<span style="color:var(--muted)">nessuno</span>'}</div>
+        <div style="display:flex;gap:.3rem">
+          <input id="lead-gestore-input" class="field-input" type="text" placeholder="email gestore" style="font-size:.6rem;padding:.35rem .5rem">
+          <button class="btn-ghost" style="font-size:.5rem;padding:.3rem .5rem;white-space:nowrap" onclick="addLeadGestore('${id}')">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="pv-info-key" style="margin-bottom:.4rem">NOTE AZIONI</div>
+    <textarea id="lead-note-input" class="field-input" style="width:100%;min-height:70px;resize:vertical;margin-bottom:.5rem" placeholder="Cosa è stato fatto...">${(l.note_azioni||'').replace(/</g,'&lt;')}</textarea>
+    <button class="btn-ghost" style="font-size:.58rem" onclick="saveLeadNote('${id}')">SALVA NOTE</button>`;
+  document.getElementById('lead-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLeadModal(){
+  document.getElementById('lead-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('lead-modal').addEventListener('click', e => { if(e.target === e.currentTarget) closeLeadModal(); });
+
+async function updateLeadStato(id, stato){
+  await _sb.from('leads').update({ stato }).eq('id', id);
+  if(_leadsMap[id]) _leadsMap[id].stato = stato;
+}
+
+async function addLeadGestore(id){
+  const input = document.getElementById('lead-gestore-input');
+  const email = input?.value.trim().toLowerCase();
+  if(!email) return;
+  const l = _leadsMap[id]; if(!l) return;
+  const existing = Array.isArray(l.gestori) ? l.gestori : [];
+  if(existing.includes(email)){ alert('Già presente'); return; }
+  const newList = [...existing, email];
+  const { error } = await _sb.from('leads').update({gestori: newList}).eq('id', id);
+  if(error){ alert('Errore: '+error.message); return; }
+  l.gestori = newList;
+  if(input) input.value = '';
+  const el = document.getElementById('lead-gestori-list');
+  if(el) el.textContent = newList.join(', ');
+}
+
+async function saveLeadNote(id){
+  const text = document.getElementById('lead-note-input')?.value.trim();
+  const { error } = await _sb.from('leads').update({note_azioni: text}).eq('id', id);
+  if(error){ alert('Errore: '+error.message); return; }
+  if(_leadsMap[id]) _leadsMap[id].note_azioni = text;
+  alert('✓ Note salvate');
+}
+
+function openPromuoviLead(id){
+  const l = _leadsMap[id]; if(!l) return;
+  // Pre-popola il form cliente con i dati del lead
+  document.getElementById('cl-name').value = l.nome || '';
+  document.getElementById('cl-email').value = l.email || '';
+  document.getElementById('form-cliente').style.display = 'block';
+  document.getElementById('form-cliente').dataset.fromLead = id;
+  switchSection('clienti', document.getElementById('nav-clienti'));
+  document.getElementById('form-cliente').scrollIntoView({behavior:'smooth'});
+  closeLeadModal();
+}
+
+// ===== CLIENTI =====
+const _clientiMap = {};
+
+async function loadClienti(){
+  const container = document.getElementById('clienti-list');
+  container.innerHTML = '<div class="loading-row">> caricamento clienti_</div>';
+  let q = _sb.from('clienti').select('*').order('name');
+  if(_currentUserRole !== 'admin') q = q.eq('creatore_email', _currentUserEmail);
+  const { data, error } = await q;
+  if(error){ container.innerHTML = `<div class="empty-state">\u26a0 ${error.message}</div>`; return; }
+  if(!data?.length){ container.innerHTML = '<div class="empty-state">> nessun cliente_</div>'; return; }
+  container.innerHTML = '';
+  const list = document.createElement('div'); list.className = 'ag-list';
+  data.forEach(c => { _clientiMap[c.id] = c; list.appendChild(buildClienteRow(c)); });
+  container.appendChild(list);
+}
+
+function buildClienteRow(c){
+  const row = document.createElement('div'); row.className = 'ag-row';
+  row.innerHTML = `
+    <div style="flex:1">
+      <div class="ag-name">${(c.name||'').replace(/</g,'&lt;')}</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)">${c.email||''}${c.piva ? ' · P.IVA '+c.piva : ''}</div>
+    </div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--muted)">${c.referente||''}${c.telefono ? '<br>'+c.telefono : ''}</div>
+    <button class="btn-ghost" style="font-size:.55rem;padding:.3rem .6rem" onclick="openClienteModal('${c.id}')">SCHEDA</button>`;
+  return row;
+}
+
+function toggleClienteForm(){
+  const form = document.getElementById('form-cliente');
+  const isOpen = form.style.display !== 'none';
+  form.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen){ clLoadAgentSelect(); delete form.dataset.fromLead; }
+}
+
+async function clLoadAgentSelect(){
+  const sel = document.getElementById('cl-agent');
+  if(!sel || !_sb) return;
+  sel.innerHTML = '<option value="">Seleziona agente...</option>';
+  const { data } = await _sb.from('agenti').select('name, email').eq('active', true).order('name');
+  if(data) data.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a.email || a.name;
+    opt.dataset.name = a.name;
+    opt.textContent = a.name;
+    sel.appendChild(opt);
+  });
+}
+
+async function saveCliente(){
+  const name   = document.getElementById('cl-name')?.value.trim();
+  const email  = document.getElementById('cl-email')?.value.trim();
+  const msgEl  = document.getElementById('cl-msg');
+  if(!name){ if(msgEl) msgEl.textContent = '\u26a0 Nome obbligatorio'; return; }
+
+  const agentSel = document.getElementById('cl-agent');
+  const agentEmail = agentSel?.value || '';
+  const agentName  = agentSel?.options[agentSel.selectedIndex]?.dataset?.name || agentEmail;
+
+  const payload = {
+    name, email: email || null,
+    referente:       document.getElementById('cl-referente')?.value.trim() || null,
+    telefono:        document.getElementById('cl-telefono')?.value.trim() || null,
+    piva:            document.getElementById('cl-piva')?.value.trim() || null,
+    indirizzo:       document.getElementById('cl-indirizzo')?.value.trim() || null,
+    iban:            document.getElementById('cl-iban')?.value.trim() || null,
+    note:            document.getElementById('cl-note')?.value.trim() || null,
+    agent_id:        null,
+    creatore_email:  _currentUserEmail,
+  };
+
+  if(msgEl) msgEl.textContent = '> salvataggio...';
+  const { data, error } = await _sb.from('clienti').insert(payload).select('id').single();
+  if(error){ if(msgEl) msgEl.textContent = '\u26a0 ' + error.message; return; }
+
+  // Se proveniente da un lead → marca lead come convertito
+  const fromLead = document.getElementById('form-cliente').dataset.fromLead;
+  if(fromLead){
+    await _sb.from('leads').update({stato:'convertito', client_id: data.id}).eq('id', fromLead);
+  }
+
+  if(msgEl) msgEl.textContent = '✓ Cliente salvato';
+  setTimeout(() => { toggleClienteForm(); loadClienti(); }, 1000);
+}
+
+async function openClienteModal(id){
+  const c = _clientiMap[id]; if(!c) return;
+  document.getElementById('cliente-modal-title').textContent = (c.name||'CLIENTE').toUpperCase();
+
+  // Carica preventivi collegati
+  const { data: prevs } = await _sb.from('preventivi').select('id,client_name,total,status,created_at').eq('client_id', id).order('created_at',{ascending:false});
+  const prevsHtml = prevs?.length ? prevs.map(p => `
+    <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:.6rem">
+      <span style="color:var(--text)">${new Date(p.created_at).toLocaleDateString('it-IT')} — ${(p.total||0).toLocaleString('it-IT')}\u20AC</span>
+      <span class="pv-status ${p.status||'bozza'}" style="font-size:.5rem">${(p.status||'bozza').toUpperCase()}</span>
+      <button class="btn-ghost" style="font-size:.5rem;padding:.2rem .4rem" onclick="openPvModal('${p.id}')">APRI</button>
+    </div>`).join('') : `<div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)">nessun preventivo collegato</div>`;
+
+  document.getElementById('cliente-modal-body').innerHTML = `
+    <div class="pv-info-grid" style="margin-bottom:1rem">
+      <div class="pv-info-cell"><div class="pv-info-key">Nome / Raz. Sociale</div><div class="pv-info-val">${c.name||'—'}</div></div>
+      <div class="pv-info-cell"><div class="pv-info-key">Email</div><div class="pv-info-val">${c.email||'—'}</div></div>
+      <div class="pv-info-cell"><div class="pv-info-key">Referente</div><div class="pv-info-val">${c.referente||'—'}</div></div>
+      <div class="pv-info-cell"><div class="pv-info-key">Telefono</div><div class="pv-info-val">${c.telefono||'—'}</div></div>
+      <div class="pv-info-cell"><div class="pv-info-key">P.IVA / CF</div><div class="pv-info-val">${c.piva||'—'}</div></div>
+      <div class="pv-info-cell"><div class="pv-info-key">Indirizzo</div><div class="pv-info-val">${c.indirizzo||'—'}</div></div>
+      <div class="pv-info-cell"><div class="pv-info-key">IBAN</div><div class="pv-info-val" style="font-size:.65rem">${c.iban||'—'}</div></div>
+      <div class="pv-info-cell"><div class="pv-info-key">Creato da</div><div class="pv-info-val">${c.creatore_email||'—'}</div></div>
+      ${c.note ? `<div class="pv-info-cell" style="grid-column:1/-1"><div class="pv-info-key">Note</div><div class="pv-info-val" style="white-space:pre-wrap">${c.note.replace(/</g,'&lt;')}</div></div>` : ''}
+    </div>
+    <div class="pv-info-key" style="margin-bottom:.5rem">PREVENTIVI COLLEGATI</div>
+    ${prevsHtml}`;
+
+  document.getElementById('cliente-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeClienteModal(){
+  document.getElementById('cliente-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('cliente-modal').addEventListener('click', e => { if(e.target === e.currentTarget) closeClienteModal(); });
+
+// ===== TEAM CARDS =====
+let _tcEditId = null;
+
+function toggleTeamForm(card){
+  const form = document.getElementById('form-team');
+  const isOpen = form.style.display !== 'none';
+  if(isOpen && !card){ form.style.display='none'; _tcEditId=null; return; }
+  form.style.display = 'block';
+  if(card){ tcPopulate(card); } else { tcReset(); }
+  tcLoadAgenteSelect();
+  form.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function tcReset(){
+  _tcEditId = null;
+  document.getElementById('tc-id').value = '';
+  ['tc-nome','tc-slug','tc-ruolo','tc-foto','tc-bio','tc-skills','tc-linkedin','tc-instagram','tc-github','tc-website'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('tc-stats').value = '[{"num":"","label":""},{"num":"","label":""},{"num":"","label":""},{"num":"","label":""}]';
+  document.getElementById('tc-attiva').checked = true;
+  document.getElementById('tc-msg').textContent = '';
+}
+
+function tcPopulate(c){
+  _tcEditId = c.id;
+  document.getElementById('tc-id').value = c.id;
+  document.getElementById('tc-nome').value = c.nome || '';
+  document.getElementById('tc-slug').value = c.slug || '';
+  document.getElementById('tc-ruolo').value = c.ruolo || '';
+  document.getElementById('tc-foto').value = c.foto_url || '';
+  document.getElementById('tc-bio').value = c.bio || '';
+  document.getElementById('tc-skills').value = (c.skills||[]).join(', ');
+  document.getElementById('tc-stats').value = JSON.stringify(c.stats||[],null,2);
+  const sl = c.social_links || {};
+  document.getElementById('tc-linkedin').value = sl.linkedin||'';
+  document.getElementById('tc-instagram').value = sl.instagram||'';
+  document.getElementById('tc-github').value = sl.github||'';
+  document.getElementById('tc-website').value = sl.website||'';
+  document.getElementById('tc-attiva').checked = c.attiva !== false;
+  document.getElementById('tc-msg').textContent = '';
+}
+
+async function tcLoadAgenteSelect(){
+  const sel = document.getElementById('tc-agente-select');
+  const curVal = sel.value;
+  sel.innerHTML = '<option value="">— nessun collegamento —</option>';
+  const { data } = await _sb.from('agenti').select('id, name, email').order('name');
+  (data||[]).forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a.id;
+    opt.textContent = `${a.name} (${a.email})`;
+    if(_tcEditId && a.id === curVal) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  if(_tcEditId){
+    const { data: card } = await _sb.from('team_cards').select('agente_id').eq('id',_tcEditId).maybeSingle();
+    if(card?.agente_id) sel.value = card.agente_id;
+  }
+}
+
+async function saveTeamCard(){
+  const msg = document.getElementById('tc-msg');
+  const nome = document.getElementById('tc-nome').value.trim();
+  let slug = document.getElementById('tc-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');
+  if(!nome||!slug){ msg.textContent='Nome e slug obbligatori.'; return; }
+
+  let stats = [];
+  try { stats = JSON.parse(document.getElementById('tc-stats').value||'[]'); } catch(e){ msg.textContent='Stats JSON non valido.'; return; }
+
+  const skillsRaw = document.getElementById('tc-skills').value;
+  const skills = skillsRaw.split(',').map(s=>s.trim()).filter(Boolean);
+
+  const payload = {
+    nome,
+    slug,
+    ruolo: document.getElementById('tc-ruolo').value.trim()||null,
+    agente_id: document.getElementById('tc-agente-select').value||null,
+    foto_url: document.getElementById('tc-foto').value.trim()||null,
+    bio: document.getElementById('tc-bio').value.trim()||null,
+    skills,
+    stats,
+    social_links: {
+      linkedin:  document.getElementById('tc-linkedin').value.trim()||null,
+      instagram: document.getElementById('tc-instagram').value.trim()||null,
+      github:    document.getElementById('tc-github').value.trim()||null,
+      website:   document.getElementById('tc-website').value.trim()||null,
+    },
+    attiva: document.getElementById('tc-attiva').checked,
+    updated_at: new Date().toISOString(),
+  };
+
+  let error;
+  if(_tcEditId){
+    ({ error } = await _sb.from('team_cards').update(payload).eq('id',_tcEditId));
+  } else {
+    ({ error } = await _sb.from('team_cards').insert(payload));
+  }
+  if(error){ msg.textContent = '✗ '+error.message; return; }
+  msg.textContent = '✓ Salvata!';
+  setTimeout(()=>{ toggleTeamForm(); loadTeamCards(); },600);
+}
+
+async function deleteTeamCard(id, nome){
+  if(!confirm(`Eliminare la card di ${nome}?`)) return;
+  const { error } = await _sb.from('team_cards').delete().eq('id',id);
+  if(error){ alert('Errore: '+error.message); return; }
+  loadTeamCards();
+}
+
+async function loadTeamCards(){
+  const container = document.getElementById('team-list');
+  container.innerHTML = '<div class="loading-row">&gt; caricamento team cards_</div>';
+  const { data, error } = await _sb.from('team_cards').select('*').order('sort_order').order('created_at');
+  if(error){ container.innerHTML = `<div class="loading-row">✗ ${error.message}</div>`; return; }
+  if(!data||!data.length){ container.innerHTML = '<div class="loading-row">&gt; nessuna card — crea la prima con "+ NUOVA CARD"</div>'; return; }
+  container.innerHTML = '';
+  data.forEach(c => container.appendChild(buildTeamRow(c)));
+}
+
+function buildTeamRow(c){
+  const row = document.createElement('div');
+  row.className = 'item-card';
+  row.style.cssText = 'display:grid;grid-template-columns:auto 1fr auto;gap:1rem;align-items:center;padding:0.85rem 1rem;';
+  const portrait = c.foto_url
+    ? `<img src="${c.foto_url}" style="width:44px;height:44px;object-fit:cover;border:1px solid var(--g1);border-radius:2px;">`
+    : `<div style="width:44px;height:44px;background:var(--g3-faint,rgba(0,212,255,0.08));border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.2rem;opacity:0.5;">◈</div>`;
+  const statusDot = c.attiva
+    ? `<span style="color:var(--g1);font-size:0.6rem;">● ATTIVA</span>`
+    : `<span style="color:var(--grey);font-size:0.6rem;">● INATTIVA</span>`;
+  row.innerHTML = `
+    ${portrait}
+    <div>
+      <div style="font-weight:700;font-size:0.85rem;">${c.nome}</div>
+      <div style="font-size:0.7rem;color:var(--grey);margin-top:0.15rem;">${c.ruolo||'—'} &nbsp;·&nbsp; /team/${c.slug}</div>
+      <div style="margin-top:0.3rem;">${statusDot}</div>
+    </div>
+    <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+      <a href="/team/${c.slug}" target="_blank" class="btn-ghost" style="padding:0.3rem 0.65rem;font-size:0.65rem;">↗ VEDI</a>
+      <button class="btn-ghost" style="padding:0.3rem 0.65rem;font-size:0.65rem;" onclick='tcEditCard(${JSON.stringify(c)})'>✎ MODIFICA</button>
+      <button class="btn-ghost" style="padding:0.3rem 0.65rem;font-size:0.65rem;color:var(--red);" onclick="deleteTeamCard('${c.id}','${c.nome.replace(/'/g,"\\'")}')">✗ ELIMINA</button>
+    </div>`;
+  return row;
+}
+
+function tcEditCard(c){
+  toggleTeamForm(c);
 }
 
 // ===== AGENTI =====
@@ -1879,9 +2873,9 @@ function renderTeamPicker(containerId, selectedArr){
 }
 
 // ===== ROADMAP =====
-const RM_PRI=['none','low','med','high'];
-const RM_PL={none:'—',low:'BASSA',med:'MEDIA',high:'ALTA'};
-const RM_PC={none:'rm-p-none',low:'rm-p-low',med:'rm-p-med',high:'rm-p-high'};
+const RM_PRI=['none','low','med','high','block'];
+const RM_PL={none:'—',low:'BASSA',med:'MEDIA',high:'ALTA',block:'BLOCK'};
+const RM_PC={none:'rm-p-none',low:'rm-p-low',med:'rm-p-med',high:'rm-p-high',block:'rm-p-block'};
 const RM_CX=['none','S','M','L','XL'];
 const RM_CC={none:'rm-cx-none',S:'rm-cx-s',M:'rm-cx-m',L:'rm-cx-l',XL:'rm-cx-xl'};
 const RM_COLS=['#00ff88','#00d4ff','#a78bfa','#ffaa00','#ff6b6b','#00ffcc','#ff88aa','#88ffcc'];
@@ -1893,7 +2887,7 @@ let _rmLoaded = false;
 
 function rmUid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
 function rmMkP(title,desc,color,tasks){return{id:rmUid(),title,desc,color,note:'',collapsed:false,doneOpen:false,tasks};}
-function rmMkT(text,priority='none',complexity='none'){return{id:rmUid(),text,done:false,priority,complexity};}
+function rmMkT(text,priority='none',complexity='none'){return{id:rmUid(),text,done:false,priority,complexity,wip:false};}
 
 async function loadRoadmap(){
   if(_rmLoaded) return; // già caricata
@@ -1902,7 +2896,7 @@ async function loadRoadmap(){
   const { data, error } = await _sb.from('roadmap_data').select('data').eq('id','main').maybeSingle();
   if(error){ el.innerHTML = `<div style="color:var(--red);font-size:.75rem;padding:1rem 0">⚠ ${error.message}</div>`; return; }
   if(data && Array.isArray(data.data) && data.data.length > 0){
-    rmData = data.data;
+    rmData = data.data.map(p=>({...p,tasks:(p.tasks||[]).map(t=>({wip:false,...t}))}));
   } else {
     rmData = rmInitData();
     await saveRoadmapToDb(); // salva dati iniziali
@@ -1963,11 +2957,13 @@ function rmRenderProjects(){
 }
 
 function rmBuildCard(p,pi){
-  const open = p.tasks.filter(t=>!t.done);
+  const wip  = p.tasks.filter(t=>t.wip && !t.done);
+  const open = p.tasks.filter(t=>!t.wip && !t.done);
   const done = p.tasks.filter(t=>t.done);
   const total = p.tasks.length;
   const dN = done.length;
   const pct = total ? Math.round(dN/total*100) : 0;
+
   const card = document.createElement('div');
   card.className = 'rm-proj-card'+(p.collapsed?' collapsed':'');
   card.id = `rm-p-${p.id}`; card.dataset.pi = pi;
@@ -1997,15 +2993,62 @@ function rmBuildCard(p,pi){
   if(!p.collapsed){
     const body = document.createElement('div');
     body.className = 'rm-proj-body';
+
+    /* ── WIP PANEL ── */
+    const wipPanel = document.createElement('div');
+    wipPanel.className = 'rm-wip-panel';
+    wipPanel.id = `rm-wip-${p.id}`;
+    wipPanel.dataset.pi = pi;
+    wipPanel.dataset.panel = 'wip';
+    wipPanel.innerHTML = `<div class="rm-wip-hdr">
+      <span class="rm-wip-icon">⚡</span>
+      <span class="rm-wip-label">IN LAVORAZIONE</span>
+      <span class="rm-wip-count">${wip.length ? '('+wip.length+')' : ''}</span>
+    </div>`;
+    const wipList = document.createElement('div');
+    wipList.className = 'rm-wip-list'; wipList.id = `rm-wip-tl-${p.id}`;
+    wipList.dataset.pi = pi; wipList.dataset.panel = 'wip';
+    if(wip.length===0){
+      wipList.innerHTML = `<div class="rm-wip-empty">// trascina qui le task in lavorazione</div>`;
+    } else {
+      wip.forEach(t=>wipList.appendChild(rmBuildWipRow(t,pi)));
+    }
+    wipPanel.appendChild(wipList);
+    body.appendChild(wipPanel);
+    rmSetupWipDrop(wipPanel, wipList, pi);
+    if(wip.length>0) rmSetupTaskDragWip(wipList, pi);
+
+    /* ── ADD TASK INLINE ── */
+    const addWrap = document.createElement('div');
+    addWrap.className = 'rm-add-input-wrap';
+    addWrap.innerHTML = `<span class="rm-add-prompt">▸</span>
+      <input class="rm-add-input" type="text" placeholder="nuova task...">
+      <button class="rm-add-go">↵ AGGIUNGI</button>`;
+    const addInput = addWrap.querySelector('.rm-add-input');
+    const addBtn   = addWrap.querySelector('.rm-add-go');
+    const doAdd = ()=>{
+      const txt = addInput.value.trim();
+      if(!txt) return;
+      rmData[pi].tasks.unshift(rmMkT(txt));
+      addInput.value='';
+      rmAutoSave(); rmRender();
+    };
+    addInput.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); doAdd(); } });
+    addBtn.addEventListener('click', doAdd);
+    body.appendChild(addWrap);
+
+    /* ── OPEN TASK LIST ── */
     const tl = document.createElement('div');
     tl.className = 'rm-task-list'; tl.id = `rm-tl-${p.id}`;
-    if(open.length===0 && done.length===0){
-      tl.innerHTML = `<div class="rm-empty-t">// NESSUN TASK — AGGIUNGI UNO</div>`;
+    tl.dataset.pi = pi; tl.dataset.panel = 'open';
+    if(open.length===0 && done.length===0 && wip.length===0){
+      tl.innerHTML = `<div class="rm-empty-t">// NESSUN TASK — SCRIVI UNO SOPRA</div>`;
     } else {
       open.forEach(t=>tl.appendChild(rmBuildRow(t,pi)));
     }
     body.appendChild(tl);
 
+    /* ── DONE LIST ── */
     if(done.length>0){
       const dt = document.createElement('div');
       dt.className = 'rm-done-toggle'+(p.doneOpen?' open':'');
@@ -2014,13 +3057,15 @@ function rmBuildCard(p,pi){
       body.appendChild(dt);
       const dl = document.createElement('div');
       dl.className = 'rm-done-list rm-task-list'+(p.doneOpen?' open':'');
+      dl.dataset.pi = pi; dl.dataset.panel = 'done';
       done.forEach(t=>dl.appendChild(rmBuildRow(t,pi)));
       body.appendChild(dl);
-      if(p.doneOpen) rmSetupTaskDrag(dl,pi);
+      if(p.doneOpen) rmSetupTaskDrag(dl,pi,'done');
     }
 
+    /* ── FOOT ── */
     const ft = document.createElement('div'); ft.className = 'rm-proj-foot';
-    ft.innerHTML = `<button class="rm-add-btn" onclick="rmAddTask(${pi})"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>+ AGGIUNGI TASK</button><button class="rm-del-btn" onclick="rmDelProj(${pi})">RIMUOVI PROGETTO</button>`;
+    ft.innerHTML = `<button class="rm-del-btn" onclick="rmDelProj(${pi})">RIMUOVI PROGETTO</button>`;
     body.appendChild(ft);
 
     const note = document.createElement('textarea');
@@ -2028,22 +3073,47 @@ function rmBuildCard(p,pi){
     note.addEventListener('input',()=>{rmData[pi].note=note.value;rmAutoSave();});
     body.appendChild(note);
     card.appendChild(body);
-    rmSetupTaskDrag(tl,pi);
+    rmSetupTaskDrag(tl, pi, 'open');
   }
   return card;
+}
+
+function rmBuildWipRow(t,pi){
+  const row = document.createElement('div');
+  row.className = 'rm-wip-row';
+  row.draggable = true; row.dataset.taskId = t.id; row.dataset.pi = pi; row.dataset.panel = 'wip';
+  row.innerHTML = `
+    <span class="rm-wip-grip">⠿</span>
+    <span class="rm-wip-text">${rmEsc(t.text)}</span>
+    <span class="rm-badge rm-badge-cx ${RM_CC[t.complexity||'none']}" title="Complessità">${t.complexity||'—'}</span>
+    <span class="rm-badge rm-badge-p ${RM_PC[t.priority||'none']}" title="Priorità">${RM_PL[t.priority||'none']}</span>
+    <button class="rm-pronta-btn" title="Segna come completata">✓ PRONTA</button>`;
+  row.querySelector('.rm-pronta-btn').addEventListener('click', e=>{
+    e.stopPropagation();
+    const btn = e.currentTarget;
+    btn.classList.add('flash');
+    setTimeout(()=>{
+      if(!confirm('Segna come COMPLETATA?')) return;
+      const tk=rmData[pi].tasks.find(x=>x.id===t.id);
+      if(tk){ tk.done=true; tk.wip=false; }
+      rmAutoSave(); rmRender();
+      rmShowToast('// TASK COMPLETATA ✓');
+    }, 200);
+  });
+  return row;
 }
 
 function rmBuildRow(t,pi){
   const row = document.createElement('div');
   row.className = 'rm-task-row'+(t.done?' done':'');
-  row.draggable = true; row.dataset.taskId = t.id; row.dataset.pi = pi;
+  row.draggable = true; row.dataset.taskId = t.id; row.dataset.pi = pi; row.dataset.panel = t.done?'done':'open';
   row.innerHTML = `
     <span class="rm-task-grip">⠿</span>
     <input type="checkbox" class="rm-task-cb"${t.done?' checked':''}>
     <div class="rm-task-text" contenteditable>${rmEsc(t.text)}</div>
-    <span class="rm-badge ${RM_CC[t.complexity||'none']}">${t.complexity||'—'}</span>
-    <span class="rm-badge ${RM_PC[t.priority||'none']}">${RM_PL[t.priority||'none']}</span>
-    <span class="rm-task-del">✕</span>`;
+    <span class="rm-badge rm-badge-cx ${RM_CC[t.complexity||'none']}" title="Complessità">${t.complexity||'—'}</span>
+    <span class="rm-badge rm-badge-p ${RM_PC[t.priority||'none']}" title="Priorità">${RM_PL[t.priority||'none']}</span>
+    <span class="rm-task-del" title="Elimina">✕</span>`;
   row.querySelector('.rm-task-cb').addEventListener('change', e=>{e.stopPropagation();rmTogTask(pi,t.id);});
   row.querySelector('.rm-task-text').addEventListener('input', e=>{const tk=rmData[pi].tasks.find(x=>x.id===t.id);if(tk){tk.text=e.target.innerText;rmAutoSave();}});
   const badges = row.querySelectorAll('.rm-badge');
@@ -2080,10 +3150,12 @@ function rmSetupProjDrag(){
 }
 
 let _rmTDragSrc = null;
-function rmSetupTaskDrag(el,pi){
+
+/* Drag within open/done lists — panelType: 'open'|'done' */
+function rmSetupTaskDrag(el, pi, panelType){
   el.querySelectorAll('.rm-task-row').forEach(row=>{
     row.addEventListener('dragstart',e=>{
-      _rmTDragSrc={pi,id:row.dataset.taskId};
+      _rmTDragSrc={pi, id:row.dataset.taskId, panel:panelType||row.dataset.panel||'open'};
       e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('type','rm-task');
       setTimeout(()=>row.classList.add('t-drag'),0); e.stopPropagation();
     });
@@ -2091,7 +3163,7 @@ function rmSetupTaskDrag(el,pi){
     row.addEventListener('dragover',e=>{
       if(!_rmTDragSrc||_rmTDragSrc.id===row.dataset.taskId||_rmTDragSrc.pi!==parseInt(row.dataset.pi)) return;
       e.preventDefault(); e.stopPropagation(); rmClrT();
-      const mid = row.getBoundingClientRect().top+row.getBoundingClientRect().height/2;
+      const mid=row.getBoundingClientRect().top+row.getBoundingClientRect().height/2;
       row.classList.add(e.clientY<mid?'t-over-top':'t-over-bot');
     });
     row.addEventListener('dragleave',()=>rmClrT());
@@ -2099,18 +3171,78 @@ function rmSetupTaskDrag(el,pi){
       rmClrT();
       if(!_rmTDragSrc||_rmTDragSrc.id===row.dataset.taskId||_rmTDragSrc.pi!==parseInt(row.dataset.pi)) return;
       e.preventDefault(); e.stopPropagation();
-      const si = rmData[pi].tasks.findIndex(t=>t.id===_rmTDragSrc.id);
-      const di = rmData[pi].tasks.findIndex(t=>t.id===row.dataset.taskId);
+      const si=rmData[pi].tasks.findIndex(t=>t.id===_rmTDragSrc.id);
+      const di=rmData[pi].tasks.findIndex(t=>t.id===row.dataset.taskId);
       if(si<0||di<0) return;
-      const mid = row.getBoundingClientRect().top+row.getBoundingClientRect().height/2;
-      const after = e.clientY>=mid;
+      /* cross-panel: dragging from wip to open list → clear wip flag */
+      if(_rmTDragSrc.panel==='wip'){
+        rmData[pi].tasks[si].wip=false;
+      }
+      const mid=row.getBoundingClientRect().top+row.getBoundingClientRect().height/2;
+      const after=e.clientY>=mid;
       const[mv]=rmData[pi].tasks.splice(si,1);
-      const ndi = rmData[pi].tasks.findIndex(t=>t.id===row.dataset.taskId);
+      const ndi=rmData[pi].tasks.findIndex(t=>t.id===row.dataset.taskId);
       rmData[pi].tasks.splice(after?ndi+1:ndi,0,mv);
       rmAutoSave(); rmRender();
     });
   });
 }
+
+/* Drag within WIP list */
+function rmSetupTaskDragWip(el, pi){
+  el.querySelectorAll('.rm-wip-row').forEach(row=>{
+    row.addEventListener('dragstart',e=>{
+      _rmTDragSrc={pi, id:row.dataset.taskId, panel:'wip'};
+      e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('type','rm-task');
+      setTimeout(()=>row.classList.add('t-drag'),0); e.stopPropagation();
+    });
+    row.addEventListener('dragend',()=>{row.classList.remove('t-drag');rmClrT();_rmTDragSrc=null;});
+    row.addEventListener('dragover',e=>{
+      if(!_rmTDragSrc||_rmTDragSrc.id===row.dataset.taskId||_rmTDragSrc.pi!==parseInt(row.dataset.pi)) return;
+      e.preventDefault(); e.stopPropagation(); rmClrT();
+      const mid=row.getBoundingClientRect().top+row.getBoundingClientRect().height/2;
+      row.classList.add(e.clientY<mid?'t-over-top':'t-over-bot');
+    });
+    row.addEventListener('dragleave',()=>rmClrT());
+    row.addEventListener('drop',e=>{
+      rmClrT();
+      if(!_rmTDragSrc||_rmTDragSrc.id===row.dataset.taskId||_rmTDragSrc.pi!==parseInt(row.dataset.pi)) return;
+      e.preventDefault(); e.stopPropagation();
+      const si=rmData[pi].tasks.findIndex(t=>t.id===_rmTDragSrc.id);
+      const di=rmData[pi].tasks.findIndex(t=>t.id===row.dataset.taskId);
+      if(si<0||di<0) return;
+      const mid=row.getBoundingClientRect().top+row.getBoundingClientRect().height/2;
+      const after=e.clientY>=mid;
+      const[mv]=rmData[pi].tasks.splice(si,1);
+      const ndi=rmData[pi].tasks.findIndex(t=>t.id===row.dataset.taskId);
+      rmData[pi].tasks.splice(after?ndi+1:ndi,0,mv);
+      rmAutoSave(); rmRender();
+    });
+  });
+}
+
+/* WIP panel as a drop zone — dragging from open list onto the panel sets wip=true */
+function rmSetupWipDrop(wipPanel, wipList, pi){
+  wipPanel.addEventListener('dragover',e=>{
+    if(!_rmTDragSrc||_rmTDragSrc.pi!==pi||_rmTDragSrc.panel==='wip') return;
+    e.preventDefault(); e.stopPropagation();
+    wipPanel.classList.add('wip-dragover');
+  });
+  wipPanel.addEventListener('dragleave',e=>{
+    if(!wipPanel.contains(e.relatedTarget)) wipPanel.classList.remove('wip-dragover');
+  });
+  wipPanel.addEventListener('drop',e=>{
+    wipPanel.classList.remove('wip-dragover');
+    if(!_rmTDragSrc||_rmTDragSrc.pi!==pi||_rmTDragSrc.panel==='wip') return;
+    /* only act if dropped on panel/list directly, not on a child wip-row */
+    if(e.target.closest('.rm-wip-row')) return;
+    e.preventDefault(); e.stopPropagation();
+    const tk=rmData[pi].tasks.find(t=>t.id===_rmTDragSrc.id);
+    if(tk){ tk.wip=true; tk.done=false; }
+    rmAutoSave(); rmRender();
+  });
+}
+
 function rmClrT(){document.querySelectorAll('.t-over-top,.t-over-bot').forEach(el=>{el.classList.remove('t-over-top','t-over-bot');});}
 
 function rmUpP(pi,f,v){rmData[pi][f]=v;rmAutoSave();if(f==='title')rmRenderStats();}
@@ -2121,9 +3253,8 @@ function rmAddProject(){
   setTimeout(()=>{const l=document.querySelector('.rm-proj-card:last-child');if(l)l.scrollIntoView({behavior:'smooth',block:'start'});},80);
 }
 function rmDelProj(pi){if(!confirm(`Eliminare "${rmData[pi].title}"?`))return;rmData.splice(pi,1);rmAutoSave();rmRender();}
-function rmAddTask(pi){const t=prompt('Testo del task:');if(!t||!t.trim())return;rmData[pi].tasks.push(rmMkT(t.trim()));rmAutoSave();rmRender();}
-function rmTogTask(pi,tid){const t=rmData[pi].tasks.find(x=>x.id===tid);if(t){t.done=!t.done;rmAutoSave();rmRender();}}
-function rmDelTask(pi,tid){rmData[pi].tasks=rmData[pi].tasks.filter(x=>x.id!==tid);rmAutoSave();rmRender();}
+function rmTogTask(pi,tid){const t=rmData[pi].tasks.find(x=>x.id===tid);if(t){t.done=!t.done;if(t.done)t.wip=false;rmAutoSave();rmRender();}}
+function rmDelTask(pi,tid){if(!confirm('Sicuro di eliminare la task?'))return;rmData[pi].tasks=rmData[pi].tasks.filter(x=>x.id!==tid);rmAutoSave();rmRender();}
 function rmCycPri(pi,tid){const t=rmData[pi].tasks.find(x=>x.id===tid);if(!t)return;t.priority=RM_PRI[(RM_PRI.indexOf(t.priority||'none')+1)%RM_PRI.length];rmAutoSave();rmRender();}
 function rmCycCx(pi,tid){const t=rmData[pi].tasks.find(x=>x.id===tid);if(!t)return;t.complexity=RM_CX[(RM_CX.indexOf(t.complexity||'none')+1)%RM_CX.length];rmAutoSave();rmRender();}
 
@@ -2140,7 +3271,7 @@ function rmImportJSON(e){
       let p=JSON.parse(ev.target.result);
       if(!Array.isArray(p))throw new Error('formato non valido');
       rmData=p.map(p=>({id:p.id||rmUid(),title:p.title||'PROGETTO',desc:p.desc||'',color:p.color||RM_COLS[0],note:p.note||'',collapsed:!!p.collapsed,doneOpen:!!p.doneOpen,
-        tasks:(p.tasks||[]).map(t=>typeof t==='string'?rmMkT(t):{id:t.id||rmUid(),text:t.text||'',done:!!t.done,priority:t.priority||'none',complexity:t.complexity||'none'})}));
+        tasks:(p.tasks||[]).map(t=>typeof t==='string'?rmMkT(t):{id:t.id||rmUid(),text:t.text||'',done:!!t.done,wip:!!t.wip,priority:t.priority||'none',complexity:t.complexity||'none'})}));
       await saveRoadmapToDb(); rmRender(); rmSetClean(); rmShowToast('// IMPORTAZIONE COMPLETATA ✓');
     }catch(err){alert('Errore JSON: '+err.message);}
   };

@@ -19,8 +19,9 @@ export default async function handler(req, res) {
   const {
     agent_name, agent_email,
     client_name, client_email,
-    items, subtotal, discount_pct, discount_amount, total,
-    notes, status = 'bozza',
+    items, subtotal, discount_pct, discount_amount,
+    iva_pct, iva_amount,
+    total, notes, status = 'bozza',
     quote_id // se presente → aggiornamento
   } = req.body;
 
@@ -74,8 +75,11 @@ export default async function handler(req, res) {
       subtotal:        subtotal || 0,
       discount_pct:    discount_pct || 0,
       discount_amount: discount_amount || 0,
+      iva_pct:         iva_pct || 0,
+      iva_amount:      iva_amount || 0,
       total:           total || 0,
       notes:           notes || null,
+      notes_log:       [],
       status,
       updated_at:      new Date().toISOString()
     };

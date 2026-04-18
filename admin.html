@@ -310,6 +310,77 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
   padding:.5rem .9rem;cursor:pointer;transition:background .15s;margin-top:.75rem;}
 .pv-save-items-btn:hover{background:rgba(0,255,136,.2);}
 
+/* ══════════════════════════════════════
+   PROGETTI SECTION
+   ══════════════════════════════════════ */
+.proj-list{display:flex;flex-direction:column;gap:.75rem;}
+.proj-card{background:var(--panel);border:1px solid var(--border);padding:1rem 1.25rem;
+  display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:1rem;cursor:pointer;
+  transition:border-color .2s;}
+.proj-card:hover{border-color:rgba(0,255,136,.3);}
+.proj-card-client{font-family:'Orbitron',monospace;font-size:.82rem;font-weight:700;letter-spacing:1px;color:var(--text);}
+.proj-card-meta{font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--muted);margin-top:3px;letter-spacing:.05em;}
+.proj-step-badge{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.12em;
+  padding:.3rem .7rem;border:1px solid;text-transform:uppercase;}
+.proj-step-badge.step_1{color:#00cfff;border-color:rgba(0,207,255,.35);}
+.proj-step-badge.step_2{color:#a78bfa;border-color:rgba(167,139,250,.35);}
+.proj-step-badge.step_3{color:#00ff88;border-color:rgba(0,255,136,.35);}
+.proj-step-badge.step_extra{color:#ffaa00;border-color:rgba(255,170,0,.35);}
+.proj-step-badge.completato{color:var(--muted);border-color:var(--border);}
+.proj-days{font-family:'Share Tech Mono',monospace;font-size:.52rem;color:var(--muted);text-align:right;}
+/* Detail view */
+.proj-detail{display:none;}
+.proj-detail.open{display:block;}
+.proj-back{font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.12em;color:var(--muted);
+  background:none;border:none;cursor:pointer;padding:0;margin-bottom:1rem;}
+.proj-back:hover{color:var(--text);}
+.proj-step-nav{display:flex;gap:0;margin-bottom:1.5rem;border:1px solid var(--border);overflow:hidden;}
+.proj-step-btn{flex:1;font-family:'Share Tech Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:.6rem .5rem;background:transparent;border:none;color:var(--muted);cursor:pointer;
+  border-right:1px solid var(--border);transition:background .15s,color .15s;text-align:center;}
+.proj-step-btn:last-child{border-right:none;}
+.proj-step-btn.active{background:rgba(0,255,136,.1);color:var(--g1);}
+.proj-step-btn.done{color:var(--muted);background:rgba(255,255,255,.02);}
+.proj-step-btn.done::after{content:' ✓';}
+.proj-step-btn:hover:not(.active){background:rgba(255,255,255,.03);}
+.proj-step-content{display:none;}
+.proj-step-content.active{display:block;}
+.proj-fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.25rem;}
+.proj-field{display:flex;flex-direction:column;gap:.3rem;}
+.proj-field.full{grid-column:1/-1;}
+.proj-field-label{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;}
+.proj-field-input{background:var(--panel2);border:1px solid var(--border);color:var(--text);
+  font-family:'Share Tech Mono',monospace;font-size:.68rem;padding:.5rem .7rem;outline:none;resize:vertical;
+  transition:border-color .15s;width:100%;}
+.proj-field-input:focus{border-color:rgba(0,255,136,.4);}
+.proj-field-select{background:var(--panel2);border:1px solid var(--border);color:var(--text);
+  font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:.45rem .6rem;outline:none;width:100%;}
+.proj-save-fields-btn{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.12em;
+  background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);color:var(--g1);
+  padding:.45rem .85rem;cursor:pointer;margin-bottom:1.25rem;}
+.proj-save-fields-btn:hover{background:rgba(0,255,136,.2);}
+.proj-complete-btn{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.12em;
+  background:transparent;border:1px solid rgba(0,255,136,.35);color:var(--g1);
+  padding:.45rem .85rem;cursor:pointer;transition:background .15s;}
+.proj-complete-btn:hover{background:rgba(0,255,136,.1);}
+.proj-complete-btn.done{border-color:var(--border);color:var(--muted);cursor:default;}
+.proj-section-title{font-family:'Share Tech Mono',monospace;font-size:.58rem;letter-spacing:.15em;
+  color:var(--muted);text-transform:uppercase;margin:1.25rem 0 .6rem;padding-bottom:.35rem;
+  border-bottom:1px solid var(--border);}
+/* Proj task list */
+.proj-task-row{display:flex;align-items:center;gap:.6rem;padding:.35rem .4rem;border-bottom:1px solid var(--border);font-size:.72rem;}
+.proj-task-cb{accent-color:var(--g1);width:13px;height:13px;flex-shrink:0;cursor:pointer;}
+.proj-task-text{flex:1;font-family:'Share Tech Mono',monospace;font-size:.63rem;color:var(--text);}
+.proj-task-del{background:none;border:none;color:var(--red);cursor:pointer;font-size:.75rem;padding:0 3px;opacity:.6;}
+.proj-task-del:hover{opacity:1;}
+.proj-add-task-row{display:flex;gap:.4rem;margin-top:.5rem;}
+.proj-add-task-input{flex:1;background:var(--panel2);border:1px solid var(--border);color:var(--text);
+  font-family:'Share Tech Mono',monospace;font-size:.62rem;padding:.4rem .6rem;outline:none;}
+.proj-add-task-input:focus{border-color:rgba(0,255,136,.35);}
+.proj-add-task-btn{font-family:'Share Tech Mono',monospace;font-size:.5rem;letter-spacing:.1em;
+  background:transparent;border:1px solid var(--border);color:var(--muted);padding:.4rem .65rem;cursor:pointer;}
+.proj-add-task-btn:hover{border-color:rgba(0,255,136,.3);color:var(--g1);}
+
 /* AGENTI LIST */
 .ag-list{display:flex;flex-direction:column;gap:.6rem;}
 .ag-row{background:var(--panel);border:1px solid var(--border);
@@ -677,10 +748,13 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         <button class="sb-item active" id="nav-portfolio" onclick="switchSection('portfolio',this)">◈ PORTFOLIO</button>
         <button class="sb-item" id="nav-demo" onclick="switchSection('demo',this)">◈ DEMO SITI</button>
         <div class="sb-divider"></div>
-        <div class="sb-section-label">GESTIONE</div>
-        <button class="sb-item" id="nav-preventivi" onclick="switchSection('preventivi',this)">◈ PREVENTIVI</button>
+        <div class="sb-section-label">FUNNEL</div>
         <button class="sb-item" id="nav-leads" onclick="switchSection('leads',this)" style="display:none">◈ LEADS</button>
         <button class="sb-item" id="nav-clienti" onclick="switchSection('clienti',this)">◈ CLIENTI</button>
+        <button class="sb-item" id="nav-preventivi" onclick="switchSection('preventivi',this)">◈ PREVENTIVI</button>
+        <button class="sb-item" id="nav-progetti" onclick="switchSection('progetti',this)">◈ PROGETTI</button>
+        <div class="sb-divider"></div>
+        <div class="sb-section-label">TEAM</div>
         <button class="sb-item" id="nav-agenti" onclick="switchSection('agenti',this)" style="display:none">◈ AGENTI</button>
         <button class="sb-item" id="nav-team" onclick="switchSection('team',this)" style="display:none">◈ TEAM</button>
         <div class="sb-divider"></div>
@@ -1165,6 +1239,47 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         </div>
       </section>
 
+      <!-- === PROGETTI SECTION === -->
+      <section id="section-progetti" style="display:none">
+        <div class="section-head">
+          <div>
+            <div class="section-title">◈ PROGETTI</div>
+            <div class="section-sub">Avanzamento lavori post-preventivo</div>
+          </div>
+        </div>
+
+        <!-- Lista progetti -->
+        <div id="proj-list-view">
+          <div class="proj-list" id="proj-list"></div>
+        </div>
+
+        <!-- Dettaglio progetto -->
+        <div id="proj-detail-view" class="proj-detail">
+          <button class="proj-back" onclick="progettiBackToList()">← TUTTI I PROGETTI</button>
+          <div class="section-head" style="margin-bottom:1rem">
+            <div>
+              <div class="section-title" id="proj-detail-title">PROGETTO</div>
+              <div class="section-sub" id="proj-detail-sub"></div>
+            </div>
+            <button class="btn-ghost" style="font-size:.55rem" onclick="progettiGeneraPDF()">↓ CONTRATTO PDF</button>
+          </div>
+
+          <!-- Step navigation (sempre visibile) -->
+          <div class="proj-step-nav" id="proj-step-nav">
+            <button class="proj-step-btn active" data-step="step_1" onclick="projShowStep('step_1')">● CALL OBIETTIVI</button>
+            <button class="proj-step-btn" data-step="step_2" onclick="projShowStep('step_2')">○ CALL BOZZA</button>
+            <button class="proj-step-btn" data-step="step_3" onclick="projShowStep('step_3')">○ CONSEGNA</button>
+            <button class="proj-step-btn" id="proj-extra-btn" data-step="step_extra" onclick="projShowStep('step_extra')" style="display:none">+ EXTRA</button>
+          </div>
+
+          <!-- Step contents -->
+          <div id="proj-step-step_1" class="proj-step-content active" data-step="step_1"></div>
+          <div id="proj-step-step_2" class="proj-step-content" data-step="step_2"></div>
+          <div id="proj-step-step_3" class="proj-step-content" data-step="step_3"></div>
+          <div id="proj-step-step_extra" class="proj-step-content" data-step="step_extra"></div>
+        </div>
+      </section>
+
       <!-- === ROADMAP SECTION === -->
       <section id="section-roadmap" style="display:none">
         <div class="rm-page">
@@ -1371,7 +1486,7 @@ function closeSidebarMobile(){
 
 function switchSection(name, btnEl){
   closeSidebarMobile();
-  ['portfolio','demo','preventivi','leads','clienti','agenti','team','roadmap','tokens'].forEach(s => {
+  ['portfolio','demo','preventivi','leads','clienti','agenti','team','progetti','roadmap','tokens'].forEach(s => {
     const sec = document.getElementById('section-'+s);
     if(sec) sec.style.display = s===name ? 'block' : 'none';
     const nav = document.getElementById('nav-'+s);
@@ -1386,6 +1501,7 @@ function switchSection(name, btnEl){
   if(name==='clienti') loadClienti();
   if(name==='agenti') loadAgenti();
   if(name==='team') loadTeamCards();
+  if(name==='progetti') loadProgetti();
   if(name==='roadmap') loadRoadmap();
   if(name==='tokens') loadTokens();
 }
@@ -2149,6 +2265,8 @@ async function setPvStatus(id, newStatus){
     .update({ status: newStatus, updated_at: new Date().toISOString() })
     .eq('id', id);
   if(error){ alert('Errore: ' + error.message); return; }
+  // crea automaticamente il progetto quando venduto
+  if(newStatus === 'venduto') await creaProgettoFromPreventivo(id);
   closePvModal();
   loadPreventivi();
 }
@@ -3493,6 +3611,381 @@ function rmInitDataAgent(){
       rmMkT('Aggiungi le task che stai seguendo','med','M'),
     ]),
   ];
+}
+
+// ===== PROGETTI =====
+let _progettiMap = {}; // id → project
+let _projCurrent = null; // progetto in visualizzazione
+let _projActiveStep = 'step_1';
+
+const PROJ_STEPS = {
+  step_1: { label: 'CALL OBIETTIVI', color: '#00cfff' },
+  step_2: { label: 'CALL BOZZA',     color: '#a78bfa' },
+  step_3: { label: 'CONSEGNA',       color: '#00ff88' },
+  step_extra: { label: 'EXTRA',      color: '#ffaa00' },
+};
+
+const PROJ_STEP_FIELDS = {
+  step_1: [
+    { id:'obiettivi',     label:'Obiettivi concordati',       type:'textarea', full:true },
+    { id:'timeline',      label:'Timeline concordata',        type:'text'  },
+    { id:'materiali',     label:'Materiali ricevuti da cliente', type:'textarea', full:true },
+    { id:'prossimi_passi',label:'Prossimi passi',             type:'textarea', full:true },
+  ],
+  step_2: [
+    { id:'bozza_url',     label:'Link bozza / prototipo',     type:'text',  full:true },
+    { id:'feedback',      label:'Feedback cliente',           type:'textarea', full:true },
+    { id:'modifiche',     label:'Modifiche richieste',        type:'textarea', full:true },
+    { id:'approvazione',  label:'Stato approvazione',         type:'select',
+      options:['da rivedere','approvato con modifiche','approvato'] },
+  ],
+  step_3: [
+    { id:'link_consegna', label:'Link consegna finale',       type:'text',  full:true },
+    { id:'feedback_finale',label:'Feedback finale',           type:'textarea', full:true },
+    { id:'saldo',         label:'Saldo ricevuto',             type:'checkbox' },
+    { id:'testimonial',   label:'Testimonianza richiesta',    type:'checkbox' },
+  ],
+  step_extra: [
+    { id:'motivo',        label:'Motivo call aggiuntiva',     type:'textarea', full:true },
+    { id:'costo_extra',   label:'Costo aggiuntivo (€)',       type:'number'  },
+    { id:'note_extra',    label:'Note extra',                 type:'textarea', full:true },
+  ],
+};
+
+async function loadProgetti(){
+  const listEl = document.getElementById('proj-list');
+  listEl.innerHTML = '<div style="color:var(--muted);font-family:\'Share Tech Mono\',monospace;font-size:.65rem;padding:1rem 0">> caricamento progetti_</div>';
+  document.getElementById('proj-list-view').style.display = 'block';
+  document.getElementById('proj-detail-view').classList.remove('open');
+
+  const { data, error } = await _sb.from('projects').select('*').order('updated_at',{ascending:false});
+  if(error){ listEl.innerHTML = `<div style="color:var(--red);font-size:.72rem">${error.message}</div>`; return; }
+  _progettiMap = {};
+  (data||[]).forEach(p => _progettiMap[p.id] = p);
+  renderProgettiList(data||[]);
+}
+
+function renderProgettiList(list){
+  const listEl = document.getElementById('proj-list');
+  if(!list.length){
+    listEl.innerHTML = '<div style="color:var(--muted);font-family:\'Share Tech Mono\',monospace;font-size:.65rem;padding:2rem 0;text-align:center">// nessun progetto attivo — verranno creati automaticamente quando un preventivo viene segnato come VENDUTO</div>';
+    return;
+  }
+  listEl.innerHTML = '';
+  list.forEach(p => listEl.appendChild(buildProgettoCard(p)));
+}
+
+function buildProgettoCard(p){
+  const card = document.createElement('div');
+  card.className = 'proj-card';
+  const days = Math.floor((Date.now() - new Date(p.updated_at)) / 86400000);
+  const stepLabel = PROJ_STEPS[p.status]?.label || p.status;
+  const total = (p.total||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
+  card.innerHTML = `
+    <div>
+      <div class="proj-card-client">${p.client_name.toUpperCase()}</div>
+      <div class="proj-card-meta">${p.agent_name||p.agent_email} · ${total} · creato ${new Date(p.created_at).toLocaleDateString('it-IT')}</div>
+    </div>
+    <div class="proj-step-badge ${p.status}">${stepLabel}</div>
+    <div class="proj-days">${days === 0 ? 'oggi' : `${days}g fa`}</div>`;
+  card.addEventListener('click', () => openProgetto(p.id));
+  return card;
+}
+
+function openProgetto(id){
+  _projCurrent = _progettiMap[id];
+  if(!_projCurrent) return;
+  const p = _projCurrent;
+  document.getElementById('proj-list-view').style.display = 'none';
+  document.getElementById('proj-detail-view').classList.add('open');
+  document.getElementById('proj-detail-title').textContent = p.client_name.toUpperCase();
+  document.getElementById('proj-detail-sub').textContent =
+    `${p.agent_name||p.agent_email} · ${(p.total||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'})} · avviato ${new Date(p.created_at).toLocaleDateString('it-IT')}`;
+  // step extra button
+  const extraBtn = document.getElementById('proj-extra-btn');
+  if(extraBtn) extraBtn.style.display = p.step_extra?.enabled ? '' : 'none';
+  // aggiorna nav buttons stato
+  projUpdateStepNav();
+  // mostra step corrente
+  projShowStep(p.status === 'completato' ? 'step_3' : (p.status || 'step_1'));
+}
+
+function projUpdateStepNav(){
+  if(!_projCurrent) return;
+  const p = _projCurrent;
+  document.querySelectorAll('.proj-step-btn').forEach(btn => {
+    const s = btn.dataset.step;
+    if(!s) return;
+    btn.classList.remove('active','done');
+    const stepData = p[s];
+    if(stepData?.completed) btn.classList.add('done');
+  });
+}
+
+function projShowStep(stepKey){
+  if(!_projCurrent) return;
+  _projActiveStep = stepKey;
+  // nav buttons
+  document.querySelectorAll('.proj-step-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.step === stepKey);
+  });
+  // hide all step contents
+  document.querySelectorAll('.proj-step-content').forEach(el => el.classList.remove('active'));
+  const contentEl = document.getElementById('proj-step-'+stepKey);
+  if(!contentEl) return;
+  contentEl.classList.add('active');
+  contentEl.innerHTML = buildStepContent(stepKey);
+}
+
+function buildStepContent(stepKey){
+  const p = _projCurrent;
+  const stepData = p[stepKey] || {notes:[],tasks:[],completed:false,fields:{}};
+  const fields = PROJ_STEP_FIELDS[stepKey] || [];
+  const cfg = PROJ_STEPS[stepKey];
+  const isCompleted = !!stepData.completed;
+
+  // Fields
+  const fieldRows = fields.map(f => {
+    const val = stepData.fields?.[f.id] || '';
+    let input = '';
+    if(f.type === 'textarea')
+      input = `<textarea class="proj-field-input" id="pf-${stepKey}-${f.id}" rows="3">${val}</textarea>`;
+    else if(f.type === 'select')
+      input = `<select class="proj-field-select" id="pf-${stepKey}-${f.id}">${f.options.map(o=>`<option value="${o}"${val===o?' selected':''}>${o}</option>`).join('')}</select>`;
+    else if(f.type === 'checkbox')
+      input = `<label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--text)">
+        <input type="checkbox" id="pf-${stepKey}-${f.id}" ${val?'checked':''} style="accent-color:var(--g1);width:14px;height:14px"> ${f.label}</label>`;
+    else
+      input = `<input class="proj-field-input" type="${f.type}" id="pf-${stepKey}-${f.id}" value="${val.toString().replace(/"/g,'&quot;')}">`;
+
+    if(f.type === 'checkbox') return `<div class="proj-field${f.full?' full':''}">${input}</div>`;
+    return `<div class="proj-field${f.full?' full':''}" style="${f.full?'':''}">
+      <div class="proj-field-label">${f.label}</div>${input}</div>`;
+  }).join('');
+
+  // Tasks
+  const tasks = stepData.tasks || [];
+  const taskRows = tasks.map((t,i) => `
+    <div class="proj-task-row">
+      <input type="checkbox" class="proj-task-cb" ${t.done?'checked':''} onchange="projToggleTask('${stepKey}',${i})">
+      <span class="proj-task-text" style="${t.done?'text-decoration:line-through;color:var(--muted)':''}">${t.text}</span>
+      <button class="proj-task-del" onclick="projDelTask('${stepKey}',${i})">✕</button>
+    </div>`).join('');
+
+  // Notes log
+  const notes = stepData.notes || [];
+  const noteRows = notes.map(n => `
+    <div style="background:var(--panel2);border:1px solid var(--border);padding:.5rem .7rem;margin-bottom:.4rem;">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:.52rem;color:var(--muted);margin-bottom:.25rem">${new Date(n.date).toLocaleDateString('it-IT')} · ${n.author}</div>
+      <div style="font-size:.72rem;color:var(--text);white-space:pre-wrap">${n.text.replace(/</g,'&lt;')}</div>
+    </div>`).join('');
+
+  const completeBtnLabel = isCompleted
+    ? `✓ COMPLETATO ${new Date(stepData.completed_at).toLocaleDateString('it-IT')}`
+    : `✓ SEGNA COMPLETATO`;
+
+  const extraToggle = stepKey !== 'step_extra' && !p.step_extra?.enabled
+    ? `<button class="btn-ghost" style="font-size:.52rem;margin-top:1rem" onclick="projEnableExtra()">+ AGGIUNGI CALL EXTRA</button>` : '';
+
+  return `
+    <div class="proj-fields-grid">${fieldRows}</div>
+    <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap">
+      <button class="proj-save-fields-btn" onclick="projSaveFields('${stepKey}')">↑ SALVA CAMPI</button>
+      <button class="proj-complete-btn${isCompleted?' done':''}" onclick="projCompleteStep('${stepKey}')">${completeBtnLabel}</button>
+    </div>
+
+    <div class="proj-section-title">TASK</div>
+    <div id="proj-tasks-${stepKey}">${taskRows||'<div style="font-family:\'Share Tech Mono\',monospace;font-size:.58rem;color:var(--muted)">// nessuna task</div>'}</div>
+    <div class="proj-add-task-row">
+      <input class="proj-add-task-input" id="proj-task-input-${stepKey}" placeholder="▸ nuova task..." onkeydown="if(event.key==='Enter')projAddTask('${stepKey}')">
+      <button class="proj-add-task-btn" onclick="projAddTask('${stepKey}')">+ ADD</button>
+    </div>
+
+    <div class="proj-section-title">NOTE</div>
+    <div id="proj-notes-${stepKey}">${noteRows||'<div style="font-family:\'Share Tech Mono\',monospace;font-size:.58rem;color:var(--muted)">// nessuna nota</div>'}</div>
+    <div style="display:flex;gap:.5rem;align-items:flex-end;margin-top:.5rem">
+      <textarea id="proj-note-input-${stepKey}" placeholder="Aggiungi nota..." style="flex:1;background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:.5rem .7rem;font-family:'Share Tech Mono',monospace;font-size:.62rem;resize:vertical;min-height:55px;outline:none"></textarea>
+      <button class="btn-primary" style="font-size:.52rem;padding:.45rem .7rem;white-space:nowrap" onclick="projAddNote('${stepKey}')">+ NOTA</button>
+    </div>
+    ${extraToggle}`;
+}
+
+async function projSaveFields(stepKey){
+  if(!_projCurrent) return;
+  const fields = PROJ_STEP_FIELDS[stepKey] || [];
+  const fieldVals = {};
+  fields.forEach(f => {
+    const el = document.getElementById(`pf-${stepKey}-${f.id}`);
+    if(!el) return;
+    fieldVals[f.id] = f.type === 'checkbox' ? el.checked : el.value;
+  });
+  const stepData = JSON.parse(JSON.stringify(_projCurrent[stepKey] || {notes:[],tasks:[],completed:false,fields:{}}));
+  stepData.fields = fieldVals;
+  await _projUpdate(stepKey, stepData, false);
+}
+
+async function projCompleteStep(stepKey){
+  if(!_projCurrent) return;
+  const stepData = JSON.parse(JSON.stringify(_projCurrent[stepKey] || {notes:[],tasks:[],completed:false,fields:{}}));
+  if(stepData.completed) return;
+  stepData.completed = true;
+  stepData.completed_at = new Date().toISOString();
+  // auto-avanza status progetto al prossimo step
+  const order = ['step_1','step_2','step_3','step_extra','completato'];
+  const idx = order.indexOf(stepKey);
+  let nextStatus = order[idx+1] || 'completato';
+  if(nextStatus === 'step_extra' && !_projCurrent.step_extra?.enabled) nextStatus = 'completato';
+  await _projUpdate(stepKey, stepData, true, nextStatus);
+  projUpdateStepNav();
+  projShowStep(stepKey);
+}
+
+async function projAddNote(stepKey){
+  if(!_projCurrent) return;
+  const inp = document.getElementById(`proj-note-input-${stepKey}`);
+  const text = inp?.value.trim();
+  if(!text) return;
+  const stepData = JSON.parse(JSON.stringify(_projCurrent[stepKey] || {notes:[],tasks:[],completed:false,fields:{}}));
+  stepData.notes = stepData.notes || [];
+  stepData.notes.push({ text, date: new Date().toISOString(), author: _currentUserEmail });
+  await _projUpdate(stepKey, stepData, false);
+  if(inp) inp.value = '';
+}
+
+function projAddTask(stepKey){
+  const inp = document.getElementById(`proj-task-input-${stepKey}`);
+  const text = inp?.value.trim();
+  if(!text) return;
+  const stepData = JSON.parse(JSON.stringify(_projCurrent[stepKey] || {notes:[],tasks:[],completed:false,fields:{}}));
+  stepData.tasks = stepData.tasks || [];
+  stepData.tasks.unshift({ id: Date.now().toString(36), text, done: false });
+  _projUpdateLocal(stepKey, stepData);
+  _projSaveAsync(stepKey, stepData);
+  if(inp) inp.value = '';
+  // re-render task list only
+  const taskEl = document.getElementById(`proj-tasks-${stepKey}`);
+  if(taskEl) taskEl.innerHTML = stepData.tasks.map((t,i) => `
+    <div class="proj-task-row">
+      <input type="checkbox" class="proj-task-cb" ${t.done?'checked':''} onchange="projToggleTask('${stepKey}',${i})">
+      <span class="proj-task-text" style="${t.done?'text-decoration:line-through;color:var(--muted)':''}">${t.text}</span>
+      <button class="proj-task-del" onclick="projDelTask('${stepKey}',${i})">✕</button>
+    </div>`).join('');
+}
+
+function projToggleTask(stepKey, idx){
+  const stepData = JSON.parse(JSON.stringify(_projCurrent[stepKey] || {tasks:[]}));
+  if(stepData.tasks[idx]) stepData.tasks[idx].done = !stepData.tasks[idx].done;
+  _projUpdateLocal(stepKey, stepData);
+  _projSaveAsync(stepKey, stepData);
+}
+
+function projDelTask(stepKey, idx){
+  if(!confirm('Eliminare questa task?')) return;
+  const stepData = JSON.parse(JSON.stringify(_projCurrent[stepKey] || {tasks:[]}));
+  stepData.tasks.splice(idx,1);
+  _projUpdateLocal(stepKey, stepData);
+  _projSaveAsync(stepKey, stepData);
+  projShowStep(stepKey);
+}
+
+async function projEnableExtra(){
+  if(!_projCurrent) return;
+  const stepData = JSON.parse(JSON.stringify(_projCurrent.step_extra || {notes:[],tasks:[],enabled:false,completed:false,fields:{}}));
+  stepData.enabled = true;
+  await _projUpdate('step_extra', stepData, false);
+  const extraBtn = document.getElementById('proj-extra-btn');
+  if(extraBtn) extraBtn.style.display = '';
+  projShowStep('step_extra');
+}
+
+function _projUpdateLocal(stepKey, stepData){
+  if(_projCurrent) _projCurrent[stepKey] = stepData;
+  if(_projCurrent && _progettiMap[_projCurrent.id]) _progettiMap[_projCurrent.id][stepKey] = stepData;
+}
+
+let _projSaveTimer = null;
+function _projSaveAsync(stepKey, stepData){
+  _projUpdateLocal(stepKey, stepData);
+  clearTimeout(_projSaveTimer);
+  _projSaveTimer = setTimeout(() => _projSaveDb(stepKey, stepData), 1200);
+}
+
+async function _projSaveDb(stepKey, stepData){
+  if(!_projCurrent || !_sb) return;
+  await _sb.from('projects').update({ [stepKey]: stepData, updated_at: new Date().toISOString() }).eq('id',_projCurrent.id);
+}
+
+async function _projUpdate(stepKey, stepData, updateStatus, newStatus){
+  if(!_projCurrent || !_sb) return;
+  _projUpdateLocal(stepKey, stepData);
+  const patch = { [stepKey]: stepData, updated_at: new Date().toISOString() };
+  if(updateStatus && newStatus) { patch.status = newStatus; _projCurrent.status = newStatus; }
+  const { error } = await _sb.from('projects').update(patch).eq('id',_projCurrent.id);
+  if(error) console.error('projUpdate error', error.message);
+}
+
+function progettiBackToList(){
+  _projCurrent = null;
+  document.getElementById('proj-detail-view').classList.remove('open');
+  document.getElementById('proj-list-view').style.display = 'block';
+  loadProgetti();
+}
+
+function progettiGeneraPDF(){
+  if(!_projCurrent) return;
+  const p = _projCurrent;
+  if(typeof jsPDF === 'undefined'){ alert('jsPDF non disponibile — assicurarsi che la libreria sia caricata.'); return; }
+  const doc = new jsPDF();
+  const pageW = doc.internal.pageSize.getWidth();
+  let y = 20;
+  doc.setFontSize(18); doc.setFont('helvetica','bold');
+  doc.text('CONTRATTO DI SERVIZIO', pageW/2, y, {align:'center'}); y+=10;
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  doc.text('PLURIAGENCY — Bologna, Italy | hello@pluriagency.com', pageW/2, y, {align:'center'}); y+=12;
+  doc.setDrawColor(0,255,136,100); doc.line(15, y, pageW-15, y); y+=8;
+  doc.setFontSize(11); doc.setFont('helvetica','bold');
+  doc.text('DATI CLIENTE', 15, y); y+=6;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  doc.text(`Nome: ${p.client_name}`, 15, y); y+=5;
+  if(p.client_email){ doc.text(`Email: ${p.client_email}`, 15, y); y+=5; }
+  y+=4;
+  // Servizi dal preventivo (da _preventiviMap se disponibile)
+  const pv = _preventiviMap[p.preventivo_id];
+  if(pv && pv.items?.length){
+    doc.setFont('helvetica','bold'); doc.text('SERVIZI', 15, y); y+=6;
+    doc.setFont('helvetica','normal');
+    pv.items.forEach(it => {
+      doc.text(`• ${it.name} x${it.qty||1} — ${(it.total||0).toLocaleString('it-IT')} EUR`, 18, y); y+=5;
+      if(y > 270){ doc.addPage(); y=20; }
+    });
+    y+=3;
+    doc.setFont('helvetica','bold');
+    doc.text(`TOTALE: ${(pv.total||0).toLocaleString('it-IT')} EUR`, pageW-15, y, {align:'right'}); y+=10;
+  }
+  doc.setFont('helvetica','normal'); doc.setFontSize(9);
+  doc.text(`Data: ${new Date().toLocaleDateString('it-IT')}`, 15, y); y+=5;
+  doc.text('_____________________________', pageW-70, y);
+  doc.text('Firma Cliente', pageW-60, y+6);
+  doc.save(`contratto_${p.client_name.replace(/\s+/g,'_')}.pdf`);
+}
+
+// Auto-crea progetto quando preventivo → venduto (chiamata da setPvStatus)
+async function creaProgettoFromPreventivo(pvId){
+  const pv = _preventiviMap[pvId];
+  if(!pv) return;
+  // controlla se esiste già
+  const { data: existing } = await _sb.from('projects').select('id').eq('preventivo_id', pvId).maybeSingle();
+  if(existing) return; // già creato
+  await _sb.from('projects').insert({
+    preventivo_id: pvId,
+    client_name: pv.client_name,
+    client_email: pv.client_email || null,
+    agent_email: pv.agent_email || null,
+    agent_name: pv.agent_name || null,
+    total: pv.total || 0,
+    title: `${pv.client_name} — ${new Date().toLocaleDateString('it-IT')}`,
+    status: 'step_1',
+  });
 }
 
 // ===== TOKEN MONITOR =====

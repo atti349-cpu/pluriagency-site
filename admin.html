@@ -2074,9 +2074,18 @@ function pvRemoveItem(idx){
   if(el) el.innerHTML = renderPvEditList();
 }
 
+let _pvSearchCloseHandler = null;
 function pvSearchProducts(q, pvId){
+  const inp = document.getElementById('pv-prod-search-input');
   const res = document.getElementById('pv-prod-results');
-  if(!res) return;
+  if(!res || !inp) return;
+  // posiziona dropdown con fixed per evitare clipping dell'overflow del modal
+  const rect = inp.getBoundingClientRect();
+  res.style.position = 'fixed';
+  res.style.top = (rect.bottom + 2) + 'px';
+  res.style.left = rect.left + 'px';
+  res.style.width = rect.width + 'px';
+  res.style.zIndex = '900';
   const flat = [];
   NPV_CATS.forEach(cat => cat.items.forEach(it => flat.push(it)));
   const matches = q.trim()
@@ -2087,9 +2096,12 @@ function pvSearchProducts(q, pvId){
   res.innerHTML = matches.map(it =>
     `<div class="pv-prod-opt" onclick="pvSelectProduct('${it.id}','${pvId}')" data-id="${it.id}">${it.name} — <span style="color:var(--g1)">${it.price} €</span></div>`
   ).join('');
-  // chiudi cliccando fuori
-  const handler = e => { if(!res.contains(e.target) && e.target.id!=='pv-prod-search-input'){ res.style.display='none'; document.removeEventListener('click',handler); }};
-  setTimeout(()=>document.addEventListener('click',handler),50);
+  // un unico handler di chiusura — rimuove il precedente prima di aggiungere
+  if(_pvSearchCloseHandler) document.removeEventListener('mousedown', _pvSearchCloseHandler);
+  _pvSearchCloseHandler = e => {
+    if(!res.contains(e.target) && e.target !== inp){ res.style.display='none'; document.removeEventListener('mousedown',_pvSearchCloseHandler); _pvSearchCloseHandler=null; }
+  };
+  setTimeout(()=>document.addEventListener('mousedown',_pvSearchCloseHandler),50);
 }
 
 function pvSelectProduct(itemId, pvId){
@@ -2273,26 +2285,49 @@ function npvFilterServices(){
   npvRenderServiceList(q);
 }
 
+function npvItemRow(item){
+  const sel = _npvSelected[item.id];
+  const suffix = item.monthly ? '/mese' : item.yearly ? '/anno' : '';
+  const price = sel ? sel.price : item.price;
+  return `<div id="npv-item-${item.id}" style="display:flex;align-items:center;gap:.6rem;padding:.4rem .5rem;cursor:pointer;border-bottom:1px solid var(--border);background:${sel ? 'var(--v-dim)' : 'transparent'}" onclick="npvToggleItem('${item.id}')">
+    <div style="width:12px;height:12px;border:1px solid ${sel ? 'var(--v)' : 'var(--muted)'};background:${sel ? 'var(--v)' : 'transparent'};flex-shrink:0"></div>
+    <div style="flex:1;font-family:'Share Tech Mono',monospace;font-size:.6rem;color:${sel ? 'var(--v)' : 'var(--text)'}">${item.name}</div>
+    ${sel ? `<div style="display:flex;align-items:center;gap:.3rem;flex-wrap:wrap">
+      <button onclick="npvQty('${item.id}',-1,event)" style="width:18px;height:18px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:10px">-</button>
+      <span style="font-family:'Share Tech Mono',monospace;font-size:.6rem;min-width:16px;text-align:center">${sel.qty}</span>
+      <button onclick="npvQty('${item.id}',1,event)" style="width:18px;height:18px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:10px">+</button>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+        <input type="number" value="${price}" min="${item.price}" style="width:64px;background:var(--panel2);border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.6rem;padding:2px 4px;text-align:right" onclick="event.stopPropagation()" onchange="npvSetPrice('${item.id}',this.value)">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.48rem;color:var(--muted)">cons. ${item.price}€${suffix}</span>
+      </div>
+    </div>` : `<span style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)">${item.price}€${suffix}</span>`}
+  </div>`;
+}
+
 function npvRenderServiceList(query){
   const container = document.getElementById('npv-svc-list');
   if(!container) return;
   const q = query.toLowerCase().trim();
-  const filtered = q ? NPV_ALL.filter(i => i.name.toLowerCase().includes(q) || i.cat.toLowerCase().includes(q)) : NPV_ALL;
-  if(!filtered.length){ container.innerHTML = `<div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)">nessun servizio trovato</div>`; return; }
-  container.innerHTML = filtered.map(item => {
-    const sel = _npvSelected[item.id];
-    const suffix = item.monthly ? '/mese' : item.yearly ? '/anno' : '';
-    const price = sel ? sel.price : item.price;
-    return `<div id="npv-item-${item.id}" style="display:flex;align-items:center;gap:.6rem;padding:.4rem .5rem;cursor:pointer;border-bottom:1px solid var(--border);background:${sel ? 'var(--v-dim)' : 'transparent'}" onclick="npvToggleItem('${item.id}')">
-      <div style="width:12px;height:12px;border:1px solid ${sel ? 'var(--v)' : 'var(--muted)'};background:${sel ? 'var(--v)' : 'transparent'};flex-shrink:0"></div>
-      <div style="flex:1;font-family:'Share Tech Mono',monospace;font-size:.6rem;color:${sel ? 'var(--v)' : 'var(--text)'}">${item.name} <span style="color:var(--muted);font-size:.52rem">${item.cat}</span></div>
-      ${sel ? `<div style="display:flex;align-items:center;gap:.3rem">
-        <button onclick="npvQty('${item.id}',-1,event)" style="width:18px;height:18px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:10px">-</button>
-        <span style="font-family:'Share Tech Mono',monospace;font-size:.6rem;min-width:16px;text-align:center">${sel.qty}</span>
-        <button onclick="npvQty('${item.id}',1,event)" style="width:18px;height:18px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:10px">+</button>
-        <input type="number" value="${price}" min="${item.price}" style="width:60px;background:var(--panel2);border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.6rem;padding:2px 4px;text-align:right" onclick="event.stopPropagation()" onchange="npvSetPrice('${item.id}',this.value)">
-        <span style="font-family:'Share Tech Mono',monospace;font-size:.5rem;color:var(--muted)">${suffix}</span>
-      </div>` : `<span style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)">${item.price}\u20AC${suffix}</span>`}
+
+  if(q){
+    // ricerca: lista piatta filtrata, mostra categoria
+    const filtered = NPV_ALL.filter(i => i.name.toLowerCase().includes(q) || i.cat.toLowerCase().includes(q));
+    if(!filtered.length){ container.innerHTML = `<div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted);padding:.4rem 0">// nessun servizio trovato</div>`; return; }
+    container.innerHTML = filtered.map(item => {
+      const row = npvItemRow(item);
+      // aggiungi badge categoria nella modalità ricerca
+      return row.replace(`>${item.name}<`, `>${item.name} <span style="font-size:.48rem;color:var(--muted);letter-spacing:.05em">[${item.cat}]</span><`);
+    }).join('');
+    return;
+  }
+
+  // nessuna query → raggruppa per categoria
+  container.innerHTML = NPV_CATS.map(cat => {
+    const rows = cat.items.map(i => npvItemRow({...i, cat: cat.label})).join('');
+    const selCount = cat.items.filter(i => _npvSelected[i.id]).length;
+    return `<div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:.52rem;letter-spacing:.18em;color:var(--g3);padding:.4rem .5rem .3rem;background:var(--panel2);border-bottom:1px solid var(--border);text-transform:uppercase;position:sticky;top:0;z-index:1">${cat.label}${selCount ? ` <span style="color:var(--g1)">·${selCount}</span>` : ''}</div>
+      ${rows}
     </div>`;
   }).join('');
 }

@@ -453,7 +453,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .rm-btn.rm-save:hover { background:var(--rm-neon); color:var(--rm-bg); box-shadow:var(--rm-neon-glow); }
 .rm-btn.rm-save.clean { border-color:var(--rm-text3); color:var(--rm-text3); background:transparent; }
 .rm-btn.rm-save.clean:hover { border-color:var(--rm-border2); color:var(--rm-text2); background:transparent; }
-.rm-proj-card { background:var(--rm-bg2); border:1px solid var(--rm-border); border-radius:3px; margin-bottom:8px; transition:border-color .2s; position:relative; overflow:hidden; }
+.rm-proj-card { background:var(--rm-bg2); border:1px solid var(--rm-border); border-radius:3px; margin-bottom:8px; transition:border-color .2s; position:relative; overflow:visible; }
 .rm-proj-card::before { content:''; position:absolute; top:0; left:0; width:2px; height:100%; background:var(--proj-color,var(--rm-neon)); opacity:.8; }
 .rm-proj-card.drag-over { border-color:var(--rm-neon); box-shadow:0 0 20px rgba(0,255,136,.08); }
 .rm-proj-card.dragging { opacity:.3; }
@@ -526,7 +526,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .rm-wip-row:hover .rm-wip-grip{opacity:.8;color:var(--rm-neon);}
 .rm-wip-text{flex:1;font-size:12px;color:var(--rm-text);line-height:1.4;word-break:break-word;}
 /* PRONTA button */
-.rm-pronta-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.4);color:var(--rm-neon);font-family:var(--rm-mono);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .15s;white-space:nowrap;flex-shrink:0;}
+.rm-wip-actions{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.rm-wip-badges{display:flex;gap:4px;}
+.rm-pronta-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.4);color:var(--rm-neon);font-family:var(--rm-mono);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .15s;white-space:nowrap;width:100%;justify-content:center;}
 .rm-pronta-btn:hover{background:var(--rm-neon);color:var(--rm-bg);box-shadow:0 0 14px rgba(0,255,136,.55),0 0 28px rgba(0,255,136,.2);transform:translateY(-1px);}
 .rm-pronta-btn:active{transform:translateY(0);}
 @keyframes rm-pronta-flash{0%{box-shadow:0 0 0 rgba(0,255,136,0)}40%{box-shadow:0 0 22px rgba(0,255,136,.9),0 0 44px rgba(0,255,136,.4)}100%{box-shadow:0 0 0 rgba(0,255,136,0)}}
@@ -3370,9 +3372,13 @@ function rmBuildWipRow(t,pi){
   row.innerHTML = `
     <span class="rm-wip-grip">⠿</span>
     <span class="rm-wip-text">${rmEsc(t.text)}</span>
-    <span class="rm-badge rm-badge-cx ${RM_CC[t.complexity||'none']}" title="Complessità">${t.complexity||'—'}</span>
-    <span class="rm-badge rm-badge-p ${RM_PC[t.priority||'none']}" title="Priorità">${RM_PL[t.priority||'none']}</span>
-    <button class="rm-pronta-btn" title="Segna come completata">✓ PRONTA</button>`;
+    <div class="rm-wip-actions">
+      <div class="rm-wip-badges">
+        <span class="rm-badge rm-badge-cx ${RM_CC[t.complexity||'none']}" title="Complessità">${t.complexity||'—'}</span>
+        <span class="rm-badge rm-badge-p ${RM_PC[t.priority||'none']}" title="Priorità">${RM_PL[t.priority||'none']}</span>
+      </div>
+      <button class="rm-pronta-btn" title="Segna come completata">✓ PRONTA</button>
+    </div>`;
   row.querySelector('.rm-pronta-btn').addEventListener('click', e=>{
     e.stopPropagation();
     const btn = e.currentTarget;
@@ -3482,7 +3488,8 @@ function rmSetupTaskDragWip(el, pi){
     });
     row.addEventListener('dragend',()=>{row.classList.remove('t-drag');rmClrT();_rmTDragSrc=null;});
     row.addEventListener('dragover',e=>{
-      if(!_rmTDragSrc||_rmTDragSrc.id===row.dataset.taskId||_rmTDragSrc.pi!==parseInt(row.dataset.pi)) return;
+      // solo riordinamento interno WIP → ignora drag da open list
+      if(!_rmTDragSrc||_rmTDragSrc.panel!=='wip'||_rmTDragSrc.id===row.dataset.taskId||_rmTDragSrc.pi!==parseInt(row.dataset.pi)) return;
       e.preventDefault(); e.stopPropagation(); rmClrT();
       const mid=row.getBoundingClientRect().top+row.getBoundingClientRect().height/2;
       row.classList.add(e.clientY<mid?'t-over-top':'t-over-bot');
@@ -3490,7 +3497,8 @@ function rmSetupTaskDragWip(el, pi){
     row.addEventListener('dragleave',()=>rmClrT());
     row.addEventListener('drop',e=>{
       rmClrT();
-      if(!_rmTDragSrc||_rmTDragSrc.id===row.dataset.taskId||_rmTDragSrc.pi!==parseInt(row.dataset.pi)) return;
+      // solo riordinamento interno WIP — i drop dall'open list li gestisce wipPanel
+      if(!_rmTDragSrc||_rmTDragSrc.panel!=='wip'||_rmTDragSrc.id===row.dataset.taskId||_rmTDragSrc.pi!==parseInt(row.dataset.pi)) return;
       e.preventDefault(); e.stopPropagation();
       const si=rmData[pi].tasks.findIndex(t=>t.id===_rmTDragSrc.id);
       const di=rmData[pi].tasks.findIndex(t=>t.id===row.dataset.taskId);
@@ -3518,8 +3526,6 @@ function rmSetupWipDrop(wipPanel, wipList, pi){
   wipPanel.addEventListener('drop',e=>{
     wipPanel.classList.remove('wip-dragover');
     if(!_rmTDragSrc||_rmTDragSrc.pi!==pi||_rmTDragSrc.panel==='wip') return;
-    /* only act if dropped on panel/list directly, not on a child wip-row */
-    if(e.target.closest('.rm-wip-row')) return;
     e.preventDefault(); e.stopPropagation();
     const tk=rmData[pi].tasks.find(t=>t.id===_rmTDragSrc.id);
     if(tk){ tk.wip=true; tk.done=false; }

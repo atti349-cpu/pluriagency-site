@@ -287,6 +287,29 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .pv-notes-box{background:var(--panel2);border:1px solid var(--border);padding:.75rem;
   font-size:.78rem;color:var(--muted);line-height:1.7;margin-bottom:1rem;white-space:pre-wrap;}
 
+/* PV EDIT ITEMS */
+.pv-edit-section{margin-top:1.25rem;border-top:1px solid var(--border);padding-top:1rem;}
+.pv-edit-item-row{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:.5rem;
+  padding:.4rem .5rem;border-bottom:1px solid var(--border);font-size:.75rem;}
+.pv-edit-item-row .new-badge{font-family:'Share Tech Mono',monospace;font-size:.5rem;letter-spacing:.1em;
+  background:rgba(0,255,136,.15);border:1px solid rgba(0,255,136,.4);color:var(--g1);padding:1px 5px;}
+.pv-edit-item-rm{background:none;border:none;color:var(--red);cursor:pointer;font-size:.9rem;padding:0 4px;}
+.pv-add-product-row{display:flex;gap:.4rem;margin-top:.75rem;flex-wrap:wrap;align-items:flex-end;}
+.pv-prod-search{flex:1;min-width:160px;background:var(--panel2);border:1px solid var(--border);
+  color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:.45rem .7rem;outline:none;}
+.pv-prod-search:focus{border-color:var(--v);}
+.pv-prod-results{position:absolute;z-index:800;background:var(--panel);border:1px solid var(--border2);
+  max-height:200px;overflow-y:auto;min-width:280px;}
+.pv-prod-opt{font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:.5rem .75rem;cursor:pointer;
+  color:var(--text);border-bottom:1px solid var(--border);}
+.pv-prod-opt:hover{background:rgba(0,255,136,.08);color:var(--g1);}
+.pv-prod-qty{width:50px;background:var(--panel2);border:1px solid var(--border);color:var(--text);
+  font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:.45rem .5rem;outline:none;text-align:center;}
+.pv-save-items-btn{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.12em;
+  background:rgba(0,255,136,.12);border:1px solid rgba(0,255,136,.35);color:var(--g1);
+  padding:.5rem .9rem;cursor:pointer;transition:background .15s;margin-top:.75rem;}
+.pv-save-items-btn:hover{background:rgba(0,255,136,.2);}
+
 /* AGENTI LIST */
 .ag-list{display:flex;flex-direction:column;gap:.6rem;}
 .ag-row{background:var(--panel);border:1px solid var(--border);
@@ -1967,6 +1990,17 @@ function openPvModal(id){
 
     ${pv.notes ? `<div class="pv-info-key" style="margin-bottom:.4rem;margin-top:1rem">Note preventivo</div><div class="pv-notes-box">${pv.notes.replace(/</g,'&lt;')}</div>` : ''}
 
+    ${!isLocked ? `<div class="pv-edit-section" id="pv-edit-items-wrap">
+      <div class="pv-info-key" style="margin-bottom:.6rem">MODIFICA PRODOTTI</div>
+      <div id="pv-edit-items-list">${buildPvEditItems(pv)}</div>
+      <div class="pv-add-product-row" style="position:relative">
+        <input id="pv-prod-search-input" class="pv-prod-search" placeholder="▸ cerca prodotto..." autocomplete="off" oninput="pvSearchProducts(this.value,'${id}')" onfocus="pvSearchProducts(this.value,'${id}')">
+        <input id="pv-prod-qty" class="pv-prod-qty" type="number" min="1" value="1">
+        <div id="pv-prod-results" class="pv-prod-results" style="display:none"></div>
+      </div>
+      <button class="pv-save-items-btn" onclick="pvSaveItems('${id}')">↑ SALVA MODIFICHE</button>
+    </div>` : ''}
+
     <div class="pv-status-actions">${statusActions}</div>
 
     <div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1rem">
@@ -2012,6 +2046,88 @@ function closePvModal(){
 document.getElementById('pv-modal').addEventListener('click', e => {
   if(e.target === e.currentTarget) closePvModal();
 });
+
+// ===== MODIFICA PRODOTTI PREVENTIVO (STEP 17) =====
+
+// Copia locale degli items del preventivo in editing
+let _pvEditItems = [];
+
+function buildPvEditItems(pv){
+  _pvEditItems = JSON.parse(JSON.stringify(pv.items || []));
+  return renderPvEditList();
+}
+
+function renderPvEditList(){
+  if(!_pvEditItems.length) return '<div style="font-family:\'Share Tech Mono\',monospace;font-size:.62rem;color:var(--muted);padding:.4rem 0">// nessun prodotto</div>';
+  return _pvEditItems.map((it,i) => `
+    <div class="pv-edit-item-row" data-idx="${i}">
+      <span style="color:var(--text)">${it.name}${it.added_after ? ' <span class="new-badge">NEW</span>' : ''}</span>
+      <span style="color:var(--muted);font-family:\'Share Tech Mono\',monospace;font-size:.62rem">×${it.qty||1}</span>
+      <span style="font-family:\'Orbitron\',monospace;font-size:.7rem;color:var(--v)">${(it.total||0).toLocaleString('it-IT')} €</span>
+      <button class="pv-edit-item-rm" onclick="pvRemoveItem(${i})">✕</button>
+    </div>`).join('');
+}
+
+function pvRemoveItem(idx){
+  _pvEditItems.splice(idx,1);
+  const el = document.getElementById('pv-edit-items-list');
+  if(el) el.innerHTML = renderPvEditList();
+}
+
+function pvSearchProducts(q, pvId){
+  const res = document.getElementById('pv-prod-results');
+  if(!res) return;
+  const flat = [];
+  NPV_CATS.forEach(cat => cat.items.forEach(it => flat.push(it)));
+  const matches = q.trim()
+    ? flat.filter(it => it.name.toLowerCase().includes(q.toLowerCase()))
+    : flat.slice(0, 20);
+  if(!matches.length){ res.style.display='none'; return; }
+  res.style.display = 'block';
+  res.innerHTML = matches.map(it =>
+    `<div class="pv-prod-opt" onclick="pvSelectProduct('${it.id}','${pvId}')" data-id="${it.id}">${it.name} — <span style="color:var(--g1)">${it.price} €</span></div>`
+  ).join('');
+  // chiudi cliccando fuori
+  const handler = e => { if(!res.contains(e.target) && e.target.id!=='pv-prod-search-input'){ res.style.display='none'; document.removeEventListener('click',handler); }};
+  setTimeout(()=>document.addEventListener('click',handler),50);
+}
+
+function pvSelectProduct(itemId, pvId){
+  const flat = [];
+  NPV_CATS.forEach(cat => cat.items.forEach(it => flat.push(it)));
+  const prod = flat.find(it => it.id === itemId);
+  if(!prod) return;
+  const qty = parseInt(document.getElementById('pv-prod-qty')?.value)||1;
+  _pvEditItems.push({ id: prod.id, name: prod.name, qty, unit_price: prod.price, total: prod.price * qty, added_after: true });
+  const el = document.getElementById('pv-edit-items-list');
+  if(el) el.innerHTML = renderPvEditList();
+  const inp = document.getElementById('pv-prod-search-input');
+  const res = document.getElementById('pv-prod-results');
+  if(inp) inp.value = '';
+  if(res) res.style.display = 'none';
+}
+
+async function pvSaveItems(pvId){
+  if(!_pvEditItems.length){ alert('Aggiungi almeno un prodotto.'); return; }
+  const pv = _preventiviMap[pvId];
+  if(!pv) return;
+  const subtotal = _pvEditItems.reduce((s,it)=>s+(it.total||0),0);
+  const disc = pv.discount_pct||0;
+  const discAmt = parseFloat((subtotal * disc / 100).toFixed(2));
+  const imponibile = subtotal - discAmt;
+  const ivaPct = pv.iva_pct||0;
+  const ivaAmt = parseFloat((imponibile * ivaPct / 100).toFixed(2));
+  const total = parseFloat((imponibile + ivaAmt).toFixed(2));
+  const { error } = await _sb.from('preventivi')
+    .update({ items: _pvEditItems, subtotal, discount_amount: discAmt, iva_amount: ivaAmt, total, updated_at: new Date().toISOString() })
+    .eq('id', pvId);
+  if(error){ alert('Errore salvataggio: ' + error.message); return; }
+  // aggiorna mappa locale
+  Object.assign(_preventiviMap[pvId], { items: _pvEditItems, subtotal, discount_amount: discAmt, iva_amount: ivaAmt, total });
+  closePvModal();
+  openPvModal(pvId); // riapre mostrando dati aggiornati
+  loadPreventivi(); // aggiorna lista
+}
 
 async function setPvStatus(id, newStatus){
   if(newStatus === 'venduto'){

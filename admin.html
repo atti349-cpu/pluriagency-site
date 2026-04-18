@@ -1258,11 +1258,14 @@ async function showDashboard(user){
 
   const isAdmin = _currentUserRole === 'admin';
 
-  // Sezioni admin-only: LEADS, AGENTI, ROADMAP, TEAM
-  ['nav-leads','nav-agenti','nav-roadmap','nav-team'].forEach(id => {
+  // Sezioni admin-only: LEADS, AGENTI, TEAM
+  ['nav-leads','nav-agenti','nav-team'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.style.display = isAdmin ? 'flex' : 'none';
   });
+  // ROADMAP visibile a tutti — contenuto personalizzato (admin=main, agente=email)
+  const navRm = document.getElementById('nav-roadmap');
+  if(navRm) navRm.style.display = 'flex';
 
   // Super-admin only: token monitor
   if(_currentUserEmail === 'atti349@gmail.com'){
@@ -2893,6 +2896,7 @@ const RM_COLS=['#00ff88','#00d4ff','#a78bfa','#ffaa00','#ff6b6b','#00ffcc','#ff8
 let rmData = [];
 let _rmDirty = false;
 let _rmSaveTimer = null;
+let _rmRowId = 'main'; // 'main' per admin, email per agenti
 let _rmLoaded = false;
 
 function rmUid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
@@ -2901,14 +2905,16 @@ function rmMkT(text,priority='none',complexity='none'){return{id:rmUid(),text,do
 
 async function loadRoadmap(){
   if(_rmLoaded) return; // già caricata
+  // admin usa id='main', agenti usano id=email
+  _rmRowId = (_currentUserRole === 'admin') ? 'main' : _currentUserEmail;
   const el = document.getElementById('rm-proj-list');
   el.innerHTML = '<div style="color:var(--muted);font-size:.75rem;padding:2rem 0">> caricamento roadmap_</div>';
-  const { data, error } = await _sb.from('roadmap_data').select('data').eq('id','main').maybeSingle();
+  const { data, error } = await _sb.from('roadmap_data').select('data').eq('id', _rmRowId).maybeSingle();
   if(error){ el.innerHTML = `<div style="color:var(--red);font-size:.75rem;padding:1rem 0">⚠ ${error.message}</div>`; return; }
   if(data && Array.isArray(data.data) && data.data.length > 0){
     rmData = data.data.map(p=>({...p,tasks:(p.tasks||[]).map(t=>({wip:false,...t}))}));
   } else {
-    rmData = rmInitData();
+    rmData = (_rmRowId === 'main') ? rmInitData() : rmInitDataAgent();
     await saveRoadmapToDb(); // salva dati iniziali
   }
   _rmLoaded = true;
@@ -2917,7 +2923,7 @@ async function loadRoadmap(){
 
 async function saveRoadmapToDb(){
   if(!_sb) return;
-  const { error } = await _sb.from('roadmap_data').upsert({ id:'main', data: rmData, updated_at: new Date().toISOString() });
+  const { error } = await _sb.from('roadmap_data').upsert({ id: _rmRowId, data: rmData, updated_at: new Date().toISOString() });
   return !error;
 }
 
@@ -3325,6 +3331,15 @@ function rmInitData(){
       rmMkT('Fix dominio email → usare dominio Thinkr corretto','high','S'),
       rmMkT('Implementare progress bar progetto','med','M'),
       rmMkT('Fix board task → testo non visibile','high','S'),
+    ]),
+  ];
+}
+
+function rmInitDataAgent(){
+  return [
+    rmMkP('I Miei Progetti','La mia roadmap personale — aggiungi i tuoi progetti qui',RM_COLS[0],[
+      rmMkT('Rinomina questo progetto con il tuo primo progetto attivo','high','S'),
+      rmMkT('Aggiungi le task che stai seguendo','med','M'),
     ]),
   ];
 }

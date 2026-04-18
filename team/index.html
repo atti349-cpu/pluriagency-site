@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEAM — PLURIAGENCY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060608;--panel:#0d0d12;--panel2:#111118;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#e8e8f0;--muted:#6a6a8a;--accent:#00ff88;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--text);min-height:100vh;font-family:'Inter',sans-serif;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(6,6,8,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 40px;display:flex;align-items:center;gap:32px;height:56px;}
+.nav-logo{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:var(--accent);letter-spacing:2px;text-decoration:none;}
+.nav-links{display:flex;gap:24px;margin-left:auto;}
+.nav-links a{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:1px;transition:color .2s;}
+.nav-links a:hover{color:var(--text);}
+
+/* HERO */
+.hero{padding:120px 40px 48px;text-align:center;max-width:900px;margin:0 auto;}
+.section-label{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;color:var(--muted);margin-bottom:16px;}
+.hero h1{font-family:'Orbitron',sans-serif;font-size:clamp(28px,5vw,60px);font-weight:900;letter-spacing:4px;line-height:1.1;}
+.hero h1 span{color:var(--accent);}
+.hero p{color:var(--muted);font-size:15px;margin-top:16px;max-width:520px;margin-left:auto;margin-right:auto;line-height:1.7;}
+
+/* GRID */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:24px;padding:0 40px 80px;max-width:1200px;margin:0 auto;}
+
+/* CARD */
+.tc{background:var(--panel);border:1px solid var(--border);padding:28px 24px 24px;position:relative;transition:border-color .3s,transform .3s;cursor:default;}
+.tc:hover{border-color:rgba(0,255,136,0.3);transform:translateY(-3px);}
+.tc .sc{position:absolute;width:7px;height:7px;border-color:rgba(0,255,136,0.4);}
+.tc .sc.tl{top:-1px;left:-1px;border-top:1px solid;border-left:1px solid;}
+.tc .sc.tr{top:-1px;right:-1px;border-top:1px solid;border-right:1px solid;}
+.tc .sc.bl{bottom:-1px;left:-1px;border-bottom:1px solid;border-left:1px solid;}
+.tc .sc.br{bottom:-1px;right:-1px;border-bottom:1px solid;border-right:1px solid;}
+.tc-avatar{width:80px;height:80px;border:1px solid var(--border2);overflow:hidden;margin-bottom:16px;background:var(--panel2);display:flex;align-items:center;justify-content:center;}
+.tc-avatar img{width:100%;height:100%;object-fit:cover;}
+.tc-avatar-fallback{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:700;color:var(--accent);}
+.tc-name{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;letter-spacing:2px;color:var(--accent);margin-bottom:4px;}
+.tc-role{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:14px;}
+.tc-skills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:18px;}
+.tc-skill{font-family:'Share Tech Mono',monospace;font-size:9px;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.15);color:rgba(0,255,136,0.7);padding:3px 7px;letter-spacing:.5px;}
+.tc-stats{display:flex;gap:12px;margin-bottom:18px;}
+.tc-stat{text-align:center;}
+.tc-stat-num{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;color:var(--accent);}
+.tc-stat-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.5px;margin-top:2px;}
+.tc-cta{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--accent);border:1px solid rgba(0,255,136,0.3);padding:8px 16px;text-decoration:none;transition:background .2s,color .2s;}
+.tc-cta:hover{background:rgba(0,255,136,0.1);}
+.tc-projects{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:8px;letter-spacing:.5px;}
+
+/* LOADING */
+#loading{text-align:center;padding:80px 40px;font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:2px;}
+#loading span{color:var(--accent);animation:blink .8s step-end infinite;}
+@keyframes blink{50%{opacity:0;}}
+#error-msg{text-align:center;padding:40px;font-family:'Share Tech Mono',monospace;font-size:12px;color:#ff4466;display:none;}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:24px 40px;text-align:center;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;}
+footer a{color:var(--accent);text-decoration:none;}
+
+@media(max-width:768px){
+  nav{padding:0 20px;}
+  .hero{padding:100px 20px 40px;}
+  .team-grid{padding:0 20px 60px;grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="/">PLURIAGENCY</a>
+  <div class="nav-links">
+    <a href="/">HOME</a>
+    <a href="/portfolio">PORTFOLIO</a>
+    <a href="/team" style="color:var(--accent)">TEAM</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <p class="section-label">// UNITÀ OPERATIVE — PLURIAGENCY</p>
+  <h1>MEET THE <span>TEAM</span></h1>
+  <p>Designer, sviluppatori e creativi con una visione comune: trasformare ogni progetto digitale in un'esperienza memorabile.</p>
+</div>
+
+<div id="loading">caricamento unità operative<span>_</span></div>
+<div id="error-msg">// errore connessione — riprova</div>
+<div class="team-grid" id="team-grid" style="display:none;"></div>
+
+<footer>
+  <p>&copy; 2025 <a href="/">PLURIAGENCY</a> — Bologna, Italy</p>
+</footer>
+
+<script>
+const SUPABASE_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+
+async function init(){
+  const cfg = await fetch('/api/config').then(r=>r.json()).catch(()=>null);
+  if(!cfg || !cfg.supabaseUrl){ showError(); return; }
+
+  await loadScript(SUPABASE_CDN);
+  const { createClient } = window.supabase;
+  const sb = createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+
+  // Fetch active team cards
+  const { data: cards, error } = await sb
+    .from('team_cards')
+    .select('slug,nome,ruolo,foto_url,bio,skills,stats')
+    .eq('attiva', true)
+    .order('sort_order', { ascending: true });
+
+  if(error || !cards){ showError(); return; }
+
+  // Fetch project counts per member
+  const { data: portfolio } = await sb
+    .from('portfolio_items')
+    .select('team_members')
+    .eq('visible', true);
+
+  const projectCount = {};
+  (portfolio||[]).forEach(item=>{
+    (item.team_members||[]).forEach(name=>{
+      projectCount[name] = (projectCount[name]||0)+1;
+    });
+  });
+
+  renderCards(cards, projectCount);
+}
+
+function renderCards(cards, projectCount){
+  const grid = document.getElementById('team-grid');
+  document.getElementById('loading').style.display='none';
+
+  if(!cards.length){
+    grid.innerHTML='<p style="grid-column:1/-1;text-align:center;font-family:\'Share Tech Mono\',monospace;color:var(--muted);padding:40px;">// nessun membro trovato</p>';
+    grid.style.display='grid';
+    return;
+  }
+
+  grid.innerHTML = cards.map(c => {
+    const initials = c.nome.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const avatar = c.foto_url
+      ? `<img src="${c.foto_url}" alt="${c.nome}" loading="lazy">`
+      : `<div class="tc-avatar-fallback">${initials}</div>`;
+
+    const skills = (c.skills||[]).slice(0,4).map(s=>
+      `<span class="tc-skill">${s}</span>`
+    ).join('');
+
+    const stats = (c.stats||[]).slice(0,3).map(s=>
+      `<div class="tc-stat"><div class="tc-stat-num">${s.num}</div><div class="tc-stat-label">${s.label}</div></div>`
+    ).join('');
+
+    const cnt = projectCount[c.nome] || 0;
+    const projectLine = cnt > 0
+      ? `<div class="tc-projects">> ${cnt} progett${cnt===1?'o':'i'} nel portfolio</div>`
+      : '';
+
+    const cta = c.slug
+      ? `<a class="tc-cta" href="/team/${c.slug}">&#9656; VIEW PROFILE</a>`
+      : '';
+
+    return `
+    <div class="tc">
+      <div class="sc tl"></div><div class="sc tr"></div>
+      <div class="sc bl"></div><div class="sc br"></div>
+      <div class="tc-avatar">${avatar}</div>
+      <div class="tc-name">${c.nome.toUpperCase()}</div>
+      <div class="tc-role">${c.ruolo||''}</div>
+      ${stats ? `<div class="tc-stats">${stats}</div>` : ''}
+      ${skills ? `<div class="tc-skills">${skills}</div>` : ''}
+      ${projectLine}
+      ${cta}
+    </div>`;
+  }).join('');
+
+  grid.style.display='grid';
+}
+
+function showError(){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('error-msg').style.display='block';
+}
+
+function loadScript(src){
+  return new Promise((res,rej)=>{
+    if(window.supabase){ res(); return; }
+    const s=document.createElement('script');
+    s.src=src; s.onload=res; s.onerror=rej;
+    document.head.appendChild(s);
+  });
+}
+
+init();
+</script>
+</body>
+</html>

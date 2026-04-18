@@ -403,7 +403,10 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
       <div class="terminal-line muted">&gt; initializing unit...</div>
       <span class="terminal-cursor"></span>
     </div>
-    <button class="contact-btn" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">&#9656; CONTACT</button>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:4px;">
+      <button class="contact-btn" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">&#9656; CONTACT</button>
+      <a class="contact-btn fade-target" id="member-portfolio-btn" href="#" style="display:none;text-decoration:none;">&#9656; PORTFOLIO</a>
+    </div>
   </div>
 </section>
 
@@ -818,8 +821,38 @@ function updateTeam(){
     i++; skillTimeout=setTimeout(addSkill,340);
   }
   skillTimeout=setTimeout(addSkill,600);
+  // portfolio link
+  const pBtn = document.getElementById('member-portfolio-btn');
+  if(pBtn){ if(m.slug){ pBtn.href='/team/'+m.slug; pBtn.style.display=''; } else { pBtn.style.display='none'; } }
 }
 updateTeam();
+
+// ===== TEAM CARDS DYNAMIC (Supabase) =====
+let teamCardsMap = {}; // keyed by nome.toUpperCase()
+(async function loadTeamCardsHome(){
+  try {
+    const cfg = await fetch('/api/config').then(r=>r.json());
+    if(!cfg.supabaseUrl) return;
+    const res = await fetch(`${cfg.supabaseUrl}/rest/v1/team_cards?attiva=eq.true&select=slug,nome,ruolo,foto_url,skills&order=sort_order.asc`, {
+      headers:{ 'apikey': cfg.supabaseAnonKey, 'Authorization': 'Bearer '+cfg.supabaseAnonKey }
+    });
+    const cards = await res.json();
+    if(!Array.isArray(cards)) return;
+    cards.forEach(c => {
+      const key = c.nome.toUpperCase().split(' ')[0];
+      teamCardsMap[key] = c;
+      // Enrich static team array
+      const idx = team.findIndex(m => m.name === key);
+      if(idx >= 0){
+        if(c.foto_url) team[idx].photo = c.foto_url;
+        if(c.ruolo) team[idx].role = c.ruolo;
+        if(c.slug) team[idx].slug = c.slug;
+        if(c.skills && c.skills.length) team[idx].skills = c.skills.map(s=>`> ${s} ✓`);
+      }
+    });
+    updateTeam(); // re-render with enriched data
+  } catch(e){ console.warn('Team cards load failed', e); }
+})();
 
 // ===== CONTACT FORM =====
 // ===== BRIEF CONTACT =====

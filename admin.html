@@ -524,7 +524,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .rm-wip-row:hover{background:rgba(0,255,136,.08);}
 .rm-wip-grip{color:var(--rm-text3);font-size:12px;opacity:.35;flex-shrink:0;line-height:1;cursor:grab;}
 .rm-wip-row:hover .rm-wip-grip{opacity:.8;color:var(--rm-neon);}
-.rm-wip-text{flex:1;font-size:12px;color:var(--rm-text);line-height:1.4;word-break:break-word;}
+.rm-wip-text{flex:1;font-size:12px;color:var(--rm-text);line-height:1.4;word-break:break-word;cursor:pointer;transition:color .15s;}
+.rm-wip-text:hover{color:var(--rm-neon);}
+.rm-wip-text:active{opacity:.6;}
 /* PRONTA button */
 .rm-wip-actions{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
 .rm-wip-badges{display:flex;gap:4px;}
@@ -3315,6 +3317,12 @@ function rmBuildCard(p,pi){
     rmSetupWipDrop(wipPanel, wipList, pi);
     if(wip.length>0) rmSetupTaskDragWip(wipList, pi);
 
+    /* ── NOTE (sopra input task, dopo WIP) ── */
+    const note = document.createElement('textarea');
+    note.className = 'rm-note-area'; note.placeholder = '// NOTE...'; note.value = p.note||'';
+    note.addEventListener('input',()=>{rmData[pi].note=note.value;rmAutoSave();});
+    body.appendChild(note);
+
     /* ── ADD TASK INLINE ── */
     const addWrap = document.createElement('div');
     addWrap.className = 'rm-add-input-wrap';
@@ -3364,11 +3372,6 @@ function rmBuildCard(p,pi){
     const ft = document.createElement('div'); ft.className = 'rm-proj-foot';
     ft.innerHTML = `<button class="rm-del-btn" onclick="rmDelProj(${pi})">RIMUOVI PROGETTO</button>`;
     body.appendChild(ft);
-
-    const note = document.createElement('textarea');
-    note.className = 'rm-note-area'; note.placeholder = '// NOTE...'; note.value = p.note||'';
-    note.addEventListener('input',()=>{rmData[pi].note=note.value;rmAutoSave();});
-    body.appendChild(note);
     card.appendChild(body);
     rmSetupTaskDrag(tl, pi, 'open');
   }
@@ -3400,6 +3403,10 @@ function rmBuildWipRow(t,pi){
       rmShowToast('// TASK COMPLETATA ✓');
     }, 350);
   });
+  row.querySelector('.rm-wip-text').addEventListener('click', e=>{
+    e.stopPropagation();
+    navigator.clipboard.writeText(t.text).then(()=>rmShowToast('// COPIATO ✓')).catch(()=>{});
+  });
   return row;
 }
 
@@ -3414,7 +3421,18 @@ function rmBuildRow(t,pi){
     <span class="rm-badge rm-badge-cx ${RM_CC[t.complexity||'none']}" title="Complessità">${t.complexity||'—'}</span>
     <span class="rm-badge rm-badge-p ${RM_PC[t.priority||'none']}" title="Priorità">${RM_PL[t.priority||'none']}</span>
     <span class="rm-task-del" title="Elimina">✕</span>`;
-  row.querySelector('.rm-task-cb').addEventListener('change', e=>{e.stopPropagation();rmTogTask(pi,t.id);});
+  row.querySelector('.rm-task-cb').addEventListener('change', e=>{
+    e.stopPropagation();
+    if(t.done){
+      // task completata → riapri (toggle normale)
+      rmTogTask(pi,t.id);
+    } else {
+      // task aperta → manda in WIP
+      const tk=rmData[pi].tasks.find(x=>x.id===t.id);
+      if(tk){ tk.wip=true; tk.done=false; }
+      rmAutoSave(); rmRender();
+    }
+  });
   row.querySelector('.rm-task-text').addEventListener('input', e=>{const tk=rmData[pi].tasks.find(x=>x.id===t.id);if(tk){tk.text=e.target.innerText;rmAutoSave();}});
   const badges = row.querySelectorAll('.rm-badge');
   badges[0].addEventListener('click',e=>{e.stopPropagation();rmCycCx(pi,t.id);});

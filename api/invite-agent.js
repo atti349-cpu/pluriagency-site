@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     body: JSON.stringify({
       email,
       data: { name, role: 'agent' },
-      redirect_to: 'https://pluriagency.com/admin'
+      redirect_to: 'https://www.pluriagency.com/admin'
     })
   });
 

@@ -2855,6 +2855,7 @@ document.getElementById('cliente-modal').addEventListener('click', e => { if(e.t
 
 // ===== TEAM CARDS =====
 let _tcEditId = null;
+let _tcCards = [];
 
 function toggleTeamForm(card){
   const form = document.getElementById('form-team');
@@ -2970,10 +2971,11 @@ async function loadTeamCards(){
   if(error){ container.innerHTML = `<div class="loading-row">✗ ${error.message}</div>`; return; }
   if(!data||!data.length){ container.innerHTML = '<div class="loading-row">&gt; nessuna card — crea la prima con "+ NUOVA CARD"</div>'; return; }
   container.innerHTML = '';
-  data.forEach(c => container.appendChild(buildTeamRow(c)));
+  _tcCards = data;
+  data.forEach((c, i) => container.appendChild(buildTeamRow(c, i)));
 }
 
-function buildTeamRow(c){
+function buildTeamRow(c, idx){
   const row = document.createElement('div');
   row.className = 'item-card';
   row.style.cssText = 'display:grid;grid-template-columns:auto 1fr auto;gap:1rem;align-items:center;padding:0.85rem 1rem;';
@@ -2986,20 +2988,21 @@ function buildTeamRow(c){
   row.innerHTML = `
     ${portrait}
     <div>
-      <div style="font-weight:700;font-size:0.85rem;">${c.nome}</div>
+      <div style="font-weight:700;font-size:0.85rem;">${c.nome.replace(/</g,'&lt;')}</div>
       <div style="font-size:0.7rem;color:var(--grey);margin-top:0.15rem;">${c.ruolo||'—'} &nbsp;·&nbsp; /team/${c.slug}</div>
       <div style="margin-top:0.3rem;">${statusDot}</div>
     </div>
     <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
       <a href="/team/${c.slug}" target="_blank" class="btn-ghost" style="padding:0.3rem 0.65rem;font-size:0.65rem;">↗ VEDI</a>
-      <button class="btn-ghost" style="padding:0.3rem 0.65rem;font-size:0.65rem;" onclick='tcEditCard(${JSON.stringify(c)})'>✎ MODIFICA</button>
-      <button class="btn-ghost" style="padding:0.3rem 0.65rem;font-size:0.65rem;color:var(--red);" onclick="deleteTeamCard('${c.id}','${c.nome.replace(/'/g,"\\'")}')">✗ ELIMINA</button>
+      <button class="btn-ghost" style="padding:0.3rem 0.65rem;font-size:0.65rem;" data-tc-idx="${idx}">✎ MODIFICA</button>
+      <button class="btn-ghost" style="padding:0.3rem 0.65rem;font-size:0.65rem;color:var(--red);" data-tc-del-id="${c.id}" data-tc-del-nome="${c.nome.replace(/"/g,'&quot;')}">✗ ELIMINA</button>
     </div>`;
+  row.querySelector('[data-tc-idx]').addEventListener('click', () => toggleTeamForm(_tcCards[idx]));
+  row.querySelector('[data-tc-del-id]').addEventListener('click', (e) => {
+    const btn = e.currentTarget;
+    deleteTeamCard(btn.dataset.tcDelId, btn.dataset.tcDelNome);
+  });
   return row;
-}
-
-function tcEditCard(c){
-  toggleTeamForm(c);
 }
 
 // ===== AGENTI =====
@@ -3087,10 +3090,17 @@ async function loadAgenti(){
 }
 
 async function deleteAgente(id, email, btn){
-  if(!confirm(`Rimuovere l'agente ${email}?`)) return;
+  if(!confirm(`Rimuovere l'agente ${email}? Verrà eliminato anche l'accesso al pannello.`)) return;
   btn.disabled = true;
+  // 1. Rimuovi dalla tabella agenti
   const { error } = await _sb.from('agenti').delete().eq('id', id);
   if(error){ alert('Errore: ' + error.message); btn.disabled = false; return; }
+  // 2. Rimuovi da Supabase auth.users (così può essere ri-invitato)
+  await fetch('/api/delete-agent', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
   loadAgenti();
 }
 

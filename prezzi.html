@@ -349,8 +349,9 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-// ===== SERVICES DATA =====
-const CATS = [
+// ===== SERVICES DATA (fallback hardcoded — sovrascritta da Supabase se disponibile) =====
+let CATS = null; // popolato da initCatalog()
+const CATS_FALLBACK = [
   {
     id:'web', label:'SITI WEB',
     items:[
@@ -431,6 +432,36 @@ const CATS = [
     ]
   },
 ];
+
+// ===== CATALOG INIT (Supabase → fallback) =====
+async function initCatalog(){
+  try {
+    const cfg = await fetch('/api/config').then(r=>r.json());
+    if(cfg.error || !cfg.supabaseUrl) throw new Error('config');
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const { data, error } = await sb
+      .from('service_catalog')
+      .select('*')
+      .eq('active', true)
+      .order('cat_id').order('sort_order');
+    if(error || !data || !data.length) throw new Error('empty');
+    // raggruppa per cat_id
+    const catMap = {};
+    data.forEach(row => {
+      if(!catMap[row.cat_id]) catMap[row.cat_id] = { id: row.cat_id, label: row.cat_label, items: [] };
+      catMap[row.cat_id].items.push({
+        id: row.id, name: row.name, sub: row.description||'',
+        price: row.price, priceMax: row.price_max,
+        monthly: !!row.monthly, yearly: !!row.yearly
+      });
+    });
+    CATS = Object.values(catMap);
+  } catch(e) {
+    CATS = CATS_FALLBACK;
+  }
+  buildUI();
+  loadAgenti();
+}
 
 // State
 const selected = {}; // { id: { item, qty, priceUsed } }
@@ -879,8 +910,7 @@ async function savePreventivo(payload){
   }
 }
 
-buildUI();
-loadAgenti();
+initCatalog(); // carica da Supabase → fallback hardcoded → buildUI() + loadAgenti()
 
 // ===== PDF GENERATION (jsPDF) =====
 async function buildPDFBase64(clientName, agentName, today, lines, sub, disc, saved, ivaPct, ivaAmount, total, notes) {

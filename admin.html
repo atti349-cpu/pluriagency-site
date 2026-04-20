@@ -1501,7 +1501,7 @@ function switchSection(name, btnEl){
     loadPortfolio();
   if(name==='demo' && !document.getElementById('demo-list').querySelector('.demo-row'))
     loadDemo();
-  if(name==='preventivi') loadPreventivi();
+  if(name==='preventivi'){ loadPreventivi(); loadServiceCatalog(); }
   if(name==='leads') loadLeads();
   if(name==='clienti') loadClienti();
   if(name==='agenti') loadAgenti();
@@ -2335,49 +2335,159 @@ async function addPvNote(pvId){
   if(logEl) logEl.innerHTML = buildNotesLog(newLog);
 }
 
-// ===== NUOVO PREVENTIVO DA ADMIN =====
-const NPV_CATS = [
+// ===== CATALOGO PRODOTTI (da Supabase, fallback hardcoded) =====
+const NPV_CATS_FALLBACK = [
   {id:'web',label:'WEB',items:[
-    {id:'web-az-b',name:'Sito Aziendale Basic',price:1700},{id:'web-az-p',name:'Digital Showroom 3D',price:2500},
-    {id:'web-ris-b',name:'Sito Ristorante Basic',price:1500},{id:'web-ris-p',name:'Sistema Vendita Ristorante',price:2500},
-    {id:'web-pro-b',name:'Sito Professionista Basic',price:1500},{id:'web-pro-p',name:'Digital Identity Tool',price:2200},
-    {id:'web-dev-h',name:'Costo Sviluppo Orario',price:20},
+    {id:'web-az-b',name:'Sito Aziendale Basic',description:'Presenza professionale solida e immediata',price:1700,price_max:2200},
+    {id:'web-az-p',name:'Digital Showroom 3D',description:'Il tuo prodotto vive nello schermo — 3D interattivo',price:2500,price_max:5000},
+    {id:'web-ris-b',name:'Sito Ristorante Basic',description:'Menu digitale smart, QR e delivery',price:1500,price_max:2000},
+    {id:'web-ris-p',name:'Sistema Vendita Ristorante',description:'Il sito che lavora ogni sera al posto tuo',price:2500,price_max:4500},
+    {id:'web-pro-b',name:'Sito Professionista Basic',description:'Il biglietto da visita digitale del 2025',price:1500,price_max:2000},
+    {id:'web-pro-p',name:'Digital Identity Tool',description:'Strumento di acquisizione clienti',price:2200,price_max:3500},
+    {id:'web-dev-h',name:'Costo Sviluppo Orario',description:'Tariffa oraria sviluppo / personalizzazione',price:20,price_max:80},
   ]},
   {id:'grafica',label:'GRAFICA',items:[
-    {id:'g-logo',name:'Logo Design',price:150},{id:'g-brand',name:'Brand Kit Completo',price:300},
-    {id:'g-loc',name:'Locandina / Flyer',price:80},{id:'g-broch',name:'Brochure / Catalogo',price:150},
-    {id:'g-deck',name:'Deck / Presentazione',price:150},{id:'g-music',name:'Grafica Musica & Eventi',price:80},
-    {id:'g-card',name:'Business Card',price:150},{id:'g-dev-h',name:'Costo Sviluppo Orario',price:20},
+    {id:'g-logo',name:'Logo Design',description:'Il simbolo che ti rappresenta ovunque',price:150,price_max:500},
+    {id:'g-brand',name:'Brand Kit Completo',description:'Logo + palette + tipografia + guida',price:300,price_max:1000},
+    {id:'g-loc',name:'Locandina / Flyer',description:'Stampa e digitale',price:80,price_max:250},
+    {id:'g-broch',name:'Brochure / Catalogo',description:'Layout professionale su misura',price:150,price_max:500},
+    {id:'g-deck',name:'Deck / Presentazione',description:'Pitch, proposta commerciale',price:150,price_max:400},
+    {id:'g-music',name:'Grafica Musica & Eventi',description:'Artwork release, visual DJ',price:80,price_max:400},
+    {id:'g-card',name:'Business Card',description:'Coordinata al brand + QR digitale',price:150,price_max:350},
+    {id:'g-dev-h',name:'Costo Sviluppo Orario',description:'Tariffa oraria sviluppo / personalizzazione',price:20,price_max:80},
   ]},
   {id:'foto',label:'FOTO/VIDEO',items:[
-    {id:'f-base',name:'Shooting Base',price:200},{id:'f-pro',name:'Shooting Pro Multi-camera',price:500},
-    {id:'v-reel',name:'Reel / Short Video',price:150},{id:'v-ist',name:'Video Istituzionale',price:500},
-    {id:'foto-dev-h',name:'Costo Sviluppo Orario',price:20},
+    {id:'f-base',name:'Shooting Base',description:'Ritratto, prodotto, locale',price:200,price_max:400},
+    {id:'f-pro',name:'Shooting Pro Multi-camera',description:'Team senior, risultati che si vedono',price:500,price_max:1500},
+    {id:'v-reel',name:'Reel / Short Video',description:'Per Instagram, TikTok, LinkedIn',price:150,price_max:300},
+    {id:'v-ist',name:'Video Istituzionale',description:"Racconta l'azienda con il peso che merita",price:500,price_max:2000},
+    {id:'foto-dev-h',name:'Costo Sviluppo Orario',description:'Tariffa oraria sviluppo / personalizzazione',price:20,price_max:80},
   ]},
   {id:'treed',label:'3D',items:[
-    {id:'3d-base',name:'Modello 3D Base',price:150},{id:'3d-render',name:'Rendering Prodotto',price:500},
-    {id:'3d-anim',name:'Animazione 3D',price:400},{id:'3d-cgi',name:'Scena CGI / Visual',price:600},
-    {id:'treed-dev-h',name:'Costo Sviluppo Orario',price:20},
+    {id:'3d-base',name:'Modello 3D Base',description:'Oggetto semplice pronto per il web .GLB',price:150,price_max:400},
+    {id:'3d-render',name:'Rendering Prodotto Realistico',description:'PBR, materiali fotorealistici',price:500,price_max:1500},
+    {id:'3d-anim',name:'Animazione 3D',description:'Spot, hero video, animazione prodotto',price:400,price_max:1200},
+    {id:'3d-cgi',name:'Scena CGI / Visual',description:'Compositing, scena architettonica',price:600,price_max:2000},
+    {id:'treed-dev-h',name:'Costo Sviluppo Orario',description:'Tariffa oraria sviluppo / personalizzazione',price:20,price_max:80},
   ]},
   {id:'auto',label:'AUTOMAZIONI',items:[
-    {id:'auto-email',name:'Email Automation & CRM',price:400},{id:'auto-chat',name:'Chatbot AI Personalizzato',price:600},
-    {id:'auto-dash',name:'Dashboard Analytics',price:500},{id:'auto-flow',name:'Workflow Personalizzato',price:350},
-    {id:'auto-dev-h',name:'Costo Sviluppo Orario',price:20},
+    {id:'auto-email',name:'Email Automation & CRM',description:'Flussi automatici dai contatti',price:400,price_max:1200},
+    {id:'auto-chat',name:'Chatbot AI Personalizzato',description:'Assistente AI integrato nel sito',price:600,price_max:2000},
+    {id:'auto-dash',name:'Dashboard Analytics',description:'Monitor dati in tempo reale',price:500,price_max:1500},
+    {id:'auto-flow',name:'Workflow Personalizzato',description:'Integrazione tool aziendali',price:350,price_max:900},
+    {id:'auto-dev-h',name:'Costo Sviluppo Orario',description:'Tariffa oraria sviluppo / personalizzazione',price:20,price_max:80},
   ]},
   {id:'pack',label:'PACCHETTI',items:[
-    {id:'p-media',name:'Sistema Media Ristorante',price:300,monthly:true},{id:'p-senior',name:'Shooting Senior — Team',price:600},
-    {id:'p-lancio',name:'Lancio Prodotto',price:800},{id:'p-kit',name:'Kit Identità Fisica + Digitale',price:2800},
-    {id:'p-tutor',name:'Marketing Tutoring',price:500},{id:'p-retainer',name:'Retainer Grafica Mensile',price:350,monthly:true},
+    {id:'p-media',name:'Sistema Media Ristorante',description:'Schermo + shooting mensile / canone',price:300,price_max:300,monthly:true},
+    {id:'p-senior',name:'Shooting Senior — Team',description:'3 fotografi + 1 videomaker senior',price:600,price_max:1200},
+    {id:'p-lancio',name:'Lancio Prodotto',description:'Tutto chiavi in mano',price:800,price_max:2000},
+    {id:'p-kit',name:'Kit Identità Fisica + Digitale',description:'Sito + business card + shooting',price:2800,price_max:4000},
+    {id:'p-tutor',name:'Marketing Tutoring',description:'Strategia, visual, comunicazione',price:500,price_max:1500},
+    {id:'p-retainer',name:'Retainer Grafica Mensile',description:'8 asset/mese, turnaround 48h',price:350,price_max:700,monthly:true},
+    {id:'pack-dev-h',name:'Costo Sviluppo Orario',description:'Tariffa oraria sviluppo / personalizzazione',price:20,price_max:80},
   ]},
   {id:'maint',label:'MANUTENZIONE',items:[
-    {id:'m-basic',name:'Basic Care',price:100,yearly:true},{id:'m-std',name:'Standard Care',price:250,yearly:true},
-    {id:'m-prem',name:'Premium Care',price:500,yearly:true},{id:'mc-mod',name:'Modifica Contenuto',price:30},
-    {id:'mc-pag',name:'Nuova Pagina / Sezione',price:150},{id:'mc-blog',name:'Setup Blog',price:300},
-    {id:'maint-dev-h',name:'Costo Sviluppo Orario',price:20},
+    {id:'m-basic',name:'Basic Care',description:'Sicurezza, backup, uptime / anno',price:100,price_max:100,yearly:true},
+    {id:'m-std',name:'Standard Care',description:'Basic + 5 modifiche / anno',price:250,price_max:250,yearly:true},
+    {id:'m-prem',name:'Premium Care',description:'Modifiche illimitate + priority / anno',price:500,price_max:500,yearly:true},
+    {id:'mc-mod',name:'Modifica Contenuto',description:'Testi, immagini, prezzi',price:30,price_max:60},
+    {id:'mc-pag',name:'Nuova Pagina / Sezione',description:'Aggiunta strutturale al sito',price:150,price_max:400},
+    {id:'mc-blog',name:'Setup Blog',description:'Template + struttura + 3 articoli',price:300,price_max:600},
+    {id:'maint-dev-h',name:'Costo Sviluppo Orario',description:'Tariffa oraria sviluppo / personalizzazione',price:20,price_max:80},
   ]},
 ];
-const NPV_ALL = NPV_CATS.flatMap(c => c.items.map(i => ({...i, cat: c.label})));
+let NPV_CATS = NPV_CATS_FALLBACK;
+let NPV_ALL = NPV_CATS.flatMap(c => c.items.map(i => ({...i, cat: c.label})));
 const _npvSelected = {}; // id → {item, qty, price}
+
+// carica catalogo da Supabase e aggiorna NPV_CATS + NPV_ALL
+async function loadServiceCatalog(){
+  if(!_sb) return;
+  try {
+    const { data, error } = await _sb
+      .from('service_catalog')
+      .select('*')
+      .eq('active', true)
+      .order('cat_id').order('sort_order');
+    if(error || !data || !data.length) return; // mantieni fallback
+    const catMap = {};
+    data.forEach(row => {
+      if(!catMap[row.cat_id]) catMap[row.cat_id] = { id: row.cat_id, label: row.cat_label, items: [] };
+      catMap[row.cat_id].items.push({
+        id: row.id, name: row.name, description: row.description||'',
+        price: row.price, price_max: row.price_max,
+        monthly: !!row.monthly, yearly: !!row.yearly
+      });
+    });
+    NPV_CATS = Object.values(catMap);
+    NPV_ALL = NPV_CATS.flatMap(c => c.items.map(i => ({...i, cat: c.label})));
+  } catch(e){ /* mantieni fallback */ }
+}
+
+// ===== EDIT INLINE CATALOGO (solo admin) =====
+async function catEditItem(itemId){
+  const item = NPV_ALL.find(i => i.id === itemId);
+  if(!item) return;
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML = `
+    <div style="background:var(--panel);border:1px solid var(--v);padding:1.5rem;width:420px;max-width:95vw;font-family:'Share Tech Mono',monospace">
+      <div style="font-size:.6rem;letter-spacing:.2em;color:var(--v);margin-bottom:1rem">✎ MODIFICA PRODOTTO</div>
+      <div style="display:flex;flex-direction:column;gap:.6rem">
+        <div>
+          <div class="field-label">NOME</div>
+          <input id="cat-edit-name" class="field-input" value="${(item.name||'').replace(/"/g,'&quot;')}" style="width:100%">
+        </div>
+        <div>
+          <div class="field-label">DESCRIZIONE</div>
+          <input id="cat-edit-desc" class="field-input" value="${(item.description||'').replace(/"/g,'&quot;')}" style="width:100%" placeholder="Sottotitolo breve">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+          <div>
+            <div class="field-label">PREZZO MIN (€)</div>
+            <input id="cat-edit-price" class="field-input" type="number" value="${item.price||0}" min="0">
+          </div>
+          <div>
+            <div class="field-label">PREZZO MAX (€)</div>
+            <input id="cat-edit-pricemax" class="field-input" type="number" value="${item.price_max||item.price||0}" min="0">
+          </div>
+        </div>
+        <div id="cat-edit-msg" style="font-size:.58rem;color:var(--g1);min-height:14px"></div>
+        <div style="display:flex;gap:.5rem;margin-top:.5rem">
+          <button class="btn-primary" style="flex:1" onclick="catSaveItem('${itemId}')">↑ SALVA</button>
+          <button class="btn-ghost" onclick="this.closest('[style*=fixed]').remove()">ANNULLA</button>
+        </div>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+async function catSaveItem(itemId){
+  const name = document.getElementById('cat-edit-name')?.value.trim();
+  const desc = document.getElementById('cat-edit-desc')?.value.trim();
+  const price = parseInt(document.getElementById('cat-edit-price')?.value)||0;
+  const priceMax = parseInt(document.getElementById('cat-edit-pricemax')?.value)||0;
+  const msg = document.getElementById('cat-edit-msg');
+  if(!name){ if(msg) msg.textContent = '⚠ nome obbligatorio'; return; }
+  if(msg){ msg.style.color='var(--muted)'; msg.textContent = '> salvataggio...'; }
+  const { error } = await _sb.from('service_catalog')
+    .update({ name, description: desc, price, price_max: priceMax, updated_at: new Date().toISOString() })
+    .eq('id', itemId);
+  if(error){
+    if(msg){ msg.style.color='var(--red)'; msg.textContent = '⚠ errore: '+error.message; }
+    return;
+  }
+  // aggiorna in memoria
+  const item = NPV_ALL.find(i => i.id === itemId);
+  if(item){ item.name = name; item.description = desc; item.price = price; item.price_max = priceMax; }
+  const catItem = NPV_CATS.flatMap(c=>c.items).find(i=>i.id===itemId);
+  if(catItem){ catItem.name = name; catItem.description = desc; catItem.price = price; catItem.price_max = priceMax; }
+  if(msg){ msg.style.color='var(--g1)'; msg.textContent = '✓ salvato'; }
+  setTimeout(()=>{ document.querySelector('[style*="position:fixed"][style*="inset:0"][style*="9999"]')?.remove(); },700);
+}
+
+// ===== NUOVO PREVENTIVO DA ADMIN =====
 
 function toggleNewPvForm(){
   const form = document.getElementById('form-nuovo-pv');
@@ -2424,9 +2534,11 @@ function npvItemRow(item){
   const sel = _npvSelected[item.id];
   const suffix = item.monthly ? '/mese' : item.yearly ? '/anno' : '';
   const price = sel ? sel.price : item.price;
+  const editBtn = _isAdmin ? `<button onclick="event.stopPropagation();catEditItem('${item.id}')" title="Modifica prodotto" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:.65rem;padding:0 3px;flex-shrink:0;opacity:.5;transition:opacity .15s" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=.5">✎</button>` : '';
   return `<div id="npv-item-${item.id}" style="display:flex;align-items:center;gap:.6rem;padding:.4rem .5rem;cursor:pointer;border-bottom:1px solid var(--border);background:${sel ? 'var(--v-dim)' : 'transparent'}" onclick="npvToggleItem('${item.id}')">
     <div style="width:12px;height:12px;border:1px solid ${sel ? 'var(--v)' : 'var(--muted)'};background:${sel ? 'var(--v)' : 'transparent'};flex-shrink:0"></div>
     <div style="flex:1;font-family:'Share Tech Mono',monospace;font-size:.6rem;color:${sel ? 'var(--v)' : 'var(--text)'}">${item.name}</div>
+    ${editBtn}
     ${sel ? `<div style="display:flex;align-items:center;gap:.3rem;flex-wrap:wrap">
       <button onclick="npvQty('${item.id}',-1,event)" style="width:18px;height:18px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:10px">-</button>
       <span style="font-family:'Share Tech Mono',monospace;font-size:.6rem;min-width:16px;text-align:center">${sel.qty}</span>

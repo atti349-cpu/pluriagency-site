@@ -2133,17 +2133,26 @@ function openPvModal(id){
     ${pv.notes ? `<div class="pv-info-key" style="margin-bottom:.4rem;margin-top:1rem">Note preventivo</div><div class="pv-notes-box">${pv.notes.replace(/</g,'&lt;')}</div>` : ''}
 
     ${!isLocked ? `<div class="pv-edit-section" id="pv-edit-items-wrap">
-      <div class="pv-info-key" style="margin-bottom:.6rem">MODIFICA PRODOTTI</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
+        <div class="pv-info-key">MODIFICA PRODOTTI</div>
+        <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer;user-select:none">
+          <input type="checkbox" id="pv-iva-toggle" ${pv.iva_pct>0?'checked':''} style="accent-color:var(--v);cursor:pointer">
+          <span style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)">IVA 22%</span>
+        </label>
+      </div>
       <div id="pv-edit-items-list">${buildPvEditItems(pv)}</div>
       <div class="pv-add-product-row" style="position:relative">
         <input id="pv-prod-search-input" class="pv-prod-search" placeholder="▸ cerca prodotto..." autocomplete="off" oninput="pvSearchProducts(this.value,'${id}')" onfocus="pvSearchProducts(this.value,'${id}')">
         <input id="pv-prod-qty" class="pv-prod-qty" type="number" min="1" value="1">
         <div id="pv-prod-results" class="pv-prod-results" style="display:none"></div>
       </div>
-      <button class="pv-save-items-btn" onclick="pvSaveItems('${id}')">↑ SALVA MODIFICHE</button>
+      <div style="display:flex;gap:.5rem;align-items:center;margin-top:.75rem">
+        <button class="pv-save-items-btn" style="flex:1;margin-top:0" onclick="pvSaveItems('${id}')">↑ SALVA MODIFICHE</button>
+        <button class="btn-ghost" style="font-size:.6rem;padding:.65rem 1.1rem;letter-spacing:.12em;white-space:nowrap;height:100%" onclick="preventivoGeneraPDF('${id}')">↓ PDF</button>
+      </div>
     </div>` : ''}
 
-    <div class="pv-status-actions">${statusActions}</div>
+    <div class="pv-status-actions">${statusActions}${isLocked?`<button class="btn-ghost" style="font-size:.58rem;padding:.5rem .9rem;letter-spacing:.12em" onclick="preventivoGeneraPDF('${id}')">↓ PDF</button>`:''}</div>
 
     <div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1rem">
       <div class="pv-info-key" style="margin-bottom:.75rem">NOTE TEAM <span style="font-size:.5rem;color:var(--muted);letter-spacing:.05em">(visibili solo agli assegnati)</span></div>
@@ -2155,9 +2164,7 @@ function openPvModal(id){
       </div>` : ''}
     </div>
 
-    <div style="margin-top:1.25rem;border-top:1px solid var(--border);padding-top:1rem;text-align:right">
-      <button class="btn-ghost" style="font-size:.58rem;letter-spacing:.15em" onclick="preventivoGeneraPDF('${id}')">↓ SCARICA PDF</button>
-    </div>`;
+`;
 
   document.getElementById('pv-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -2251,15 +2258,17 @@ async function pvSaveItems(pvId){
   const disc = pv.discount_pct||0;
   const discAmt = parseFloat((subtotal * disc / 100).toFixed(2));
   const imponibile = subtotal - discAmt;
-  const ivaPct = pv.iva_pct||0;
+  // legge toggle IVA dal modal; fallback al valore salvato
+  const ivaToggle = document.getElementById('pv-iva-toggle');
+  const ivaPct = ivaToggle ? (ivaToggle.checked ? 22 : 0) : (pv.iva_pct||0);
   const ivaAmt = parseFloat((imponibile * ivaPct / 100).toFixed(2));
   const total = parseFloat((imponibile + ivaAmt).toFixed(2));
   const { error } = await _sb.from('preventivi')
-    .update({ items: _pvEditItems, subtotal, discount_amount: discAmt, iva_amount: ivaAmt, total, updated_at: new Date().toISOString() })
+    .update({ items: _pvEditItems, subtotal, discount_amount: discAmt, iva_pct: ivaPct, iva_amount: ivaAmt, total, updated_at: new Date().toISOString() })
     .eq('id', pvId);
   if(error){ alert('Errore salvataggio: ' + error.message); return; }
   // aggiorna mappa locale
-  Object.assign(_preventiviMap[pvId], { items: _pvEditItems, subtotal, discount_amount: discAmt, iva_amount: ivaAmt, total });
+  Object.assign(_preventiviMap[pvId], { items: _pvEditItems, subtotal, discount_amount: discAmt, iva_pct: ivaPct, iva_amount: ivaAmt, total });
   closePvModal();
   openPvModal(pvId); // riapre mostrando dati aggiornati
   loadPreventivi(); // aggiorna lista

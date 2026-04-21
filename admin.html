@@ -226,6 +226,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
   align-items:center;gap:.75rem;padding:.9rem 1.1rem;transition:border-color .15s;}
 .pv-row:hover{border-color:var(--border2);}
 .pv-row.pv-venduto{border-left:2px solid var(--g1);}
+.pv-row.pv-ordine{border-left:2px solid #00cfff;}
 .pv-row.pv-rifiutato{opacity:.45;}
 .pv-client{font-family:'Orbitron',monospace;font-size:.78rem;font-weight:700;letter-spacing:1px;color:var(--text);}
 .pv-agent{font-family:'Share Tech Mono',monospace;font-size:.58rem;letter-spacing:.12em;color:var(--muted);margin-top:2px;}
@@ -236,6 +237,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .pv-status.bozza{color:#6b6b80;border-color:rgba(107,107,128,.3);}
 .pv-status.inviato{color:var(--g3);border-color:rgba(0,207,255,.3);background:rgba(0,207,255,.05);}
 .pv-status.check{color:#ffc800;border-color:rgba(255,200,0,.3);background:rgba(255,200,0,.05);}
+.pv-status.ordine{color:#00cfff;border-color:rgba(0,207,255,.4);background:rgba(0,207,255,.07);}
 .pv-status.venduto{color:var(--g1);border-color:rgba(0,255,136,.3);background:rgba(0,255,136,.05);}
 .pv-status.rifiutato{color:var(--red);border-color:rgba(255,74,106,.3);}
 .pv-actions{display:flex;gap:.4rem;flex-shrink:0;}
@@ -403,6 +405,54 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
   border-bottom:1px solid rgba(255,74,106,.3);font-family:'Share Tech Mono',monospace;
   font-size:.65rem;letter-spacing:.05em;color:var(--red);}
 #error-banner.visible{display:block;}
+
+/* ══════════════════════════════════════
+   FATTURAZIONE SECTION
+   ══════════════════════════════════════ */
+.fat-wrap { padding:0 0 4rem; max-width:960px; }
+.fat-kpi-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:.75rem; margin-bottom:1.5rem; }
+.fat-kpi { border:1px solid var(--border); background:var(--panel); padding:.9rem 1rem; }
+.fat-kpi-label { font-family:'Share Tech Mono',monospace; font-size:.5rem; letter-spacing:.25em; color:var(--muted); margin-bottom:.4rem; text-transform:uppercase; }
+.fat-kpi-val { font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:700; color:var(--text); }
+.fat-kpi-sub { font-family:'Share Tech Mono',monospace; font-size:.5rem; color:var(--muted); margin-top:.2rem; }
+.fat-filters { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1rem; align-items:center; }
+.fat-filter-sel { font-family:'Share Tech Mono',monospace; font-size:.6rem; letter-spacing:.1em; padding:.4rem .7rem; background:var(--panel); border:1px solid var(--border); color:var(--text); cursor:pointer; }
+.fat-list { display:flex; flex-direction:column; gap:.4rem; }
+.fat-row { display:grid; grid-template-columns:1fr 120px 90px 90px 110px auto; align-items:center; gap:.75rem; padding:.75rem 1rem; border:1px solid var(--border); background:var(--panel); border-left:2px solid transparent; transition:border-color .15s; cursor:pointer; }
+.fat-row:hover { border-color:var(--border2); }
+.fat-row.fat-scadenza { border-left-color:var(--red); }
+.fat-row.fat-attivo { border-left-color:var(--v); }
+.fat-row.fat-pagato { border-left-color:var(--g1); opacity:.65; }
+.fat-cell { font-family:'Share Tech Mono',monospace; font-size:.6rem; letter-spacing:.05em; }
+.fat-cell-name { font-family:'Orbitron',monospace; font-size:.7rem; font-weight:700; letter-spacing:.05em; color:var(--text); }
+.fat-cell-sub { font-family:'Share Tech Mono',monospace; font-size:.5rem; color:var(--muted); margin-top:2px; }
+.fat-badge { padding:2px 7px; font-family:'Share Tech Mono',monospace; font-size:.5rem; letter-spacing:.1em; border:1px solid; white-space:nowrap; }
+.fat-badge.attivo { color:var(--v); border-color:rgba(155,92,255,.3); }
+.fat-badge.scadenza { color:var(--red); border-color:rgba(255,74,106,.3); background:var(--red-dim); }
+.fat-badge.pagato { color:var(--g1); border-color:rgba(0,255,136,.3); }
+.fat-badge.cancellato { color:var(--muted); border-color:rgba(107,107,128,.2); }
+.fat-badge.mensile { color:var(--g3); border-color:rgba(0,207,255,.3); background:rgba(0,207,255,.05); }
+.fat-badge.annuale { color:var(--v2); border-color:rgba(200,155,255,.3); background:rgba(200,155,255,.05); }
+/* canone modal */
+.can-modal { display:none; position:fixed; inset:0; z-index:700; background:rgba(0,0,0,.75); align-items:center; justify-content:center; }
+.can-modal.open { display:flex; }
+.can-modal-wrap { background:var(--panel); border:1px solid var(--border2); width:520px; max-width:95vw; max-height:85vh; overflow-y:auto; }
+.can-modal-head { display:flex; align-items:center; justify-content:space-between; padding:1rem 1.25rem; border-bottom:1px solid var(--border); }
+.can-modal-title { font-family:'Orbitron',monospace; font-size:.85rem; font-weight:700; letter-spacing:.1em; color:var(--text); }
+.can-modal-body { padding:1.25rem; display:flex; flex-direction:column; gap:.85rem; }
+/* ordine item checklist overlay */
+.ordine-overlay { display:none; position:fixed; inset:0; z-index:800; background:rgba(0,0,0,.8); align-items:center; justify-content:center; }
+.ordine-overlay.open { display:flex; }
+.ordine-wrap { background:var(--panel); border:1px solid var(--v); width:560px; max-width:95vw; max-height:85vh; display:flex; flex-direction:column; }
+.ordine-head { padding:1rem 1.25rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.ordine-title { font-family:'Orbitron',monospace; font-size:.85rem; font-weight:700; letter-spacing:.1em; color:var(--v); }
+.ordine-body { flex:1; overflow-y:auto; padding:1rem 1.25rem; }
+.ordine-item { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:.75rem; padding:.6rem .5rem; border-bottom:1px solid var(--border); }
+.ordine-item:last-child { border-bottom:none; }
+.ordine-item-name { font-family:'Share Tech Mono',monospace; font-size:.65rem; letter-spacing:.08em; color:var(--text); }
+.ordine-item-price { font-family:'Orbitron',monospace; font-size:.7rem; font-weight:700; color:var(--v); white-space:nowrap; }
+.ordine-item-badge { font-family:'Share Tech Mono',monospace; font-size:.48rem; padding:1px 5px; border:1px solid rgba(0,207,255,.4); color:#00cfff; white-space:nowrap; }
+.ordine-foot { padding:1rem 1.25rem; border-top:1px solid var(--border); display:flex; gap:.5rem; justify-content:flex-end; align-items:center; }
 
 /* ══════════════════════════════════════
    EDITOR SECTION
@@ -802,6 +852,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         <button class="sb-item" id="nav-clienti" onclick="switchSection('clienti',this)">◈ CLIENTI</button>
         <button class="sb-item" id="nav-preventivi" onclick="switchSection('preventivi',this)">◈ PREVENTIVI</button>
         <button class="sb-item" id="nav-progetti" onclick="switchSection('progetti',this)">◈ PROGETTI</button>
+        <button class="sb-item" id="nav-fatturazione" onclick="switchSection('fatturazione',this)" style="display:none">◈ FATTURAZIONE</button>
         <div class="sb-divider"></div>
         <div class="sb-section-label">TEAM</div>
         <button class="sb-item" id="nav-agenti" onclick="switchSection('agenti',this)" style="display:none">◈ AGENTI</button>
@@ -1330,6 +1381,74 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         </div>
       </section>
 
+      <!-- === FATTURAZIONE SECTION === -->
+      <section id="section-fatturazione" style="display:none">
+        <div class="fat-wrap">
+          <div class="section-head" style="margin-bottom:1.5rem">
+            <div>
+              <h1 class="section-title">◈ FATTURAZIONE</h1>
+              <p class="section-sub">canoni ricorrenti e gestione pagamenti</p>
+            </div>
+            <button class="btn-primary" onclick="openNuovoCanoneForm()">+ NUOVO CANONE</button>
+          </div>
+
+          <!-- form nuovo canone manuale -->
+          <div id="fat-nuovo-form" style="display:none;border:1px solid var(--border2);padding:1.25rem;margin-bottom:1.5rem;background:var(--panel)">
+            <div class="pv-info-key" style="margin-bottom:1rem">NUOVO CANONE MANUALE</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+              <div><div class="field-label">CLIENTE (nome)</div><input id="nc-client-name" class="field-input" style="width:100%" placeholder="Nome cliente"></div>
+              <div><div class="field-label">EMAIL CLIENTE</div><input id="nc-client-email" class="field-input" style="width:100%" placeholder="email@cliente.it" type="email"></div>
+              <div><div class="field-label">SERVIZIO / DESCRIZIONE</div><input id="nc-item-name" class="field-input" style="width:100%" placeholder="es. Retainer grafica mensile"></div>
+              <div><div class="field-label">IMPORTO (€)</div><input id="nc-amount" class="field-input" type="number" min="0" style="width:100%"></div>
+              <div>
+                <div class="field-label">FREQUENZA</div>
+                <select id="nc-frequency" class="field-input" style="width:100%">
+                  <option value="monthly">Mensile</option>
+                  <option value="yearly">Annuale</option>
+                </select>
+              </div>
+              <div>
+                <div class="field-label">AGENTE</div>
+                <select id="nc-agente" class="field-input" style="width:100%"><option value="">Seleziona agente...</option></select>
+              </div>
+              <div><div class="field-label">MODALITÀ PAGAMENTO</div><input id="nc-modalita" class="field-input" style="width:100%" placeholder="Bonifico / Carta / Contanti"></div>
+              <div><div class="field-label">IBAN</div><input id="nc-iban" class="field-input" style="width:100%" placeholder="IT..."></div>
+              <div style="grid-column:1/-1"><div class="field-label">NOTE FATTURAZIONE</div><textarea id="nc-note" class="field-input" rows="2" style="width:100%;resize:vertical"></textarea></div>
+            </div>
+            <div id="nc-msg" style="font-family:'Share Tech Mono',monospace;font-size:.6rem;margin-top:.75rem;min-height:14px"></div>
+            <div style="display:flex;gap:.5rem;margin-top:.75rem;justify-content:flex-end">
+              <button class="btn-ghost" onclick="document.getElementById('fat-nuovo-form').style.display='none'">ANNULLA</button>
+              <button class="btn-primary" onclick="saveNuovoCanone()">↑ SALVA CANONE</button>
+            </div>
+          </div>
+
+          <!-- KPI -->
+          <div class="fat-kpi-row" id="fat-kpi-row"></div>
+
+          <!-- filtri -->
+          <div class="fat-filters">
+            <select class="fat-filter-sel" id="fat-filter-stato" onchange="renderFatList()">
+              <option value="">Tutti gli stati</option>
+              <option value="attivo">Attivi</option>
+              <option value="pagato">Pagati</option>
+              <option value="scaduto">Scaduti</option>
+              <option value="cancellato">Cancellati</option>
+            </select>
+            <select class="fat-filter-sel" id="fat-filter-freq" onchange="renderFatList()">
+              <option value="">Tutte le frequenze</option>
+              <option value="monthly">Mensili</option>
+              <option value="yearly">Annuali</option>
+            </select>
+            <select class="fat-filter-sel" id="fat-filter-agente" onchange="renderFatList()">
+              <option value="">Tutti gli agenti</option>
+            </select>
+            <button class="btn-ghost" style="font-size:.58rem;padding:.4rem .8rem;letter-spacing:.1em" onclick="exportCanoniCSV()">↓ CSV</button>
+          </div>
+
+          <div class="fat-list" id="fat-list"><div style="color:var(--muted);font-size:.7rem;padding:2rem 0">> caricamento_</div></div>
+        </div>
+      </section>
+
       <!-- === ROADMAP SECTION === -->
       <section id="section-roadmap" style="display:none">
         <div class="rm-page">
@@ -1382,6 +1501,39 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
       </section>
 
     </main>
+  </div>
+</div>
+
+<!-- ORDINE OVERLAY — checklist articoli -->
+<div class="ordine-overlay" id="ordine-overlay">
+  <div class="ordine-wrap">
+    <div class="ordine-head">
+      <div class="ordine-title">◈ CONVERTI IN ORDINE</div>
+      <button class="modal-close" onclick="document.getElementById('ordine-overlay').classList.remove('open')">&#10005;</button>
+    </div>
+    <div class="ordine-body">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted);margin-bottom:1rem;line-height:1.6">
+        Seleziona gli articoli <strong style="color:var(--text)">accettati dal cliente</strong>. Solo questi verranno inclusi nel progetto.<br>
+        Gli articoli <span style="color:#00cfff">mensili/annuali</span> genereranno automaticamente un canone ricorrente.
+      </div>
+      <div id="ordine-items-list"></div>
+    </div>
+    <div class="ordine-foot">
+      <div id="ordine-selected-count" style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted);margin-right:auto"></div>
+      <button class="btn-ghost" onclick="document.getElementById('ordine-overlay').classList.remove('open')">ANNULLA</button>
+      <button class="btn-primary" style="background:rgba(0,207,255,.1);border-color:rgba(0,207,255,.5);color:#00cfff" onclick="confermaOrdine()">◈ CONFERMA ORDINE</button>
+    </div>
+  </div>
+</div>
+
+<!-- CANONE DETAIL MODAL -->
+<div class="can-modal" id="can-modal">
+  <div class="can-modal-wrap">
+    <div class="can-modal-head">
+      <div class="can-modal-title" id="can-modal-title">CANONE</div>
+      <button class="modal-close" onclick="closeCanModal()">&#10005;</button>
+    </div>
+    <div class="can-modal-body" id="can-modal-body"></div>
   </div>
 </div>
 
@@ -1471,7 +1623,7 @@ async function showDashboard(user){
   _isAdmin = isAdmin;
 
   // Sezioni admin-only: LEADS, AGENTI, TEAM, EDITOR
-  ['nav-leads','nav-agenti','nav-team','nav-editor'].forEach(id => {
+  ['nav-leads','nav-agenti','nav-team','nav-editor','nav-fatturazione'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.style.display = isAdmin ? 'flex' : 'none';
   });
@@ -1560,7 +1712,7 @@ function closeSidebarMobile(){
 
 function switchSection(name, btnEl){
   closeSidebarMobile();
-  ['portfolio','demo','preventivi','leads','clienti','agenti','team','progetti','roadmap','tokens','editor'].forEach(s => {
+  ['portfolio','demo','preventivi','leads','clienti','agenti','team','progetti','fatturazione','roadmap','tokens','editor'].forEach(s => {
     const sec = document.getElementById('section-'+s);
     if(sec) sec.style.display = s===name ? 'block' : 'none';
     const nav = document.getElementById('nav-'+s);
@@ -1578,6 +1730,7 @@ function switchSection(name, btnEl){
   if(name==='progetti') loadProgetti();
   if(name==='roadmap') loadRoadmap();
   if(name==='tokens') loadTokens();
+  if(name==='fatturazione') loadFatturazione();
   if(name==='editor') loadEditor();
 }
 
@@ -2098,7 +2251,7 @@ function buildPreventivoRow(pv){
 
   const total = (pv.total||0).toLocaleString('it-IT', { style:'currency', currency:'EUR' });
   const date  = new Date(pv.created_at).toLocaleDateString('it-IT');
-  const isLocked = pv.status === 'venduto';
+  const isLocked = pv.status === 'venduto' || pv.status === 'ordine';
 
   row.innerHTML = `
     <div>
@@ -2128,21 +2281,36 @@ function openPvModal(id){
   const subtotal  = (pv.subtotal||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
   const date      = new Date(pv.created_at).toLocaleDateString('it-IT');
   const isLocked  = pv.status === 'venduto';
+  const isOrdine  = pv.status === 'ordine';
+  const canEdit   = !isLocked && !isOrdine;
 
-  const itemRows  = (pv.items||[]).map(it =>
-    `<tr>
-      <td>${it.name}</td>
+  // item rows — ordine items highlighted if status=ordine
+  const ordineIds = new Set((pv.ordine_items||[]).map(i=>i.id));
+  const itemRows  = (pv.items||[]).map(it => {
+    const inOrdine = isOrdine && ordineIds.size && ordineIds.has(it.id);
+    const rowStyle = inOrdine ? ' style="background:rgba(0,207,255,.04)"' : (isOrdine && ordineIds.size && !ordineIds.has(it.id) ? ' style="opacity:.35"' : '');
+    return `<tr${rowStyle}>
+      <td>${it.name}${inOrdine ? ' <span style="font-size:.48rem;color:#00cfff;border:1px solid rgba(0,207,255,.4);padding:1px 4px;letter-spacing:.05em">ORDINE</span>' : ''}</td>
       <td style="text-align:center">${it.qty||1}</td>
       <td>${(it.unit_price||0).toLocaleString('it-IT')} €</td>
       <td>${(it.total||0).toLocaleString('it-IT')} €</td>
-    </tr>`
-  ).join('');
+    </tr>`;
+  }).join('');
 
-  const statusActions = isLocked ? `<div class="pv-status venduto" style="display:inline-block">✓ VENDUTO — TRATTATIVA CHIUSA</div>` : `
-    <button class="pv-status-btn" onclick="setPvStatus('${id}','inviato')">▶ INVIATO</button>
-    <button class="pv-status-btn" style="color:#ffc800;border-color:rgba(255,200,0,.4)" onclick="setPvStatus('${id}','check')">⏳ IN CHECK</button>
-    <button class="pv-status-btn confirm" onclick="setPvStatus('${id}','venduto')">✓ VENDUTO</button>
-    <button class="pv-status-btn danger" onclick="setPvStatus('${id}','rifiutato')">✕ RIFIUTATO</button>`;
+  let statusActions;
+  if(isLocked){
+    statusActions = `<div class="pv-status venduto" style="display:inline-block">✓ VENDUTO — TRATTATIVA CHIUSA</div>`;
+  } else if(isOrdine){
+    statusActions = `
+      <div class="pv-status ordine" style="display:inline-block">◈ ORDINE ATTIVO</div>
+      <button class="pv-status-btn confirm" onclick="setPvStatus('${id}','venduto')">✓ CHIUDI / PAGATO</button>`;
+  } else {
+    statusActions = `
+      <button class="pv-status-btn" onclick="setPvStatus('${id}','inviato')">▶ INVIATO</button>
+      <button class="pv-status-btn" style="color:#ffc800;border-color:rgba(255,200,0,.4)" onclick="setPvStatus('${id}','check')">⏳ IN CHECK</button>
+      <button class="pv-status-btn" style="color:#00cfff;border-color:rgba(0,207,255,.4);background:rgba(0,207,255,.05)" onclick="openOrdineOverlay('${id}')">◈ CONVERTI IN ORDINE</button>
+      <button class="pv-status-btn danger" onclick="setPvStatus('${id}','rifiutato')">✕ RIFIUTATO</button>`;
+  }
 
   // Cliente cell: unified (assign inline if not yet linked)
   const clientCell = pv.client_id
@@ -2182,7 +2350,8 @@ function openPvModal(id){
       <div style="display:flex;gap:.35rem;align-items:center;flex-shrink:0">
         <input id="pv-collab-input" class="field-input" type="email" placeholder="email@agente.it" style="font-size:.6rem;padding:.35rem .55rem;width:160px">
         <button class="btn-ghost" style="font-size:.52rem;padding:.3rem .55rem;white-space:nowrap" onclick="addCollaboratorToPv('${id}')">+ ADD</button>
-      </div>` : ''}
+      </div>
+      ` : ''}
     </div>
 
     <table class="pv-items-table" style="margin-top:1.1rem">
@@ -2203,7 +2372,7 @@ function openPvModal(id){
 
     ${pv.notes ? `<div class="pv-info-key" style="margin-bottom:.4rem;margin-top:1rem">Note preventivo</div><div class="pv-notes-box">${pv.notes.replace(/</g,'&lt;')}</div>` : ''}
 
-    ${!isLocked ? `<div class="pv-edit-section" id="pv-edit-items-wrap">
+    ${canEdit ? `<div class="pv-edit-section" id="pv-edit-items-wrap">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
         <div class="pv-info-key">MODIFICA PRODOTTI</div>
         <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer;user-select:none">
@@ -2223,7 +2392,7 @@ function openPvModal(id){
       </div>
     </div>` : ''}
 
-    <div class="pv-status-actions">${statusActions}${isLocked?`<button class="btn-ghost" style="font-size:.58rem;padding:.5rem .9rem;letter-spacing:.12em" onclick="preventivoGeneraPDF('${id}')">↓ PDF</button>`:''}</div>
+    <div class="pv-status-actions">${statusActions}${(isLocked||isOrdine)?`<button class="btn-ghost" style="font-size:.58rem;padding:.5rem .9rem;letter-spacing:.12em" onclick="preventivoGeneraPDF('${id}')">↓ PDF</button>`:''}</div>
 
     <div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1rem">
       <div class="pv-info-key" style="margin-bottom:.75rem">NOTE TEAM <span style="font-size:.5rem;color:var(--muted);letter-spacing:.05em">(visibili solo agli assegnati)</span></div>
@@ -2347,16 +2516,122 @@ async function pvSaveItems(pvId){
 
 async function setPvStatus(id, newStatus){
   if(newStatus === 'venduto'){
-    if(!confirm('Segnare come VENDUTO? Questa azione è irreversibile — il preventivo non potrà più essere modificato.')) return;
+    if(!confirm('Chiudere come PAGATO/VENDUTO? Questa azione è irreversibile.')) return;
   }
   const { error } = await _sb.from('preventivi')
     .update({ status: newStatus, updated_at: new Date().toISOString() })
     .eq('id', id);
   if(error){ alert('Errore: ' + error.message); return; }
-  // crea automaticamente il progetto quando venduto
-  if(newStatus === 'venduto') await creaProgettoFromPreventivo(id);
   closePvModal();
   loadPreventivi();
+}
+
+// ── ORDINE OVERLAY ──
+let _ordineCurrentPvId = null;
+
+function openOrdineOverlay(pvId){
+  const pv = _preventiviMap[pvId];
+  if(!pv || !pv.items?.length){ alert('Preventivo senza articoli.'); return; }
+  _ordineCurrentPvId = pvId;
+  const list = document.getElementById('ordine-items-list');
+  list.innerHTML = (pv.items||[]).map((it,i) => {
+    const isRecurring = it.monthly || it.yearly;
+    const badge = it.monthly ? '<span class="ordine-item-badge">MENSILE</span>'
+                : it.yearly  ? '<span class="ordine-item-badge" style="border-color:rgba(200,155,255,.4);color:var(--v2)">ANNUALE</span>' : '';
+    return `<div class="ordine-item">
+      <input type="checkbox" id="ordine-chk-${i}" data-idx="${i}" checked
+        style="accent-color:#00cfff;width:16px;height:16px;cursor:pointer;flex-shrink:0"
+        onchange="ordineUpdateCount()">
+      <div>
+        <div class="ordine-item-name">${escHtml(it.name)} ${badge}</div>
+        ${it.qty>1 ? `<div style="font-family:'Share Tech Mono',monospace;font-size:.5rem;color:var(--muted)">x${it.qty}</div>` : ''}
+      </div>
+      <div class="ordine-item-price">${(it.total||0).toLocaleString('it-IT')} €</div>
+    </div>`;
+  }).join('');
+  ordineUpdateCount();
+  document.getElementById('ordine-overlay').classList.add('open');
+}
+
+function ordineUpdateCount(){
+  const checked = document.querySelectorAll('#ordine-items-list input[type=checkbox]:checked').length;
+  const total = document.querySelectorAll('#ordine-items-list input[type=checkbox]').length;
+  const el = document.getElementById('ordine-selected-count');
+  if(el) el.textContent = `${checked} / ${total} articoli selezionati`;
+}
+
+async function confermaOrdine(){
+  const pvId = _ordineCurrentPvId;
+  if(!pvId) return;
+  const pv = _preventiviMap[pvId];
+  const checkboxes = document.querySelectorAll('#ordine-items-list input[type=checkbox]');
+  const selectedItems = [];
+  checkboxes.forEach((chk, i) => {
+    if(chk.checked && pv.items[i]) selectedItems.push(pv.items[i]);
+  });
+  if(!selectedItems.length){ alert('Seleziona almeno un articolo.'); return; }
+
+  const btn = document.querySelector('#ordine-overlay .btn-primary');
+  if(btn){ btn.disabled = true; btn.textContent = '> salvataggio...'; }
+
+  // 1. Aggiorna preventivo → ordine + salva ordine_items
+  const { error } = await _sb.from('preventivi').update({
+    status: 'ordine',
+    ordine_items: selectedItems,
+    updated_at: new Date().toISOString()
+  }).eq('id', pvId);
+  if(error){ alert('Errore: ' + error.message); if(btn){ btn.disabled=false; btn.textContent='◈ CONFERMA ORDINE'; } return; }
+
+  // 2. Aggiorna in-memory
+  if(_preventiviMap[pvId]){ _preventiviMap[pvId].status='ordine'; _preventiviMap[pvId].ordine_items=selectedItems; }
+
+  // 3. Crea progetto con articoli selezionati
+  await creaProgettoFromPreventivo(pvId, selectedItems);
+
+  // 4. Crea canoni per articoli monthly/yearly
+  await creaCanoniFromOrdine(pvId, selectedItems);
+
+  document.getElementById('ordine-overlay').classList.remove('open');
+  closePvModal();
+  loadPreventivi();
+}
+
+async function creaCanoniFromOrdine(pvId, selectedItems){
+  const pv = _preventiviMap[pvId];
+  if(!pv) return;
+  const ricorrenti = selectedItems.filter(it => it.monthly || it.yearly);
+  if(!ricorrenti.length) return;
+
+  // recupera project_id appena creato
+  const { data: proj } = await _sb.from('projects').select('id').eq('preventivo_id', pvId).maybeSingle();
+  const projectId = proj?.id || null;
+
+  const today = new Date();
+  const canoni = ricorrenti.map(it => {
+    let nextPayment;
+    if(it.monthly){
+      // primo del mese prossimo
+      nextPayment = new Date(today.getFullYear(), today.getMonth()+1, 1).toISOString().slice(0,10);
+    } else {
+      // stesso giorno, anno prossimo
+      nextPayment = new Date(today.getFullYear()+1, today.getMonth(), today.getDate()).toISOString().slice(0,10);
+    }
+    return {
+      preventivo_id: pvId,
+      project_id: projectId,
+      client_name: pv.client_name || '',
+      client_email: pv.client_email || null,
+      agente_email: pv.agent_email || null,
+      agente_name: pv.agent_name || null,
+      item_name: it.name,
+      amount: it.total || it.unit_price || 0,
+      frequency: it.monthly ? 'monthly' : 'yearly',
+      data_attivazione: today.toISOString().slice(0,10),
+      data_prossimo_pagamento: nextPayment,
+      stato: 'attivo'
+    };
+  });
+  await _sb.from('canoni').insert(canoni);
 }
 
 async function deletePv(id, btn){
@@ -4421,7 +4696,7 @@ function preventivoGeneraPDF(pvId){
   doc.setFontSize(8.5); doc.setFont('helvetica','normal');
   doc.setTextColor(110,110,110);
   const pvDate = new Date(pv.created_at).toLocaleDateString('it-IT');
-  const statusLabels={bozza:'BOZZA',inviato:'INVIATO',check:'IN CHECK',venduto:'VENDUTO',rifiutato:'RIFIUTATO'};
+  const statusLabels={bozza:'BOZZA',inviato:'INVIATO',check:'IN CHECK',ordine:'ORDINE ATTIVO',venduto:'VENDUTO',rifiutato:'RIFIUTATO'};
   doc.text(`N° ${(pv.id||'').slice(0,8).toUpperCase()}  —  ${pvDate}`,15,y);
   doc.text(`Stato: ${statusLabels[pv.status]||pv.status.toUpperCase()}`,pageW-15,y,{align:'right'});
   y+=8;
@@ -4556,23 +4831,264 @@ function progettiGeneraPDF(){
   doc.save(`contratto_${p.client_name.replace(/\s+/g,'_')}.pdf`);
 }
 
-// Auto-crea progetto quando preventivo → venduto (chiamata da setPvStatus)
-async function creaProgettoFromPreventivo(pvId){
+// Crea progetto da preventivo → ordine (con articoli selezionati)
+async function creaProgettoFromPreventivo(pvId, selectedItems){
   const pv = _preventiviMap[pvId];
   if(!pv) return;
-  // controlla se esiste già
   const { data: existing } = await _sb.from('projects').select('id').eq('preventivo_id', pvId).maybeSingle();
-  if(existing) return; // già creato
+  if(existing) return;
+  // calcola totale dagli articoli selezionati
+  const ordineTotal = selectedItems
+    ? selectedItems.reduce((s,it) => s + (it.total||0), 0)
+    : (pv.total || 0);
   await _sb.from('projects').insert({
     preventivo_id: pvId,
     client_name: pv.client_name,
     client_email: pv.client_email || null,
     agent_email: pv.agent_email || null,
     agent_name: pv.agent_name || null,
-    total: pv.total || 0,
+    total: ordineTotal,
     title: `${pv.client_name} — ${new Date().toLocaleDateString('it-IT')}`,
     status: 'step_1',
   });
+}
+
+// ===== FATTURAZIONE =====
+let _canoniData = [];
+
+async function loadFatturazione(){
+  if(!_sb) return;
+  const list = document.getElementById('fat-list');
+  if(list) list.innerHTML = '<div style="color:var(--muted);font-size:.7rem;padding:1rem 0">> caricamento_</div>';
+
+  const { data, error } = await _sb.from('canoni').select('*').order('data_prossimo_pagamento');
+  if(error){ if(list) list.innerHTML = `<div style="color:var(--red);font-size:.7rem">⚠ ${error.message}</div>`; return; }
+  _canoniData = data || [];
+
+  // popola filtro agenti
+  const agenteSet = new Set(_canoniData.map(c=>c.agente_email).filter(Boolean));
+  const agenteFilter = document.getElementById('fat-filter-agente');
+  if(agenteFilter){
+    agenteFilter.innerHTML = '<option value="">Tutti gli agenti</option>';
+    agenteSet.forEach(email => {
+      const opt = document.createElement('option');
+      opt.value = email; opt.textContent = email;
+      agenteFilter.appendChild(opt);
+    });
+  }
+
+  // popola select agente in form nuovo canone
+  const ncAgente = document.getElementById('nc-agente');
+  if(ncAgente){
+    ncAgente.innerHTML = '<option value="">Seleziona agente...</option>';
+    agenteSet.forEach(email => {
+      const opt = document.createElement('option');
+      opt.value = email; opt.textContent = email;
+      ncAgente.appendChild(opt);
+    });
+    // se nessun canone ancora, carica da agenti
+    if(!agenteSet.size){
+      const { data: ag } = await _sb.from('agenti').select('email,name').eq('active',true).order('name');
+      (ag||[]).forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.email; opt.textContent = a.name || a.email;
+        ncAgente.appendChild(opt);
+      });
+    }
+  }
+
+  renderFatKpi();
+  renderFatList();
+}
+
+function fatFilteredData(){
+  const stato = document.getElementById('fat-filter-stato')?.value || '';
+  const freq = document.getElementById('fat-filter-freq')?.value || '';
+  const agente = document.getElementById('fat-filter-agente')?.value || '';
+  return _canoniData.filter(c =>
+    (!stato || c.stato === stato) &&
+    (!freq  || c.frequency === freq) &&
+    (!agente || c.agente_email === agente)
+  );
+}
+
+function renderFatKpi(){
+  const row = document.getElementById('fat-kpi-row');
+  if(!row) return;
+  const attivi = _canoniData.filter(c=>c.stato==='attivo');
+  const mensili = attivi.filter(c=>c.frequency==='monthly').reduce((s,c)=>s+Number(c.amount),0);
+  const annuali = attivi.filter(c=>c.frequency==='yearly').reduce((s,c)=>s+Number(c.amount),0);
+  const oggi = new Date();
+  const sette = new Date(oggi); sette.setDate(sette.getDate()+7);
+  const scadImm = attivi.filter(c=>c.data_prossimo_pagamento && new Date(c.data_prossimo_pagamento)<=sette).length;
+  row.innerHTML = `
+    <div class="fat-kpi"><div class="fat-kpi-label">CANONI ATTIVI</div><div class="fat-kpi-val">${attivi.length}</div></div>
+    <div class="fat-kpi"><div class="fat-kpi-label">MRR (mensili)</div><div class="fat-kpi-val">€ ${mensili.toLocaleString('it-IT')}</div><div class="fat-kpi-sub">al mese</div></div>
+    <div class="fat-kpi"><div class="fat-kpi-label">ARR (annuali)</div><div class="fat-kpi-val">€ ${annuali.toLocaleString('it-IT')}</div><div class="fat-kpi-sub">all'anno</div></div>
+    <div class="fat-kpi" style="${scadImm>0?'border-color:rgba(255,74,106,.35)':''}"><div class="fat-kpi-label" style="${scadImm>0?'color:var(--red)':''}">IN SCADENZA 7gg</div><div class="fat-kpi-val" style="${scadImm>0?'color:var(--red)':''}">${scadImm}</div></div>
+  `;
+}
+
+function renderFatList(){
+  const list = document.getElementById('fat-list');
+  if(!list) return;
+  const data = fatFilteredData();
+  if(!data.length){ list.innerHTML = '<div style="color:var(--muted);font-size:.7rem;padding:1rem 0">nessun canone trovato</div>'; return; }
+  const oggi = new Date();
+  const sette = new Date(oggi); sette.setDate(sette.getDate()+7);
+
+  list.innerHTML = data.map(c => {
+    const nextDate = c.data_prossimo_pagamento ? new Date(c.data_prossimo_pagamento) : null;
+    const isScad = nextDate && nextDate <= sette && c.stato === 'attivo';
+    const rowCls = c.stato==='pagato' ? 'fat-pagato' : (c.stato==='cancellato' ? '' : (isScad ? 'fat-scadenza' : 'fat-attivo'));
+    const freqBadge = c.frequency==='monthly'
+      ? '<span class="fat-badge mensile">MENSILE</span>'
+      : '<span class="fat-badge annuale">ANNUALE</span>';
+    const statoBadge = `<span class="fat-badge ${c.stato}">${c.stato.toUpperCase()}</span>`;
+    const nextStr = nextDate ? nextDate.toLocaleDateString('it-IT') : '—';
+    return `<div class="fat-row ${rowCls}" onclick="openCanModal('${c.id}')">
+      <div>
+        <div class="fat-cell-name">${escHtml(c.client_name)}</div>
+        <div class="fat-cell-sub">${escHtml(c.item_name)}</div>
+      </div>
+      <div class="fat-cell">${escHtml(c.agente_email||'—')}</div>
+      <div class="fat-cell">${freqBadge}</div>
+      <div class="fat-cell"><strong style="font-family:'Orbitron',monospace;font-size:.7rem;color:var(--v)">€ ${Number(c.amount).toLocaleString('it-IT')}</strong></div>
+      <div class="fat-cell" style="${isScad?'color:var(--red)':''}">↻ ${nextStr}</div>
+      <div>${statoBadge}</div>
+    </div>`;
+  }).join('');
+}
+
+async function openNuovoCanoneForm(){
+  const form = document.getElementById('fat-nuovo-form');
+  if(!form) return;
+  const isOpen = form.style.display !== 'none';
+  form.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen){
+    ['nc-client-name','nc-client-email','nc-item-name','nc-amount','nc-modalita','nc-iban','nc-note'].forEach(id=>{
+      const el = document.getElementById(id); if(el) el.value='';
+    });
+    document.getElementById('nc-msg').textContent='';
+    // popola agenti se vuoto
+    const sel = document.getElementById('nc-agente');
+    if(sel && sel.options.length <= 1){
+      const { data } = await _sb.from('agenti').select('email,name').eq('active',true).order('name');
+      (data||[]).forEach(a=>{ const o=document.createElement('option'); o.value=a.email; o.textContent=a.name||a.email; sel.appendChild(o); });
+    }
+  }
+}
+
+async function saveNuovoCanone(){
+  const clientName = document.getElementById('nc-client-name')?.value.trim();
+  const clientEmail = document.getElementById('nc-client-email')?.value.trim();
+  const itemName = document.getElementById('nc-item-name')?.value.trim();
+  const amount = parseFloat(document.getElementById('nc-amount')?.value)||0;
+  const frequency = document.getElementById('nc-frequency')?.value || 'monthly';
+  const agenteEmail = document.getElementById('nc-agente')?.value||null;
+  const modalita = document.getElementById('nc-modalita')?.value.trim();
+  const iban = document.getElementById('nc-iban')?.value.trim();
+  const note = document.getElementById('nc-note')?.value.trim();
+  const msg = document.getElementById('nc-msg');
+  if(!clientName||!itemName||!amount){ if(msg){msg.style.color='var(--red)';msg.textContent='⚠ cliente, servizio e importo obbligatori';} return; }
+  if(msg){msg.style.color='var(--muted)';msg.textContent='> salvataggio...';}
+  const today = new Date();
+  let nextPayment;
+  if(frequency==='monthly') nextPayment = new Date(today.getFullYear(),today.getMonth()+1,1).toISOString().slice(0,10);
+  else nextPayment = new Date(today.getFullYear()+1,today.getMonth(),today.getDate()).toISOString().slice(0,10);
+  const { error } = await _sb.from('canoni').insert({
+    client_name: clientName, client_email: clientEmail||null, item_name: itemName,
+    amount, frequency, agente_email: agenteEmail, modalita_pagamento: modalita||null,
+    iban: iban||null, note_fatturazione: note||null,
+    data_attivazione: today.toISOString().slice(0,10),
+    data_prossimo_pagamento: nextPayment, stato:'attivo'
+  });
+  if(error){if(msg){msg.style.color='var(--red)';msg.textContent='⚠ '+error.message;}return;}
+  if(msg){msg.style.color='var(--g1)';msg.textContent='✓ canone salvato';}
+  setTimeout(()=>{ document.getElementById('fat-nuovo-form').style.display='none'; loadFatturazione(); },700);
+}
+
+function openCanModal(canId){
+  const c = _canoniData.find(x=>x.id===canId);
+  if(!c) return;
+  document.getElementById('can-modal-title').textContent = escHtml(c.client_name) + ' — ' + escHtml(c.item_name);
+  const nextStr = c.data_prossimo_pagamento ? new Date(c.data_prossimo_pagamento).toLocaleDateString('it-IT') : '—';
+  const attivaStr = c.data_attivazione ? new Date(c.data_attivazione).toLocaleDateString('it-IT') : '—';
+  document.getElementById('can-modal-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem">
+      <div><div class="field-label">FREQUENZA</div><div style="font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--text)">${c.frequency==='monthly'?'Mensile':'Annuale'}</div></div>
+      <div><div class="field-label">IMPORTO</div><div style="font-family:'Orbitron',monospace;font-size:.85rem;color:var(--v);font-weight:700">€ ${Number(c.amount).toLocaleString('it-IT')}</div></div>
+      <div><div class="field-label">ATTIVAZIONE</div><div style="font-family:'Share Tech Mono',monospace;font-size:.7rem">${attivaStr}</div></div>
+      <div><div class="field-label">PROSSIMO PAGAMENTO</div><div style="font-family:'Share Tech Mono',monospace;font-size:.7rem">${nextStr}</div></div>
+      <div><div class="field-label">AGENTE</div><div style="font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--muted)">${c.agente_email||'—'}</div></div>
+      <div><div class="field-label">STATO</div><span class="fat-badge ${c.stato}">${c.stato.toUpperCase()}</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.6rem">
+      <div><div class="field-label">MODALITÀ PAGAMENTO</div><input id="can-edit-modalita" class="field-input" style="width:100%" value="${escAttr(c.modalita_pagamento||'')}"></div>
+      <div><div class="field-label">IBAN</div><input id="can-edit-iban" class="field-input" style="width:100%" value="${escAttr(c.iban||'')}"></div>
+      <div><div class="field-label">NOTE FATTURAZIONE</div><textarea id="can-edit-note" class="field-input" rows="3" style="width:100%;resize:vertical">${escHtml(c.note_fatturazione||'')}</textarea></div>
+      <div><div class="field-label">DATA PROSSIMO PAGAMENTO</div><input id="can-edit-nextdate" class="field-input" type="date" style="width:100%" value="${c.data_prossimo_pagamento||''}"></div>
+      <div>
+        <div class="field-label">STATO</div>
+        <select id="can-edit-stato" class="field-input" style="width:100%">
+          <option value="attivo" ${c.stato==='attivo'?'selected':''}>Attivo</option>
+          <option value="pagato" ${c.stato==='pagato'?'selected':''}>Pagato</option>
+          <option value="scaduto" ${c.stato==='scaduto'?'selected':''}>Scaduto</option>
+          <option value="cancellato" ${c.stato==='cancellato'?'selected':''}>Cancellato</option>
+        </select>
+      </div>
+      <div id="can-modal-msg" style="font-family:'Share Tech Mono',monospace;font-size:.6rem;min-height:14px"></div>
+      <div style="display:flex;gap:.5rem;justify-content:flex-end">
+        <button class="btn-ghost" style="font-size:.6rem;color:var(--red);border-color:rgba(255,74,106,.3)" onclick="deleteCanone('${canId}')">✕ ELIMINA</button>
+        <button class="btn-primary" onclick="saveCanModal('${canId}')">↑ SALVA</button>
+      </div>
+    </div>`;
+  document.getElementById('can-modal').classList.add('open');
+}
+
+function closeCanModal(){ document.getElementById('can-modal').classList.remove('open'); }
+
+async function saveCanModal(canId){
+  const modalita = document.getElementById('can-edit-modalita')?.value.trim();
+  const iban = document.getElementById('can-edit-iban')?.value.trim();
+  const note = document.getElementById('can-edit-note')?.value.trim();
+  const nextDate = document.getElementById('can-edit-nextdate')?.value || null;
+  const stato = document.getElementById('can-edit-stato')?.value || 'attivo';
+  const msg = document.getElementById('can-modal-msg');
+  if(msg){msg.style.color='var(--muted)';msg.textContent='> salvataggio...';}
+  const { error } = await _sb.from('canoni').update({
+    modalita_pagamento: modalita||null, iban: iban||null, note_fatturazione: note||null,
+    data_prossimo_pagamento: nextDate, stato, updated_at: new Date().toISOString()
+  }).eq('id', canId);
+  if(error){if(msg){msg.style.color='var(--red)';msg.textContent='⚠ '+error.message;}return;}
+  if(msg){msg.style.color='var(--g1)';msg.textContent='✓ salvato';}
+  const idx = _canoniData.findIndex(x=>x.id===canId);
+  if(idx>-1) Object.assign(_canoniData[idx],{modalita_pagamento:modalita||null,iban:iban||null,note_fatturazione:note||null,data_prossimo_pagamento:nextDate,stato});
+  setTimeout(()=>{ closeCanModal(); renderFatKpi(); renderFatList(); },600);
+}
+
+async function deleteCanone(canId){
+  if(!confirm('Eliminare questo canone?')) return;
+  const { error } = await _sb.from('canoni').delete().eq('id',canId);
+  if(error){alert('Errore: '+error.message);return;}
+  _canoniData = _canoniData.filter(x=>x.id!==canId);
+  closeCanModal(); renderFatKpi(); renderFatList();
+}
+
+function exportCanoniCSV(){
+  const data = fatFilteredData();
+  if(!data.length){alert('Nessun dato da esportare.');return;}
+  const headers = ['cliente','email','servizio','agente','frequenza','importo','prossimo_pagamento','stato','modalita','iban','note'];
+  const rows = data.map(c=>[
+    c.client_name,c.client_email||'',c.item_name,c.agente_email||'',
+    c.frequency,c.amount,c.data_prossimo_pagamento||'',c.stato,
+    c.modalita_pagamento||'',c.iban||'',c.note_fatturazione||''
+  ].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(','));
+  const csv = [headers.join(','),...rows].join('\n');
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='canoni_pluriagency.csv'; a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ===== TOKEN MONITOR =====

@@ -1009,8 +1009,11 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
               <input class="field-input" id="dm-price" type="text" placeholder="Es. da €1.200">
             </div>
             <div class="field">
-              <label class="field-label">URL PREVIEW IMMAGINE</label>
-              <input class="field-input" id="dm-thumb" type="url" placeholder="https://...">
+              <label class="field-label">FOTO PREVIEW (solo backoffice)</label>
+              <div style="display:flex;gap:.4rem;align-items:center">
+                <input class="field-input" id="dm-thumb" type="url" placeholder="https://... oppure carica ↑" style="flex:1">
+                <button type="button" id="dm-thumb-upload-btn" class="btn-ghost" style="font-size:.55rem;padding:.45rem .75rem;white-space:nowrap;flex-shrink:0" onclick="uploadDemoThumb()">↑ CARICA</button>
+              </div>
             </div>
             <div class="field full">
               <label class="field-label">DESCRIZIONE</label>
@@ -2159,6 +2162,30 @@ async function saveDemoItem(){
   }
 }
 
+async function uploadDemoThumb(){
+  const btn = document.getElementById('dm-thumb-upload-btn');
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*';
+  input.onchange = async e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    if(btn){ btn.disabled=true; btn.textContent='...'; }
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `demo/${Date.now()}_${Math.random().toString(36).substr(2,6)}.${ext}`;
+      const { error } = await _sb.storage.from('portfolio-media').upload(path, file, { cacheControl:'3600', upsert:false });
+      if(error) throw error;
+      const { data } = _sb.storage.from('portfolio-media').getPublicUrl(path);
+      document.getElementById('dm-thumb').value = data.publicUrl;
+      if(btn){ btn.disabled=false; btn.textContent='✓ CARICATO'; setTimeout(()=>{ btn.textContent='↑ CARICA'; },1500); }
+    } catch(err) {
+      alert('Errore upload: ' + err.message);
+      if(btn){ btn.disabled=false; btn.textContent='↑ CARICA'; }
+    }
+  };
+  input.click();
+}
+
 async function loadDemo(){
   const container = document.getElementById('demo-list');
   container.innerHTML = '<div class="loading-row">> caricamento demo_</div>';
@@ -2191,12 +2218,18 @@ function buildDemoCard(item){
   const snippetLen = (item.html_snippet||'').length;
   const hiddenBadge = !item.visible ? '<div class="badge-hidden">NASCOSTO</div>' : '';
   const teamTags = (item.team_members||[]).map(n=>`<span class="item-tag" style="border-color:rgba(155,92,255,.4);color:var(--v2)">👤 ${n.replace(/</g,'&lt;')}</span>`).join('');
-  card.innerHTML = `
-    ${hiddenBadge}
-    <div class="item-thumb-placeholder" style="height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;background:#04060d;">
+  let thumb;
+  if(item.preview_image_url){
+    thumb = `<img class="item-thumb" src="${item.preview_image_url}" alt="${item.title.replace(/"/g,'&quot;')}" loading="lazy" style="height:140px;object-fit:cover" onerror="this.outerHTML='<div class=\\'item-thumb-placeholder\\' style=\\'height:100px;display:flex;align-items:center;justify-content:center;background:#04060d;\\'><span style=\\'opacity:.2\\'>\\u003c/\\u003e</span></div>'">`;
+  } else {
+    thumb = `<div class="item-thumb-placeholder" style="height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;background:#04060d;">
       <span style="font-size:1.4rem;opacity:.15">&lt;/&gt;</span>
       <span style="font-family:monospace;font-size:.5rem;color:var(--g3);opacity:.5">${snippetLen.toLocaleString('it-IT')} chars</span>
-    </div>
+    </div>`;
+  }
+  card.innerHTML = `
+    ${hiddenBadge}
+    ${thumb}
     <div class="item-body">
       <div class="item-tags"><span class="item-tag type">${item.type_tag||'demo'}</span>${teamTags}</div>
       <div class="item-name">${item.title.replace(/</g,'&lt;')}</div>
@@ -3592,8 +3625,8 @@ async function deleteCliente(id){
   if(count > 0) msg += `\n\n⚠ Questo cliente ha ${count} preventiv${count===1?'o':'i'} collegat${count===1?'o':'i'}.\nI preventivi resteranno nel sistema senza cliente associato.`;
   else msg += '\n\nNessun preventivo collegato.';
   if(!confirm(msg)) return;
-  const { error } = await _sb.from('clienti').delete().eq('id', id);
-  if(error){ alert('Errore: ' + error.message); return; }
+  const res = await fetch(`/api/delete-cliente?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if(!res.ok){ const e = await res.json().catch(()=>({error:'Errore sconosciuto'})); alert('Errore: ' + e.error); return; }
   delete _clientiMap[id];
   loadClienti();
 }
@@ -3963,7 +3996,10 @@ async function rmLoadColleagueDropdown(){
   const sel = document.getElementById('rm-colleague-sel');
   const { data } = await _sb.from('agenti').select('name,email').eq('active',true).neq('role','admin').order('name');
   if(!data || !data.length) return;
+  const seen = new Set();
   data.forEach(ag => {
+    if(!ag.email || seen.has(ag.email)) return;
+    seen.add(ag.email);
     const opt = document.createElement('option');
     opt.value = ag.email;
     opt.textContent = ag.name || ag.email;

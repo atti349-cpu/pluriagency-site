@@ -45,6 +45,15 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   padding:8px 18px;border:1px solid var(--border2);color:var(--muted);background:transparent;
   cursor:pointer;text-transform:uppercase;transition:all 0.2s;text-decoration:none;}
 .nav-back:hover{border-color:var(--g1);color:var(--g1);}
+.nav-inizia{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;
+  padding:8px 18px;border:1px solid var(--g1);color:var(--g1);background:transparent;
+  cursor:pointer;text-transform:uppercase;transition:all 0.2s;text-decoration:none;
+  position:relative;overflow:hidden;}
+.nav-inizia::before{content:'';position:absolute;inset:0;background:var(--g1);
+  transform:translateX(-100%);transition:transform .22s;}
+.nav-inizia span{position:relative;z-index:1;}
+.nav-inizia:hover::before{transform:translateX(0);}
+.nav-inizia:hover span{color:#000;}
 
 /* HERO */
 .demo-hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;
@@ -200,7 +209,10 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
 
 <nav>
   <a href="/" class="nav-logo">PLURIAGENCY</a>
-  <a href="/portfolio" class="nav-back">&#8592; Portfolio</a>
+  <div style="display:flex;gap:10px;align-items:center">
+    <a href="/portfolio" class="nav-back">&#8592; Portfolio</a>
+    <a href="#contact" class="nav-inizia"><span>&#9654; INIZIA</span></a>
+  </div>
 </nav>
 
 <section class="demo-hero">

@@ -145,19 +145,41 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:2px;}
 .port-empty.visible{display:block;}
 
-/* CTA */
-.port-cta{text-align:center;padding:40px 40px 80px;}
-.cta-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:4px;
-  color:var(--muted);margin-bottom:16px;}
-.cta-btn{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:11px;
-  letter-spacing:3px;padding:14px 36px;border:1px solid var(--g1);color:var(--g1);
-  background:transparent;cursor:pointer;text-transform:uppercase;text-decoration:none;
-  transition:all .25s;position:relative;overflow:hidden;}
-.cta-btn::before{content:'';position:absolute;inset:0;background:var(--g1);
+/* CTA / CONTACT SECTION */
+.port-contact{padding:80px 40px;border-top:1px solid var(--border);position:relative;overflow:hidden;}
+.port-contact::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:600px;height:300px;background:radial-gradient(ellipse,rgba(155,92,255,0.06) 0%,transparent 70%);
+  pointer-events:none;}
+.port-contact-inner{max-width:720px;margin:0 auto;text-align:center;}
+.port-contact-eyebrow{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:5px;
+  color:var(--g2);margin-bottom:12px;}
+.port-contact-title{font-family:'Orbitron',monospace;font-size:clamp(22px,3vw,34px);font-weight:900;
+  letter-spacing:4px;color:var(--text);margin-bottom:8px;}
+.port-contact-sub{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;
+  color:var(--muted);margin-bottom:32px;}
+.port-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:28px;}
+.port-chip{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;
+  padding:7px 18px;background:transparent;border:1px solid rgba(255,255,255,0.13);
+  color:var(--muted);cursor:pointer;text-transform:uppercase;transition:all .18s;border-radius:2px;}
+.port-contact-form{display:flex;flex-direction:column;gap:10px;max-width:480px;margin:0 auto;}
+.port-field{background:var(--panel);border:1px solid var(--border);color:var(--text);
+  font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:1px;
+  padding:12px 16px;outline:none;transition:border-color .2s;width:100%;}
+.port-field:focus{border-color:var(--g2);}
+.port-field::placeholder{color:var(--muted);}
+.port-textarea{resize:vertical;min-height:80px;}
+.port-submit{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;
+  padding:14px 36px;border:1px solid var(--g2);color:var(--g2);background:transparent;
+  cursor:pointer;text-transform:uppercase;transition:all .25s;position:relative;overflow:hidden;}
+.port-submit::before{content:'';position:absolute;inset:0;background:var(--g2);
   transform:translateX(-100%);transition:transform .25s;}
-.cta-btn span{position:relative;z-index:1;}
-.cta-btn:hover::before{transform:translateX(0);}
-.cta-btn:hover span{color:#000;}
+.port-submit span{position:relative;z-index:1;}
+.port-submit:hover::before{transform:translateX(0);}
+.port-submit:hover span{color:#fff;}
+.port-submit:disabled{opacity:.5;cursor:default;}
+.port-toast{display:none;margin-top:16px;padding:10px 20px;border:1px solid rgba(155,92,255,.4);
+  background:rgba(155,92,255,.08);font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:2px;color:var(--g2);text-align:center;}
 
 footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
 .footer-logo{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;letter-spacing:6px;
@@ -185,7 +207,10 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
 
 <nav>
   <a href="/" class="nav-logo">PLURIAGENCY</a>
-  <a href="/demo" class="nav-cta">Demo</a>
+  <div style="display:flex;gap:12px;align-items:center">
+    <a href="/demo" class="nav-back">Demo</a>
+    <a href="#contact" class="nav-cta">CONTATTI</a>
+  </div>
 </nav>
 
 <div class="port-hero">
@@ -208,10 +233,24 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
   <div class="port-empty" id="port-empty">&gt; nessun progetto trovato per questa categoria_</div>
 </div>
 
-<div class="port-cta">
-  <p class="cta-label">// HAI UN PROGETTO IN MENTE?</p>
-  <a class="cta-btn" href="/#contact"><span>&#9654; PARLIAMO</span></a>
-</div>
+<section id="contact" class="port-contact">
+  <div class="port-contact-inner">
+    <p class="port-contact-eyebrow">// 006 — TRASMETTI SEGNALE</p>
+    <h2 class="port-contact-title">CONTATTI</h2>
+    <p class="port-contact-sub">hai un progetto in mente? parliamoci.</p>
+    <div class="port-chips" id="port-chips"></div>
+    <form class="port-contact-form" id="port-contact-form" novalidate>
+      <input class="port-field" id="port-nome" type="text" placeholder="NOME_" required>
+      <input class="port-field" id="port-email" type="email" placeholder="EMAIL_" required>
+      <textarea class="port-field port-textarea" id="port-msg" placeholder="MESSAGGIO OPZIONALE_"></textarea>
+      <button type="submit" class="port-submit" id="port-submit">
+        <span class="port-submit-txt">&#9654; SEND SIGNAL</span>
+        <span class="port-submit-ldg" style="display:none">&#9654; TRASMISSIONE...</span>
+      </button>
+    </form>
+    <div class="port-toast" id="port-toast">✓ SEGNALE TRASMESSO — ti rispondiamo entro poche ore.</div>
+  </div>
+</section>
 
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="closeLB(event)">
@@ -611,6 +650,66 @@ async function initPortfolio(){
 }
 
 initPortfolio();
+
+// ===== CONTACT CHIPS FORM =====
+const PORT_CATS=[
+  {id:'web',     label:'WEB',         color:'#00ff88'},
+  {id:'grafics', label:'GRAFICS',     color:'#9b5cff'},
+  {id:'servizi', label:'SERVIZI',     color:'#00cfff'},
+  {id:'auto',    label:'AUTOMAZIONE', color:'#ffaa00'},
+];
+const _portSel=new Set();
+(function(){
+  const wrap=document.getElementById('port-chips');
+  if(!wrap)return;
+  PORT_CATS.forEach(d=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='port-chip';
+    btn.textContent=d.label;
+    btn.addEventListener('click',()=>{
+      if(_portSel.has(d.id)){
+        _portSel.delete(d.id);
+        btn.style.borderColor='rgba(255,255,255,0.13)';
+        btn.style.color='var(--muted)';
+        btn.style.background='transparent';
+        btn.style.boxShadow='none';
+      }else{
+        _portSel.add(d.id);
+        btn.style.borderColor=d.color+'88';
+        btn.style.color=d.color;
+        btn.style.background=d.color+'12';
+        btn.style.boxShadow='0 0 8px '+d.color+'33';
+      }
+    });
+    wrap.appendChild(btn);
+  });
+})();
+document.getElementById('port-contact-form').addEventListener('submit',async function(e){
+  e.preventDefault();
+  const btn=document.getElementById('port-submit');
+  const name=document.getElementById('port-nome').value.trim();
+  const email=document.getElementById('port-email').value.trim();
+  const msg=document.getElementById('port-msg').value.trim();
+  if(!name||!email){alert('Nome e email sono obbligatori');return;}
+  btn.disabled=true;
+  btn.querySelector('.port-submit-txt').style.display='none';
+  btn.querySelector('.port-submit-ldg').style.display='';
+  try{
+    const selected=[..._portSel];
+    await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,email,message:msg,area:selected.join(',').toUpperCase()||'PORTFOLIO',services:selected,site:'pluriagency.com/portfolio'})});
+    fetch('/api/save-lead',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({nome:name,email,messaggio:msg,area:selected.join(',').toUpperCase()||'PORTFOLIO',servizi:selected,fonte:'portfolio'})}).catch(()=>{});
+    const toast=document.getElementById('port-toast');
+    toast.style.display='block';
+    btn.querySelector('.port-submit-ldg').textContent='✓ SEGNALE TRASMESSO';
+    setTimeout(()=>{btn.querySelector('.port-submit-txt').style.display='';btn.querySelector('.port-submit-ldg').style.display='none';btn.querySelector('.port-submit-ldg').textContent='▶ TRASMISSIONE...';btn.disabled=false;},5000);
+  }catch{
+    btn.querySelector('.port-submit-ldg').textContent='✕ ERRORE — RIPROVA';
+    setTimeout(()=>{btn.querySelector('.port-submit-txt').style.display='';btn.querySelector('.port-submit-ldg').style.display='none';btn.querySelector('.port-submit-ldg').textContent='▶ TRASMISSIONE...';btn.disabled=false;},3000);
+  }
+});
 </script>
 <footer>
   <div class="footer-logo">PLURIAGENCY</div>

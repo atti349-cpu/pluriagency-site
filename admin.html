@@ -405,6 +405,51 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 #error-banner.visible{display:block;}
 
 /* ══════════════════════════════════════
+   EDITOR SECTION
+   ══════════════════════════════════════ */
+.editor-wrap { padding: 0 0 4rem; max-width: 940px; }
+.editor-header { margin-bottom: 1.5rem; }
+.editor-title { font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:900; letter-spacing:.15em; color:var(--text); margin-bottom:.25rem; }
+.editor-sub { font-family:'Share Tech Mono',monospace; font-size:.6rem; letter-spacing:.15em; color:var(--muted); }
+.editor-tabs { display:flex; gap:.25rem; border-bottom:1px solid var(--border); margin-bottom:1.5rem; }
+.editor-tab { font-family:'Share Tech Mono',monospace; font-size:.6rem; letter-spacing:.15em; text-transform:uppercase; padding:.55rem 1rem; border:none; border-bottom:2px solid transparent; background:transparent; color:var(--muted); cursor:pointer; transition:all .15s; }
+.editor-tab:hover { color:var(--text); }
+.editor-tab.active { color:var(--v); border-bottom-color:var(--v); }
+.editor-panel { display:none; }
+.editor-panel.active { display:block; }
+.editor-cat-block { margin-bottom:1.5rem; border:1px solid var(--border); }
+.editor-cat-head { display:flex; align-items:center; justify-content:space-between; padding:.55rem 1rem; background:var(--panel); border-bottom:1px solid var(--border); cursor:pointer; user-select:none; }
+.editor-cat-label { font-family:'Share Tech Mono',monospace; font-size:.6rem; letter-spacing:.2em; color:var(--v); }
+.editor-cat-toggle { font-family:'Share Tech Mono',monospace; font-size:.55rem; color:var(--muted); }
+.editor-cat-body { padding:.75rem; display:flex; flex-direction:column; gap:.5rem; background:var(--panel2); }
+.editor-item { border:1px solid var(--border); padding:.6rem .8rem; background:var(--bg); display:grid; grid-template-columns:1fr auto; align-items:center; gap:.5rem; }
+.editor-item-info { min-width:0; }
+.editor-item-name { font-family:'Share Tech Mono',monospace; font-size:.62rem; letter-spacing:.1em; color:var(--text); margin-bottom:.15rem; }
+.editor-item-desc { font-family:'Share Tech Mono',monospace; font-size:.55rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.editor-item-prices { font-family:'Share Tech Mono',monospace; font-size:.55rem; color:var(--v2); }
+.editor-item-actions { display:flex; gap:.35rem; flex-shrink:0; }
+.editor-btn-edit { font-family:'Share Tech Mono',monospace; font-size:.55rem; letter-spacing:.1em; padding:.3rem .6rem; border:1px solid var(--border2); background:transparent; color:var(--v); cursor:pointer; transition:all .15s; }
+.editor-btn-edit:hover { background:var(--v-dim); }
+.editor-inline-form { display:none; flex-direction:column; gap:.5rem; padding:.75rem; border:1px solid var(--border2); background:var(--panel); margin-top:.25rem; }
+.editor-inline-form.open { display:flex; }
+.editor-inline-row { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; }
+.editor-inline-row.full { grid-template-columns:1fr; }
+.editor-inline-actions { display:flex; gap:.4rem; justify-content:flex-end; }
+.editor-save-btn { font-family:'Share Tech Mono',monospace; font-size:.55rem; letter-spacing:.1em; padding:.35rem .75rem; border:1px solid var(--v); color:var(--v); background:transparent; cursor:pointer; transition:all .15s; }
+.editor-save-btn:hover { background:var(--v-dim); }
+.editor-cancel-btn { font-family:'Share Tech Mono',monospace; font-size:.55rem; letter-spacing:.1em; padding:.35rem .75rem; border:1px solid var(--border); color:var(--muted); background:transparent; cursor:pointer; }
+.editor-msg { font-family:'Share Tech Mono',monospace; font-size:.55rem; min-height:14px; }
+/* site_services editor */
+.editor-ss-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:.75rem; margin-bottom:1rem; }
+.editor-ss-card { border:1px solid var(--border); background:var(--panel); padding:.8rem 1rem; }
+.editor-ss-cat { font-family:'Share Tech Mono',monospace; font-size:.5rem; letter-spacing:.2em; color:var(--v); margin-bottom:.3rem; }
+.editor-ss-name { font-family:'Orbitron',monospace; font-size:.75rem; font-weight:700; letter-spacing:.1em; color:var(--text); margin-bottom:.25rem; }
+.editor-ss-desc { font-family:'Share Tech Mono',monospace; font-size:.55rem; color:var(--muted); margin-bottom:.5rem; line-height:1.5; }
+.editor-ss-tags { display:flex; flex-wrap:wrap; gap:.25rem; margin-bottom:.5rem; }
+.editor-ss-tag { font-family:'Share Tech Mono',monospace; font-size:.48rem; letter-spacing:.08em; padding:1px 5px; border:1px solid rgba(155,92,255,.3); color:var(--v2); }
+.editor-ss-crd { font-family:'Share Tech Mono',monospace; font-size:.55rem; color:var(--g1); }
+
+/* ══════════════════════════════════════
    ROADMAP SECTION — scoped under #section-roadmap
    ══════════════════════════════════════ */
 #section-roadmap {
@@ -763,6 +808,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         <button class="sb-item" id="nav-team" onclick="switchSection('team',this)" style="display:none">◈ TEAM</button>
         <div class="sb-divider"></div>
         <div class="sb-section-label">SISTEMA</div>
+        <button class="sb-item" id="nav-editor" onclick="switchSection('editor',this)" style="display:none">◈ EDITOR</button>
         <button class="sb-item" id="nav-roadmap" onclick="switchSection('roadmap',this)">◈ ROADMAP</button>
         <button class="sb-item" id="nav-tokens" onclick="switchSection('tokens',this)" style="display:none">◈ TOKEN MONITOR</button>
       </div>
@@ -1313,6 +1359,28 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         <div class="rm-toast" id="rm-toast"></div>
       </section>
 
+      <!-- ===== EDITOR COPY & LISTINI ===== -->
+      <section id="section-editor" style="display:none">
+        <div class="editor-wrap">
+          <div class="editor-header">
+            <div class="editor-title">◈ EDITOR COPY & LISTINI</div>
+            <div class="editor-sub">// gestione catalogo prodotti e contenuti servizi del sito</div>
+          </div>
+          <div class="editor-tabs">
+            <button class="editor-tab active" data-tab="catalogo" onclick="editorSwitchTab('catalogo',this)">CATALOGO PRODOTTI</button>
+            <button class="editor-tab" data-tab="servizi" onclick="editorSwitchTab('servizi',this)">SERVIZI SITO</button>
+          </div>
+          <!-- TAB CATALOGO PRODOTTI -->
+          <div class="editor-panel active" id="editor-panel-catalogo">
+            <div id="editor-catalog-list"><div style="color:var(--muted);font-size:.7rem;padding:2rem 0">> caricamento catalogo_</div></div>
+          </div>
+          <!-- TAB SERVIZI SITO -->
+          <div class="editor-panel" id="editor-panel-servizi">
+            <div id="editor-services-list"><div style="color:var(--muted);font-size:.7rem;padding:2rem 0">> caricamento servizi_</div></div>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 </div>
@@ -1400,9 +1468,10 @@ async function showDashboard(user){
   _currentUserRole = agentProfile?.role || 'agent';
 
   const isAdmin = _currentUserRole === 'admin';
+  _isAdmin = isAdmin;
 
-  // Sezioni admin-only: LEADS, AGENTI, TEAM
-  ['nav-leads','nav-agenti','nav-team'].forEach(id => {
+  // Sezioni admin-only: LEADS, AGENTI, TEAM, EDITOR
+  ['nav-leads','nav-agenti','nav-team','nav-editor'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.style.display = isAdmin ? 'flex' : 'none';
   });
@@ -1491,7 +1560,7 @@ function closeSidebarMobile(){
 
 function switchSection(name, btnEl){
   closeSidebarMobile();
-  ['portfolio','demo','preventivi','leads','clienti','agenti','team','progetti','roadmap','tokens'].forEach(s => {
+  ['portfolio','demo','preventivi','leads','clienti','agenti','team','progetti','roadmap','tokens','editor'].forEach(s => {
     const sec = document.getElementById('section-'+s);
     if(sec) sec.style.display = s===name ? 'block' : 'none';
     const nav = document.getElementById('nav-'+s);
@@ -1509,6 +1578,7 @@ function switchSection(name, btnEl){
   if(name==='progetti') loadProgetti();
   if(name==='roadmap') loadRoadmap();
   if(name==='tokens') loadTokens();
+  if(name==='editor') loadEditor();
 }
 
 // ===== PORTFOLIO =====
@@ -1991,6 +2061,7 @@ async function deleteDemoItem(id, btnEl){
 const _preventiviMap = {};
 let _currentUserRole = 'agent';
 let _currentUserEmail = '';
+let _isAdmin = false;
 
 async function loadPreventivi(){
   const container = document.getElementById('preventivi-list');
@@ -2486,6 +2557,237 @@ async function catSaveItem(itemId){
   if(msg){ msg.style.color='var(--g1)'; msg.textContent = '✓ salvato'; }
   setTimeout(()=>{ document.querySelector('[style*="position:fixed"][style*="inset:0"][style*="9999"]')?.remove(); },700);
 }
+
+// ===== EDITOR COPY & LISTINI =====
+
+let _editorCatalogLoaded = false;
+let _editorServicesLoaded = false;
+
+function editorSwitchTab(tab, btnEl){
+  document.querySelectorAll('.editor-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.editor-panel').forEach(p => p.classList.remove('active'));
+  if(btnEl) btnEl.classList.add('active');
+  const panel = document.getElementById('editor-panel-'+tab);
+  if(panel) panel.classList.add('active');
+  if(tab === 'catalogo' && !_editorCatalogLoaded) loadEditorCatalog();
+  if(tab === 'servizi' && !_editorServicesLoaded) loadEditorServices();
+}
+
+async function loadEditor(){
+  _editorCatalogLoaded = false;
+  _editorServicesLoaded = false;
+  await loadEditorCatalog();
+}
+
+async function loadEditorCatalog(){
+  const container = document.getElementById('editor-catalog-list');
+  if(!container || !_sb) return;
+  container.innerHTML = '<div style="color:var(--muted);font-size:.7rem;padding:1rem 0">> caricamento_</div>';
+  const { data, error } = await _sb.from('service_catalog').select('*').order('cat_id').order('sort_order');
+  if(error || !data){ container.innerHTML = '<div style="color:var(--red);font-size:.7rem;padding:1rem 0">⚠ errore caricamento</div>'; return; }
+  _editorCatalogLoaded = true;
+  // group by cat
+  const groups = {};
+  data.forEach(row => {
+    if(!groups[row.cat_id]) groups[row.cat_id] = { label: row.cat_label, items: [] };
+    groups[row.cat_id].items.push(row);
+  });
+  container.innerHTML = '';
+  Object.entries(groups).forEach(([catId, cat]) => {
+    const block = document.createElement('div');
+    block.className = 'editor-cat-block';
+    block.innerHTML = `
+      <div class="editor-cat-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'flex':'none'">
+        <span class="editor-cat-label">${cat.label}</span>
+        <span class="editor-cat-toggle">${cat.items.length} prodotti ▾</span>
+      </div>
+      <div class="editor-cat-body">
+        ${cat.items.map(item => `
+          <div class="editor-item" id="editor-item-${item.id}">
+            <div class="editor-item-info">
+              <div class="editor-item-name">${escHtml(item.name)}</div>
+              <div class="editor-item-desc">${escHtml(item.description||'—')}</div>
+              <div class="editor-item-prices">€${item.price}${item.price_max && item.price_max !== item.price ? ' – €'+item.price_max : ''}${item.monthly?' · mensile':''}${item.yearly?' · annuale':''}</div>
+            </div>
+            <div class="editor-item-actions">
+              <button class="editor-btn-edit" onclick="editorToggleCatForm('${item.id}')">✎ MODIFICA</button>
+            </div>
+          </div>
+          <div class="editor-inline-form" id="editor-form-${item.id}">
+            <div class="editor-inline-row full">
+              <div>
+                <div class="field-label">NOME</div>
+                <input class="field-input" id="edf-name-${item.id}" value="${escAttr(item.name)}" style="width:100%">
+              </div>
+            </div>
+            <div class="editor-inline-row full">
+              <div>
+                <div class="field-label">DESCRIZIONE</div>
+                <input class="field-input" id="edf-desc-${item.id}" value="${escAttr(item.description||'')}" placeholder="sottotitolo breve" style="width:100%">
+              </div>
+            </div>
+            <div class="editor-inline-row">
+              <div>
+                <div class="field-label">PREZZO MIN (€)</div>
+                <input class="field-input" type="number" id="edf-price-${item.id}" value="${item.price||0}" min="0">
+              </div>
+              <div>
+                <div class="field-label">PREZZO MAX (€)</div>
+                <input class="field-input" type="number" id="edf-pricemax-${item.id}" value="${item.price_max||item.price||0}" min="0">
+              </div>
+            </div>
+            <div class="editor-inline-row">
+              <div style="display:flex;align-items:center;gap:.4rem">
+                <input type="checkbox" id="edf-monthly-${item.id}" ${item.monthly?'checked':''}>
+                <label class="field-label" for="edf-monthly-${item.id}" style="cursor:pointer">MENSILE</label>
+              </div>
+              <div style="display:flex;align-items:center;gap:.4rem">
+                <input type="checkbox" id="edf-yearly-${item.id}" ${item.yearly?'checked':''}>
+                <label class="field-label" for="edf-yearly-${item.id}" style="cursor:pointer">ANNUALE</label>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:.4rem">
+              <input type="checkbox" id="edf-active-${item.id}" ${item.active!==false?'checked':''}>
+              <label class="field-label" for="edf-active-${item.id}" style="cursor:pointer">ATTIVO</label>
+            </div>
+            <div class="editor-msg" id="edf-msg-${item.id}"></div>
+            <div class="editor-inline-actions">
+              <button class="editor-cancel-btn" onclick="editorToggleCatForm('${item.id}')">ANNULLA</button>
+              <button class="editor-save-btn" onclick="editorSaveCatalogItem('${item.id}')">↑ SALVA</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>`;
+    container.appendChild(block);
+  });
+}
+
+function editorToggleCatForm(itemId){
+  const form = document.getElementById('editor-form-'+itemId);
+  if(!form) return;
+  form.classList.toggle('open');
+}
+
+async function editorSaveCatalogItem(itemId){
+  const name = document.getElementById('edf-name-'+itemId)?.value.trim();
+  const desc = document.getElementById('edf-desc-'+itemId)?.value.trim();
+  const price = parseInt(document.getElementById('edf-price-'+itemId)?.value)||0;
+  const priceMax = parseInt(document.getElementById('edf-pricemax-'+itemId)?.value)||0;
+  const monthly = document.getElementById('edf-monthly-'+itemId)?.checked || false;
+  const yearly = document.getElementById('edf-yearly-'+itemId)?.checked || false;
+  const active = document.getElementById('edf-active-'+itemId)?.checked !== false;
+  const msg = document.getElementById('edf-msg-'+itemId);
+  if(!name){ if(msg){ msg.style.color='var(--red)'; msg.textContent='⚠ nome obbligatorio'; } return; }
+  if(msg){ msg.style.color='var(--muted)'; msg.textContent='> salvataggio...'; }
+  const { error } = await _sb.from('service_catalog')
+    .update({ name, description: desc, price, price_max: priceMax, monthly, yearly, active })
+    .eq('id', itemId);
+  if(error){ if(msg){ msg.style.color='var(--red)'; msg.textContent='⚠ '+error.message; } return; }
+  // aggiorna in-memory (NPV_CATS / NPV_ALL)
+  const ci = NPV_ALL.find(i=>i.id===itemId);
+  if(ci){ ci.name=name; ci.description=desc; ci.price=price; ci.price_max=priceMax; ci.monthly=monthly; ci.yearly=yearly; }
+  const ci2 = NPV_CATS.flatMap(c=>c.items).find(i=>i.id===itemId);
+  if(ci2){ ci2.name=name; ci2.description=desc; ci2.price=price; ci2.price_max=priceMax; ci2.monthly=monthly; ci2.yearly=yearly; }
+  // aggiorna display
+  const itemEl = document.getElementById('editor-item-'+itemId);
+  if(itemEl){
+    itemEl.querySelector('.editor-item-name').textContent = name;
+    itemEl.querySelector('.editor-item-desc').textContent = desc||'—';
+    itemEl.querySelector('.editor-item-prices').textContent = `€${price}${priceMax && priceMax!==price?' – €'+priceMax:''}${monthly?' · mensile':''}${yearly?' · annuale':''}`;
+  }
+  if(msg){ msg.style.color='var(--g1)'; msg.textContent='✓ salvato'; }
+  setTimeout(()=>{ document.getElementById('editor-form-'+itemId)?.classList.remove('open'); if(msg) msg.textContent=''; }, 900);
+}
+
+async function loadEditorServices(){
+  const container = document.getElementById('editor-services-list');
+  if(!container || !_sb) return;
+  container.innerHTML = '<div style="color:var(--muted);font-size:.7rem;padding:1rem 0">> caricamento_</div>';
+  const { data, error } = await _sb.from('site_services').select('*').order('cat_id').order('sort_order');
+  if(error || !data){ container.innerHTML = '<div style="color:var(--red);font-size:.7rem;padding:1rem 0">⚠ errore caricamento</div>'; return; }
+  _editorServicesLoaded = true;
+  const groups = {};
+  data.forEach(row => {
+    if(!groups[row.cat_id]) groups[row.cat_id] = [];
+    groups[row.cat_id].push(row);
+  });
+  let html = '';
+  Object.entries(groups).forEach(([catId, items]) => {
+    html += `<div style="margin-bottom:1.75rem">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.2em;color:var(--v);padding:.4rem 0;border-bottom:1px solid var(--border);margin-bottom:.75rem">${escHtml(catId.toUpperCase())}</div>`;
+    items.forEach(svc => {
+      const tags = (svc.tags||[]).map(t=>`<span class="editor-ss-tag">${escHtml(t)}</span>`).join('');
+      html += `
+      <div style="margin-bottom:.5rem">
+        <div class="editor-item" id="editor-ss-${svc.id}">
+          <div class="editor-item-info">
+            <div class="editor-item-name">${escHtml(svc.name)}</div>
+            <div class="editor-item-desc">${escHtml(svc.description||'')}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:.2rem;margin-top:.2rem">${tags}</div>
+            <div class="editor-ss-crd" style="margin-top:.2rem">${escHtml(svc.crd_value||'')}</div>
+          </div>
+          <div class="editor-item-actions">
+            <button class="editor-btn-edit" onclick="editorToggleSsForm('${svc.id}')">✎ MODIFICA</button>
+          </div>
+        </div>
+        <div class="editor-inline-form" id="editor-ss-form-${svc.id}">
+          <div class="editor-inline-row full">
+            <div><div class="field-label">NOME</div><input class="field-input" id="ess-name-${svc.id}" value="${escAttr(svc.name)}" style="width:100%"></div>
+          </div>
+          <div class="editor-inline-row full">
+            <div><div class="field-label">DESCRIZIONE</div><textarea class="field-input" id="ess-desc-${svc.id}" rows="2" style="width:100%;resize:vertical">${escHtml(svc.description||'')}</textarea></div>
+          </div>
+          <div class="editor-inline-row">
+            <div><div class="field-label">CRD VALUE (es: 2.400 CRD)</div><input class="field-input" id="ess-crd-${svc.id}" value="${escAttr(svc.crd_value||'')}" style="width:100%"></div>
+            <div><div class="field-label">TAG (separati da virgola)</div><input class="field-input" id="ess-tags-${svc.id}" value="${escAttr((svc.tags||[]).join(', '))}" style="width:100%"></div>
+          </div>
+          <div class="editor-msg" id="ess-msg-${svc.id}"></div>
+          <div class="editor-inline-actions">
+            <button class="editor-cancel-btn" onclick="editorToggleSsForm('${svc.id}')">ANNULLA</button>
+            <button class="editor-save-btn" onclick="editorSaveService('${svc.id}')">↑ SALVA</button>
+          </div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  container.innerHTML = html;
+}
+
+function editorToggleSsForm(svcId){
+  const form = document.getElementById('editor-ss-form-'+svcId);
+  if(!form) return;
+  form.classList.toggle('open');
+  if(form.classList.contains('open')) form.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+async function editorSaveService(svcId){
+  const name = document.getElementById('ess-name-'+svcId)?.value.trim();
+  const desc = document.getElementById('ess-desc-'+svcId)?.value.trim();
+  const crd = document.getElementById('ess-crd-'+svcId)?.value.trim();
+  const tagsRaw = document.getElementById('ess-tags-'+svcId)?.value.trim();
+  const tags = tagsRaw ? tagsRaw.split(',').map(t=>t.trim()).filter(Boolean) : [];
+  const msg = document.getElementById('ess-msg-'+svcId);
+  if(!name){ if(msg){ msg.style.color='var(--red)'; msg.textContent='⚠ nome obbligatorio'; } return; }
+  if(msg){ msg.style.color='var(--muted)'; msg.textContent='> salvataggio...'; }
+  const { error } = await _sb.from('site_services')
+    .update({ name, description: desc, crd_value: crd, tags })
+    .eq('id', svcId);
+  if(error){ if(msg){ msg.style.color='var(--red)'; msg.textContent='⚠ '+error.message; } return; }
+  // update card display
+  const card = document.getElementById('editor-ss-'+svcId);
+  if(card){
+    card.querySelector('.editor-ss-name').textContent = name;
+    card.querySelector('.editor-ss-desc').textContent = desc;
+    card.querySelector('.editor-ss-crd').textContent = crd;
+    card.querySelector('.editor-ss-tags').innerHTML = tags.map(t=>`<span class="editor-ss-tag">${escHtml(t)}</span>`).join('');
+  }
+  if(msg){ msg.style.color='var(--g1)'; msg.textContent='✓ salvato'; }
+  setTimeout(()=>{ document.getElementById('editor-ss-form-'+svcId)?.classList.remove('open'); if(msg) msg.textContent=''; }, 900);
+}
+
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escAttr(s){ return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 // ===== NUOVO PREVENTIVO DA ADMIN =====
 

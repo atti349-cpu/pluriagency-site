@@ -292,7 +292,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 
 /* PV EDIT ITEMS */
 .pv-edit-section{margin-top:1.25rem;border-top:1px solid var(--border);padding-top:1rem;}
-.pv-edit-item-row{display:grid;grid-template-columns:1fr auto auto auto auto;align-items:center;gap:.5rem;
+.pv-edit-item-row{display:grid;grid-template-columns:1fr auto auto auto auto auto;align-items:center;gap:.5rem;
   padding:.4rem .5rem;border-bottom:1px solid var(--border);font-size:.75rem;}
 .pv-edit-item-row .new-badge{font-family:'Share Tech Mono',monospace;font-size:.5rem;letter-spacing:.1em;
   background:rgba(0,255,136,.15);border:1px solid rgba(0,255,136,.4);color:var(--g1);padding:1px 5px;}
@@ -2484,11 +2484,17 @@ function renderPvEditList(){
     const recBadge = it.monthly ? `<span style="margin-left:4px;font-size:.5rem;border:1px solid rgba(0,207,255,.5);color:#00cfff;padding:1px 4px">MENSILE</span>`
                    : it.yearly  ? `<span style="margin-left:4px;font-size:.5rem;border:1px solid rgba(155,92,255,.5);color:var(--v2);padding:1px 4px">ANNUALE</span>` : '';
     const unitPrice = it.unit_price || it.total || 0;
+    const discPct = it.discount_pct || 0;
     return `<div class="pv-edit-item-row" data-idx="${i}">
-      <span style="color:var(--text);flex:1">${it.name}${newBadge}${recBadge}</span>
+      <span style="color:var(--text)">${it.name}${newBadge}${recBadge}</span>
       <span style="color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:.62rem">×${it.qty||1}</span>
-      <input type="number" min="0" value="${unitPrice}" style="width:72px;background:var(--panel2);border:1px solid var(--border2);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:2px 6px;text-align:right" onclick="event.stopPropagation()" oninput="pvUpdateItemPrice(${i},this.value)" onchange="pvUpdateItemPrice(${i},this.value)" title="Prezzo unitario">
+      <input type="number" min="0" value="${unitPrice}" style="width:68px;background:var(--panel2);border:1px solid var(--border2);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:2px 6px;text-align:right" onclick="event.stopPropagation()" oninput="pvUpdateItemPrice(${i},this.value)" onchange="pvUpdateItemPrice(${i},this.value)" title="Prezzo unitario">
       <span style="font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--muted)">€</span>
+      <div style="display:flex;align-items:center;gap:2px" onclick="event.stopPropagation()">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.52rem;color:var(--muted)">-</span>
+        <input type="number" min="0" max="100" value="${discPct}" style="width:42px;background:var(--panel2);border:1px solid var(--border2);color:${discPct>0?'var(--g1)':'var(--muted)'};font-family:'Share Tech Mono',monospace;font-size:.6rem;padding:2px 4px;text-align:right" oninput="pvUpdateItemDiscount(${i},this.value)" onchange="pvUpdateItemDiscount(${i},this.value)" title="Sconto articolo %">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.52rem;color:var(--muted)">%</span>
+      </div>
       <button class="pv-edit-item-rm" onclick="pvRemoveItem(${i})">✕</button>
     </div>`;
   }).join('');
@@ -2497,7 +2503,15 @@ function renderPvEditList(){
 function pvUpdateItemPrice(idx, val){
   const price = parseFloat(val) || 0;
   _pvEditItems[idx].unit_price = price;
-  _pvEditItems[idx].total = price * (_pvEditItems[idx].qty || 1);
+  const disc = _pvEditItems[idx].discount_pct || 0;
+  _pvEditItems[idx].total = Math.round(price * (_pvEditItems[idx].qty || 1) * (1 - disc/100));
+}
+
+function pvUpdateItemDiscount(idx, val){
+  const disc = Math.min(100, Math.max(0, parseFloat(val) || 0));
+  _pvEditItems[idx].discount_pct = disc;
+  const price = _pvEditItems[idx].unit_price || 0;
+  _pvEditItems[idx].total = Math.round(price * (_pvEditItems[idx].qty || 1) * (1 - disc/100));
 }
 
 function pvRemoveItem(idx){
@@ -3186,6 +3200,11 @@ function npvItemRow(item){
         <input type="number" value="${price}" min="${item.price}" style="width:64px;background:var(--panel2);border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.6rem;padding:2px 4px;text-align:right" onclick="event.stopPropagation()" onchange="npvSetPrice('${item.id}',this.value)">
         <span style="font-family:'Share Tech Mono',monospace;font-size:.48rem;color:var(--muted)">cons. ${item.price}€${suffix}${item.price_max && item.price_max > item.price ? ` – <span style="color:var(--g1);opacity:.7">${item.price_max}€</span>` : ''}</span>
       </div>
+      <div style="display:flex;align-items:center;gap:2px" onclick="event.stopPropagation()">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.48rem;color:var(--muted)">-</span>
+        <input type="number" min="0" max="100" value="${sel.discount_pct||0}" style="width:38px;background:var(--panel2);border:1px solid var(--border);color:${(sel.discount_pct||0)>0?'var(--g1)':'var(--muted)'};font-family:'Share Tech Mono',monospace;font-size:.55rem;padding:2px 3px;text-align:right" onclick="event.stopPropagation()" oninput="npvSetDiscount('${item.id}',this.value)" onchange="npvSetDiscount('${item.id}',this.value)" title="Sconto %">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.48rem;color:var(--muted)">%</span>
+      </div>
     </div>` : `<span style="font-family:'Share Tech Mono',monospace;font-size:.6rem"><span style="color:var(--muted)">${item.price}€${suffix}</span>${item.price_max && item.price_max > item.price ? `<span style="color:var(--g1);opacity:.55;font-size:.52rem"> – ${item.price_max}€</span>` : ''}</span>`}
   </div>`;
 }
@@ -3227,7 +3246,7 @@ function npvToggleItem(id){
   const item = NPV_ALL.find(i => i.id === id);
   if(!item) return;
   if(_npvSelected[id]) delete _npvSelected[id];
-  else _npvSelected[id] = {item, qty: 1, price: item.price};
+  else _npvSelected[id] = {item, qty: 1, price: item.price, discount_pct: 0};
   npvRecalc(); npvRenderSelectedLines(); npvRenderServiceList(document.getElementById('npv-svc-search')?.value || '');
 }
 
@@ -3245,9 +3264,15 @@ function npvSetPrice(id, val){
   npvRecalc(); npvRenderSelectedLines();
 }
 
+function npvSetDiscount(id, val){
+  if(!_npvSelected[id]) return;
+  _npvSelected[id].discount_pct = Math.min(100, Math.max(0, parseFloat(val) || 0));
+  npvRecalc(); npvRenderSelectedLines();
+}
+
 function npvRecalc(){
   let sub = 0;
-  Object.values(_npvSelected).forEach(s => { sub += s.price * s.qty; });
+  Object.values(_npvSelected).forEach(s => { sub += Math.round(s.price * s.qty * (1 - (s.discount_pct||0)/100)); });
   const disc = Math.min(25, Math.max(0, parseFloat(document.getElementById('npv-discount')?.value)||0));
   const ivaActive = document.getElementById('npv-iva')?.checked || false;
   const saved = Math.round(sub * disc / 100);
@@ -3293,10 +3318,11 @@ async function saveNuovoPv(status){
 
   let sub = 0;
   const items = [];
-  Object.values(_npvSelected).forEach(({item, qty, price}) => {
-    const lineTotal = price * qty;
+  Object.values(_npvSelected).forEach(({item, qty, price, discount_pct}) => {
+    const disc = discount_pct || 0;
+    const lineTotal = Math.round(price * qty * (1 - disc/100));
     sub += lineTotal;
-    items.push({id: item.id, name: item.name, qty, unit_price: price, total: lineTotal, monthly: !!item.monthly, yearly: !!item.yearly});
+    items.push({id: item.id, name: item.name, qty, unit_price: price, discount_pct: disc, total: lineTotal, monthly: !!item.monthly, yearly: !!item.yearly});
   });
   const disc_amount = Math.round(sub * disc / 100);
   const imponibile = sub - disc_amount;

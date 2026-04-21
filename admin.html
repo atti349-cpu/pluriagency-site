@@ -2032,11 +2032,10 @@ function buildPortfolioCard(item){
       thumb = `<img class="item-thumb" src="${item.media_url}" alt="${item.title}" loading="lazy" onerror="this.outerHTML='<div class=\\'item-thumb-placeholder\\'>&gt; nessuna immagine</div>'">`;
     }
   } else if(item.site_url){
-    thumb = `<div class="item-thumb-placeholder" style="position:relative;overflow:hidden;background:#04060d;height:160px;">
-      <iframe sandbox="allow-scripts allow-same-origin" src="${item.site_url}"
-        style="position:absolute;top:0;left:0;width:1440px;height:900px;border:none;pointer-events:none;transform-origin:top left;transform:scale(0.178)"
-        loading="lazy"></iframe>
-      <span style="position:absolute;top:4px;right:6px;z-index:2;font-family:monospace;font-size:.5rem;color:var(--g3);opacity:.8">🔗</span>
+    const _domain = item.site_url.replace(/^https?:\/\/(www\.)?/,'').split('/')[0];
+    thumb = `<div class="item-thumb-placeholder" style="height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;background:#04060d;">
+      <span style="font-size:1.5rem;opacity:.2">🔗</span>
+      <span style="font-family:monospace;font-size:.52rem;color:var(--g3);opacity:.55;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_domain}</span>
     </div>`;
   } else if(item.html_snippet){
     thumb = `<div class="item-thumb-placeholder" style="position:relative;overflow:hidden;background:#04060d;">
@@ -2750,22 +2749,24 @@ const NPV_CATS_FALLBACK = [
     {id:'auto-dev-h',name:'Costo Sviluppo Orario',description:'Tariffa oraria sviluppo / personalizzazione',price:20,price_max:80},
   ]},
   {id:'pack',label:'PACCHETTI',items:[
-    {id:'p-media',name:'Sistema Media Ristorante',description:'Schermo + shooting mensile / canone',price:300,price_max:300,monthly:true},
     {id:'p-senior',name:'Shooting Senior — Team',description:'3 fotografi + 1 videomaker senior',price:600,price_max:1200},
     {id:'p-lancio',name:'Lancio Prodotto',description:'Tutto chiavi in mano',price:800,price_max:2000},
     {id:'p-kit',name:'Kit Identità Fisica + Digitale',description:'Sito + business card + shooting',price:2800,price_max:4000},
     {id:'p-tutor',name:'Marketing Tutoring',description:'Strategia, visual, comunicazione',price:500,price_max:1500},
-    {id:'p-retainer',name:'Retainer Grafica Mensile',description:'8 asset/mese, turnaround 48h',price:350,price_max:700,monthly:true},
     {id:'pack-dev-h',name:'Costo Sviluppo Orario',description:'Tariffa oraria sviluppo / personalizzazione',price:20,price_max:80},
   ]},
   {id:'maint',label:'MANUTENZIONE',items:[
-    {id:'m-basic',name:'Basic Care',description:'Sicurezza, backup, uptime / anno',price:100,price_max:100,yearly:true},
-    {id:'m-std',name:'Standard Care',description:'Basic + 5 modifiche / anno',price:250,price_max:250,yearly:true},
-    {id:'m-prem',name:'Premium Care',description:'Modifiche illimitate + priority / anno',price:500,price_max:500,yearly:true},
     {id:'mc-mod',name:'Modifica Contenuto',description:'Testi, immagini, prezzi',price:30,price_max:60},
     {id:'mc-pag',name:'Nuova Pagina / Sezione',description:'Aggiunta strutturale al sito',price:150,price_max:400},
     {id:'mc-blog',name:'Setup Blog',description:'Template + struttura + 3 articoli',price:300,price_max:600},
     {id:'maint-dev-h',name:'Costo Sviluppo Orario',description:'Tariffa oraria sviluppo / personalizzazione',price:20,price_max:80},
+  ]},
+  {id:'ricorrenti',label:'PAGAMENTI RICORRENTI',items:[
+    {id:'ric-crm',name:'Licenza CRM',description:'Accesso e gestione CRM Pluriagency per cliente',price:150,price_max:500,monthly:true},
+    {id:'ric-maint',name:'Manutenzione Sito',description:'Sicurezza, backup, aggiornamenti annuali',price:100,price_max:1000,yearly:true},
+    {id:'ric-chatbot',name:'Costo Token Chatbot AI',description:'Consumo mensile token AI per chatbot integrato',price:10,price_max:200,monthly:true},
+    {id:'p-media',name:'Sistema Media Ristorante',description:'Schermo + shooting mensile / canone',price:300,price_max:300,monthly:true},
+    {id:'p-retainer',name:'Retainer Grafica Mensile',description:'8 asset/mese, turnaround 48h',price:350,price_max:700,monthly:true},
   ]},
 ];
 let NPV_CATS = NPV_CATS_FALLBACK;
@@ -3138,9 +3139,12 @@ function npvItemRow(item){
   const suffix = item.monthly ? '/mese' : item.yearly ? '/anno' : '';
   const price = sel ? sel.price : item.price;
   const editBtn = _isAdmin ? `<button onclick="event.stopPropagation();catEditItem('${item.id}')" title="Modifica prodotto" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:.65rem;padding:0 3px;flex-shrink:0;opacity:.5;transition:opacity .15s" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=.5">✎</button>` : '';
+  const recBadge = item.monthly ? `<span style="font-size:.45rem;border:1px solid rgba(0,207,255,.4);color:#00cfff;padding:1px 3px;flex-shrink:0">MENS</span>`
+                 : item.yearly  ? `<span style="font-size:.45rem;border:1px solid rgba(155,92,255,.4);color:var(--v2);padding:1px 3px;flex-shrink:0">ANN</span>` : '';
   return `<div id="npv-item-${item.id}" style="display:flex;align-items:center;gap:.6rem;padding:.4rem .5rem;cursor:pointer;border-bottom:1px solid var(--border);background:${sel ? 'var(--v-dim)' : 'transparent'}" onclick="npvToggleItem('${item.id}')">
     <div style="width:12px;height:12px;border:1px solid ${sel ? 'var(--v)' : 'var(--muted)'};background:${sel ? 'var(--v)' : 'transparent'};flex-shrink:0"></div>
     <div style="flex:1;font-family:'Share Tech Mono',monospace;font-size:.6rem;color:${sel ? 'var(--v)' : 'var(--text)'}">${item.name}</div>
+    ${recBadge}
     ${editBtn}
     ${sel ? `<div style="display:flex;align-items:center;gap:.3rem;flex-wrap:wrap">
       <button onclick="npvQty('${item.id}',-1,event)" style="width:18px;height:18px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:10px">-</button>
@@ -3171,12 +3175,17 @@ function npvRenderServiceList(query){
     return;
   }
 
-  // nessuna query → raggruppa per categoria
+  // nessuna query → raggruppa per categoria; PAGAMENTI RICORRENTI con header distinto
   container.innerHTML = NPV_CATS.map(cat => {
+    const isRic = cat.id === 'ricorrenti';
     const rows = cat.items.map(i => npvItemRow({...i, cat: cat.label})).join('');
     const selCount = cat.items.filter(i => _npvSelected[i.id]).length;
+    const headerStyle = isRic
+      ? `font-family:'Share Tech Mono',monospace;font-size:.52rem;letter-spacing:.18em;color:#ffaa00;padding:.4rem .5rem .3rem;background:rgba(255,170,0,0.07);border-bottom:1px solid rgba(255,170,0,0.25);border-top:1px solid rgba(255,170,0,0.15);text-transform:uppercase;position:sticky;top:0;z-index:1`
+      : `font-family:'Share Tech Mono',monospace;font-size:.52rem;letter-spacing:.18em;color:var(--g3);padding:.4rem .5rem .3rem;background:var(--panel2);border-bottom:1px solid var(--border);text-transform:uppercase;position:sticky;top:0;z-index:1`;
+    const icon = isRic ? '⟳ ' : '';
     return `<div>
-      <div style="font-family:'Share Tech Mono',monospace;font-size:.52rem;letter-spacing:.18em;color:var(--g3);padding:.4rem .5rem .3rem;background:var(--panel2);border-bottom:1px solid var(--border);text-transform:uppercase;position:sticky;top:0;z-index:1">${cat.label}${selCount ? ` <span style="color:var(--g1)">·${selCount}</span>` : ''}</div>
+      <div style="${headerStyle}">${icon}${cat.label}${selCount ? ` <span style="color:var(--g1)">·${selCount}</span>` : ''}</div>
       ${rows}
     </div>`;
   }).join('');
@@ -4956,36 +4965,25 @@ async function loadFatturazione(){
   if(error){ if(list) list.innerHTML = `<div style="color:var(--red);font-size:.7rem">⚠ ${error.message}</div>`; return; }
   _canoniData = data || [];
 
-  // popola filtro agenti
-  const agenteSet = new Set(_canoniData.map(c=>c.agente_email).filter(Boolean));
+  // popola filtro agenti e form nuovo canone — sempre dalla tabella agenti
+  const { data: _agList } = await _sb.from('agenti').select('email,name').eq('active',true).order('name');
   const agenteFilter = document.getElementById('fat-filter-agente');
   if(agenteFilter){
     agenteFilter.innerHTML = '<option value="">Tutti gli agenti</option>';
-    agenteSet.forEach(email => {
+    (_agList||[]).forEach(ag => {
       const opt = document.createElement('option');
-      opt.value = email; opt.textContent = email;
+      opt.value = ag.email; opt.textContent = ag.name || ag.email;
       agenteFilter.appendChild(opt);
     });
   }
-
-  // popola select agente in form nuovo canone
   const ncAgente = document.getElementById('nc-agente');
   if(ncAgente){
     ncAgente.innerHTML = '<option value="">Seleziona agente...</option>';
-    agenteSet.forEach(email => {
+    (_agList||[]).forEach(ag => {
       const opt = document.createElement('option');
-      opt.value = email; opt.textContent = email;
+      opt.value = ag.email; opt.textContent = ag.name || ag.email;
       ncAgente.appendChild(opt);
     });
-    // se nessun canone ancora, carica da agenti
-    if(!agenteSet.size){
-      const { data: ag } = await _sb.from('agenti').select('email,name').eq('active',true).order('name');
-      (ag||[]).forEach(a => {
-        const opt = document.createElement('option');
-        opt.value = a.email; opt.textContent = a.name || a.email;
-        ncAgente.appendChild(opt);
-      });
-    }
   }
 
   renderFatKpi();

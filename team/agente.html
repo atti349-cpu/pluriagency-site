@@ -57,10 +57,14 @@
     .hpc.tr{top:72px;right:6px;border-top:2px solid rgba(0,255,136,.7);border-right:2px solid rgba(0,255,136,.7);}
     .hpc.bl{bottom:6px;left:6px;border-bottom:2px solid rgba(0,255,136,.7);border-left:2px solid rgba(0,255,136,.7);}
     .hpc.br{bottom:6px;right:6px;border-bottom:2px solid rgba(0,255,136,.7);border-right:2px solid rgba(0,255,136,.7);}
-    /* initials fallback */
-    .hero-photo-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;z-index:1;}
-    .hero-photo-initial{font-family:var(--display);font-size:8rem;font-weight:900;color:var(--green);opacity:.1;line-height:1;}
-    .hero-photo-sublabel{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--muted);}
+    /* initials fallback — styled monogram card */
+    .hero-photo-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;z-index:1;background:linear-gradient(135deg,rgba(0,255,136,.03) 0%,transparent 60%);}
+    .hero-photo-monogram{width:110px;height:110px;border:1px solid rgba(0,255,136,.35);display:flex;align-items:center;justify-content:center;position:relative;background:rgba(0,255,136,.04);}
+    .hero-photo-monogram::before,.hero-photo-monogram::after{content:'';position:absolute;width:8px;height:8px;}
+    .hero-photo-monogram::before{top:-1px;left:-1px;border-top:2px solid var(--green);border-left:2px solid var(--green);}
+    .hero-photo-monogram::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--green);border-right:2px solid var(--green);}
+    .hero-photo-initial{font-family:var(--display);font-size:2.8rem;font-weight:900;color:var(--green);opacity:.7;line-height:1;letter-spacing:4px;text-shadow:0 0 24px rgba(0,255,136,.4);}
+    .hero-photo-sublabel{font-family:var(--mono);font-size:8px;letter-spacing:4px;color:var(--muted);text-transform:uppercase;}
     /* boot text bottom */
     .hero-photo-boot{position:absolute;bottom:1.4rem;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--green);opacity:.65;z-index:5;white-space:nowrap;min-height:14px;text-align:center;}
 
@@ -94,10 +98,10 @@
 
     /* ── BIO ── */
     .bio-section{padding:4.5rem 3rem;border-top:1px solid var(--border2);}
-    .bio-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start;}
+    .bio-grid{display:flex;flex-direction:column;gap:2rem;max-width:760px;}
     .bio-text{font-size:.88rem;line-height:1.9;color:rgba(232,237,242,.65);}
     .bio-text strong{color:var(--green);font-weight:600;}
-    .skills-row{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:1.4rem;}
+    .skills-row{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:1.2rem;}
     .skill-tag{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--cyan);border:1px solid rgba(0,212,255,.2);padding:.25rem .65rem;background:rgba(0,212,255,.04);}
     .bio-right{display:flex;flex-direction:column;gap:1rem;}
     .terminal{background:var(--bg2);border:1px solid var(--border2);padding:1.2rem;}
@@ -215,7 +219,6 @@
       .nav-links{display:none;}
       .bio-section,.projects-section{padding:3rem 1.2rem;}
       .cta-section{padding:3.5rem 1.2rem;}
-      .bio-grid{grid-template-columns:1fr;gap:2rem;}
       .projects-grid{grid-template-columns:1fr;}
       footer{padding:1.5rem;flex-direction:column;gap:.8rem;text-align:center;}
     }
@@ -265,8 +268,10 @@
         onload="this.style.display='block';document.getElementById('heroFallback').style.display='none';this.classList.add('glitch-img');setTimeout(()=>this.classList.remove('glitch-img'),900);"
         onerror="this.style.display='none';document.getElementById('heroFallback').style.display='flex';" />
       <div class="hero-photo-fallback" id="heroFallback" style="display:flex;">
-        <div class="hero-photo-initial" id="heroInitial">??</div>
-        <div class="hero-photo-sublabel">[ UNIT ]</div>
+        <div class="hero-photo-monogram">
+          <span class="hero-photo-initial" id="heroInitial">??</span>
+        </div>
+        <div class="hero-photo-sublabel" id="heroFallbackName">[ UNIT ]</div>
       </div>
       <div class="hero-photo-boot" id="photoBoot"></div>
     </div>
@@ -525,6 +530,7 @@ function populateHero(card){
   document.getElementById('footerName').textContent=nome.toUpperCase();
   document.getElementById('terminalTitle').textContent=nome.toLowerCase()+'@pluriagency ~ ';
   document.getElementById('heroInitial').textContent=nome.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+  document.getElementById('heroFallbackName').textContent=nome.toUpperCase();
   _currentSlug=card.slug||'';
   if(card.foto_url){const img=document.getElementById('heroImg');img.src=card.foto_url;img.alt=nome;}
   // Social meta

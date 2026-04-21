@@ -292,7 +292,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 
 /* PV EDIT ITEMS */
 .pv-edit-section{margin-top:1.25rem;border-top:1px solid var(--border);padding-top:1rem;}
-.pv-edit-item-row{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:.5rem;
+.pv-edit-item-row{display:grid;grid-template-columns:1fr auto auto auto auto;align-items:center;gap:.5rem;
   padding:.4rem .5rem;border-bottom:1px solid var(--border);font-size:.75rem;}
 .pv-edit-item-row .new-badge{font-family:'Share Tech Mono',monospace;font-size:.5rem;letter-spacing:.1em;
   background:rgba(0,255,136,.15);border:1px solid rgba(0,255,136,.4);color:var(--g1);padding:1px 5px;}
@@ -2487,7 +2487,7 @@ function renderPvEditList(){
     return `<div class="pv-edit-item-row" data-idx="${i}">
       <span style="color:var(--text);flex:1">${it.name}${newBadge}${recBadge}</span>
       <span style="color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:.62rem">×${it.qty||1}</span>
-      <input type="number" min="0" value="${unitPrice}" style="width:72px;background:var(--panel2);border:1px solid var(--border);color:var(--v);font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:2px 6px;text-align:right" onclick="event.stopPropagation()" onchange="pvUpdateItemPrice(${i},this.value)" title="Prezzo unitario">
+      <input type="number" min="0" value="${unitPrice}" style="width:72px;background:var(--panel2);border:1px solid var(--border2);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:2px 6px;text-align:right" onclick="event.stopPropagation()" oninput="pvUpdateItemPrice(${i},this.value)" onchange="pvUpdateItemPrice(${i},this.value)" title="Prezzo unitario">
       <span style="font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--muted)">€</span>
       <button class="pv-edit-item-rm" onclick="pvRemoveItem(${i})">✕</button>
     </div>`;

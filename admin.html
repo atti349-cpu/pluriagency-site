@@ -218,7 +218,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
   width:28px;height:28px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;
   transition:all .15s;}
 .modal-close:hover{border-color:var(--text);color:var(--text);}
-#preview-iframe{flex:1;width:100%;border:none;background:#fff;}
+#preview-iframe{flex:1;width:100%;border:none;background:#fff;pointer-events:none;}
 
 /* PREVENTIVI */
 .pv-list{display:flex;flex-direction:column;gap:.6rem;}
@@ -2483,13 +2483,21 @@ function renderPvEditList(){
     const newBadge = it.added_after ? ' <span class="new-badge">NEW</span>' : '';
     const recBadge = it.monthly ? `<span style="margin-left:4px;font-size:.5rem;border:1px solid rgba(0,207,255,.5);color:#00cfff;padding:1px 4px">MENSILE</span>`
                    : it.yearly  ? `<span style="margin-left:4px;font-size:.5rem;border:1px solid rgba(155,92,255,.5);color:var(--v2);padding:1px 4px">ANNUALE</span>` : '';
+    const unitPrice = it.unit_price || it.total || 0;
     return `<div class="pv-edit-item-row" data-idx="${i}">
-      <span style="color:var(--text)">${it.name}${newBadge}${recBadge}</span>
+      <span style="color:var(--text);flex:1">${it.name}${newBadge}${recBadge}</span>
       <span style="color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:.62rem">×${it.qty||1}</span>
-      <span style="font-family:'Orbitron',monospace;font-size:.7rem;color:var(--v)">${(it.total||0).toLocaleString('it-IT')} €</span>
+      <input type="number" min="0" value="${unitPrice}" style="width:72px;background:var(--panel2);border:1px solid var(--border);color:var(--v);font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:2px 6px;text-align:right" onclick="event.stopPropagation()" onchange="pvUpdateItemPrice(${i},this.value)" title="Prezzo unitario">
+      <span style="font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--muted)">€</span>
       <button class="pv-edit-item-rm" onclick="pvRemoveItem(${i})">✕</button>
     </div>`;
   }).join('');
+}
+
+function pvUpdateItemPrice(idx, val){
+  const price = parseFloat(val) || 0;
+  _pvEditItems[idx].unit_price = price;
+  _pvEditItems[idx].total = price * (_pvEditItems[idx].qty || 1);
 }
 
 function pvRemoveItem(idx){
@@ -2523,9 +2531,10 @@ function pvCatalogRow(item){
   const suffix = item.monthly ? '/mese' : item.yearly ? '/anno' : '';
   const recBadge = item.monthly ? `<span style="margin-left:4px;font-size:.45rem;border:1px solid rgba(0,207,255,.4);color:#00cfff;padding:1px 3px;flex-shrink:0">MENS</span>`
                  : item.yearly  ? `<span style="margin-left:4px;font-size:.45rem;border:1px solid rgba(155,92,255,.4);color:var(--v2);padding:1px 3px;flex-shrink:0">ANN</span>` : '';
+  const priceMax = item.price_max && item.price_max > item.price ? `<span style="color:var(--g1);opacity:.55;font-size:.52rem"> – ${item.price_max}€</span>` : '';
   return `<div class="pv-prod-opt" onclick="pvSelectProduct('${item.id}')" style="display:flex;align-items:center;gap:.4rem">
     <span style="flex:1">${item.name.replace(/</g,'&lt;')}${recBadge}</span>
-    <span style="color:var(--g1);flex-shrink:0;font-family:'Share Tech Mono',monospace;font-size:.58rem">${item.price}€${suffix}</span>
+    <span style="flex-shrink:0;font-family:'Share Tech Mono',monospace;font-size:.58rem"><span style="color:var(--g1)">${item.price}€${suffix}</span>${priceMax}</span>
   </div>`;
 }
 
@@ -3175,9 +3184,9 @@ function npvItemRow(item){
       <button onclick="npvQty('${item.id}',1,event)" style="width:18px;height:18px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:10px">+</button>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
         <input type="number" value="${price}" min="${item.price}" style="width:64px;background:var(--panel2);border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.6rem;padding:2px 4px;text-align:right" onclick="event.stopPropagation()" onchange="npvSetPrice('${item.id}',this.value)">
-        <span style="font-family:'Share Tech Mono',monospace;font-size:.48rem;color:var(--muted)">cons. ${item.price}€${suffix}</span>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.48rem;color:var(--muted)">cons. ${item.price}€${suffix}${item.price_max && item.price_max > item.price ? ` – <span style="color:var(--g1);opacity:.7">${item.price_max}€</span>` : ''}</span>
       </div>
-    </div>` : `<span style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)">${item.price}€${suffix}</span>`}
+    </div>` : `<span style="font-family:'Share Tech Mono',monospace;font-size:.6rem"><span style="color:var(--muted)">${item.price}€${suffix}</span>${item.price_max && item.price_max > item.price ? `<span style="color:var(--g1);opacity:.55;font-size:.52rem"> – ${item.price_max}€</span>` : ''}</span>`}
   </div>`;
 }
 
@@ -3964,8 +3973,10 @@ function rmMkT(text,priority='none',complexity='none'){return{id:rmUid(),text,do
 
 async function loadRoadmap(){
   if(_rmLoaded) return; // già caricata
-  // admin usa id='main', agenti usano id=email
-  _rmRowId = (_currentUserRole === 'admin') ? 'main' : _currentUserEmail;
+  // non sovrascrivere se stiamo visualizzando roadmap di un collega
+  if(!_rmViewingColleague){
+    _rmRowId = (_currentUserRole === 'admin') ? 'main' : _currentUserEmail;
+  }
   const el = document.getElementById('rm-proj-list');
   el.innerHTML = '<div style="color:var(--muted);font-size:.75rem;padding:2rem 0">> caricamento roadmap_</div>';
   const { data, error } = await _sb.from('roadmap_data').select('data').eq('id', _rmRowId).maybeSingle();
@@ -3994,6 +4005,8 @@ async function rmLoadColleagueDropdown(){
   if(!bar) return;
   bar.style.display = 'flex';
   const sel = document.getElementById('rm-colleague-sel');
+  // svuota opzioni precedenti (evita duplicati se la sezione viene rivisitata)
+  while(sel.options.length > 1) sel.remove(1);
   const { data } = await _sb.from('agenti').select('name,email').eq('active',true).neq('role','admin').order('name');
   if(!data || !data.length) return;
   const seen = new Set();

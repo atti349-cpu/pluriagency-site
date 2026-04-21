@@ -1345,8 +1345,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
       <section id="section-progetti" style="display:none">
         <div class="section-head">
           <div>
-            <div class="section-title">◈ PROGETTI</div>
-            <div class="section-sub">Avanzamento lavori post-preventivo</div>
+            <div class="section-eyebrow">// GESTIONE LAVORI</div>
+            <h1 class="section-h1">PROGETTI</h1>
           </div>
         </div>
 
@@ -1387,8 +1387,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         <div class="fat-wrap">
           <div class="section-head" style="margin-bottom:1.5rem">
             <div>
-              <h1 class="section-title">◈ FATTURAZIONE</h1>
-              <p class="section-sub">canoni ricorrenti e gestione pagamenti</p>
+              <div class="section-eyebrow">// GESTIONE PAGAMENTI</div>
+              <h1 class="section-h1">FATTURAZIONE</h1>
             </div>
             <button class="btn-primary" onclick="openNuovoCanoneForm()">+ NUOVO CANONE</button>
           </div>
@@ -2178,40 +2178,36 @@ async function loadDemo(){
   }
 
   container.innerHTML = '';
-  const list = document.createElement('div');
-  list.className = 'items-list';
-  data.forEach(item => list.appendChild(buildDemoRow(item)));
-  container.appendChild(list);
+  const grid = document.createElement('div');
+  grid.className = 'items-grid';
+  data.forEach(item => grid.appendChild(buildDemoCard(item)));
+  container.appendChild(grid);
 }
 
-function buildDemoRow(item){
-  // Salva item nel map per evitare JSON inline (l'html_snippet rompe gli attributi onclick)
+function buildDemoCard(item){
   _demoItemsMap[item.id] = item;
-
-  const row = document.createElement('div');
-  row.className = 'demo-row' + (item.visible ? '' : ' hidden-item');
-  const snippetLen  = (item.html_snippet||'').length;
-  const hiddenLabel = !item.visible ? ' <span style="color:var(--red);font-size:.5rem">[NASCOSTO]</span>' : '';
-  const teamLabel   = (item.team_members||[]).length > 0
-    ? `<span style="color:var(--v2)">👤 ${item.team_members.map(n=>n.replace(/</g,'&lt;')).join(', ')}</span>`
-    : '';
-  row.innerHTML = `
-    <div class="demo-row-info">
-      <div class="demo-row-name">${item.title.replace(/</g,'&lt;')}${hiddenLabel}</div>
-      <div class="demo-row-meta">
-        <span>${item.type_tag||'—'}</span>
-        ${item.price_range ? `<span>${item.price_range.replace(/</g,'&lt;')}</span>` : ''}
-        <span>${snippetLen.toLocaleString('it-IT')} caratteri HTML</span>
-        ${teamLabel}
-        <span>${new Date(item.created_at).toLocaleDateString('it-IT')}</span>
-      </div>
+  const card = document.createElement('div');
+  card.className = 'item-card' + (item.visible ? '' : ' hidden-item');
+  const snippetLen = (item.html_snippet||'').length;
+  const hiddenBadge = !item.visible ? '<div class="badge-hidden">NASCOSTO</div>' : '';
+  const teamTags = (item.team_members||[]).map(n=>`<span class="item-tag" style="border-color:rgba(155,92,255,.4);color:var(--v2)">👤 ${n.replace(/</g,'&lt;')}</span>`).join('');
+  card.innerHTML = `
+    ${hiddenBadge}
+    <div class="item-thumb-placeholder" style="height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;background:#04060d;">
+      <span style="font-size:1.4rem;opacity:.15">&lt;/&gt;</span>
+      <span style="font-family:monospace;font-size:.5rem;color:var(--g3);opacity:.5">${snippetLen.toLocaleString('it-IT')} chars</span>
     </div>
-    <div class="demo-row-actions">
+    <div class="item-body">
+      <div class="item-tags"><span class="item-tag type">${item.type_tag||'demo'}</span>${teamTags}</div>
+      <div class="item-name">${item.title.replace(/</g,'&lt;')}</div>
+      <div class="item-client">${(item.price_range||'—').replace(/</g,'&lt;')}</div>
+    </div>
+    <div class="item-actions">
       <button class="btn-ghost" style="font-size:.55rem;padding:.3rem .6rem" onclick="previewDemo('${item.id}')">ANTEPRIMA</button>
       <button class="btn-ghost" style="font-size:.55rem;padding:.3rem .6rem" onclick="editDemoItem('${item.id}')">MODIFICA</button>
       <button class="btn-danger" onclick="deleteDemoItem('${item.id}',this)">ELIMINA</button>
     </div>`;
-  return row;
+  return card;
 }
 
 function editDemoItem(id){
@@ -2400,11 +2396,11 @@ function openPvModal(id){
         </label>
       </div>
       <div id="pv-edit-items-list">${buildPvEditItems(pv)}</div>
-      <div class="pv-add-product-row" style="position:relative">
-        <input id="pv-prod-search-input" class="pv-prod-search" placeholder="▸ cerca prodotto..." autocomplete="off" oninput="pvSearchProducts(this.value,'${id}')" onfocus="pvSearchProducts(this.value,'${id}')">
+      <div class="pv-add-product-row">
+        <input id="pv-prod-search-input" class="pv-prod-search" placeholder="▸ filtra prodotto..." autocomplete="off" oninput="pvRenderCatalog(this.value)">
         <input id="pv-prod-qty" class="pv-prod-qty" type="number" min="1" value="1">
-        <div id="pv-prod-results" class="pv-prod-results" style="display:none"></div>
       </div>
+      <div id="pv-catalog-list" style="max-height:220px;overflow-y:auto;border:1px solid var(--border);background:var(--panel2);margin-top:.4rem"></div>
       <div style="display:flex;gap:.5rem;align-items:center;margin-top:.75rem">
         <button class="pv-save-items-btn" style="flex:1;margin-top:0" onclick="pvSaveItems('${id}')">↑ SALVA MODIFICHE</button>
         <button class="btn-ghost" style="font-size:.6rem;padding:.65rem 1.1rem;letter-spacing:.12em;white-space:nowrap;height:100%" onclick="preventivoGeneraPDF('${id}')">↓ PDF</button>
@@ -2427,6 +2423,7 @@ function openPvModal(id){
 
   document.getElementById('pv-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
+  if(canEdit) setTimeout(()=>pvRenderCatalog(''),0);
 }
 
 function closePvModal(){
@@ -2468,51 +2465,44 @@ function pvRemoveItem(idx){
   if(el) el.innerHTML = renderPvEditList();
 }
 
-let _pvSearchCloseHandler = null;
-function pvSearchProducts(q, pvId){
-  const inp = document.getElementById('pv-prod-search-input');
-  const res = document.getElementById('pv-prod-results');
-  if(!res || !inp) return;
-  // posiziona dropdown con fixed per evitare clipping dell'overflow del modal
-  const rect = inp.getBoundingClientRect();
-  res.style.position = 'fixed';
-  res.style.top = (rect.bottom + 2) + 'px';
-  res.style.left = rect.left + 'px';
-  res.style.width = rect.width + 'px';
-  res.style.zIndex = '900';
-  const flat = [];
-  NPV_CATS.forEach(cat => cat.items.forEach(it => flat.push(it)));
-  const matches = q.trim()
-    ? flat.filter(it => it.name.toLowerCase().includes(q.toLowerCase()))
-    : flat.slice(0, 20);
-  if(!matches.length){ res.style.display='none'; return; }
-  res.style.display = 'block';
-  res.innerHTML = matches.map(it => {
-    const recBadge = it.monthly ? `<span style="margin-left:4px;font-size:.5rem;border:1px solid rgba(0,207,255,.5);color:#00cfff;padding:1px 4px">MENS</span>`
-                   : it.yearly  ? `<span style="margin-left:4px;font-size:.5rem;border:1px solid rgba(155,92,255,.5);color:var(--v2);padding:1px 4px">ANN</span>` : '';
-    return `<div class="pv-prod-opt" onclick="pvSelectProduct('${it.id}','${pvId}')" data-id="${it.id}">${it.name}${recBadge} — <span style="color:var(--g1)">${it.price} €</span></div>`;
+function pvRenderCatalog(query){
+  const container = document.getElementById('pv-catalog-list');
+  if(!container) return;
+  const q = (query||'').toLowerCase().trim();
+  if(q){
+    const flat = NPV_CATS.flatMap(cat => cat.items.map(i => ({...i, catId: cat.id, cat: cat.label})));
+    const filtered = flat.filter(i => i.name.toLowerCase().includes(q));
+    if(!filtered.length){ container.innerHTML = `<div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted);padding:.4rem .5rem">// nessun risultato</div>`; return; }
+    container.innerHTML = filtered.map(i => pvCatalogRow(i)).join('');
+    return;
+  }
+  container.innerHTML = NPV_CATS.map(cat => {
+    const isRic = cat.id === 'ricorrenti';
+    const headerStyle = isRic
+      ? `font-family:'Share Tech Mono',monospace;font-size:.52rem;letter-spacing:.18em;color:#ffaa00;padding:.35rem .5rem .25rem;background:rgba(255,170,0,0.07);border-bottom:1px solid rgba(255,170,0,0.25);border-top:1px solid rgba(255,170,0,0.15);text-transform:uppercase;position:sticky;top:0;z-index:1`
+      : `font-family:'Share Tech Mono',monospace;font-size:.52rem;letter-spacing:.18em;color:var(--g3);padding:.35rem .5rem .25rem;background:var(--panel2);border-bottom:1px solid var(--border);text-transform:uppercase;position:sticky;top:0;z-index:1`;
+    const icon = isRic ? '⟳ ' : '';
+    return `<div><div style="${headerStyle}">${icon}${cat.label}</div>${cat.items.map(i => pvCatalogRow({...i, catId: cat.id, cat: cat.label})).join('')}</div>`;
   }).join('');
-  // un unico handler di chiusura — rimuove il precedente prima di aggiungere
-  if(_pvSearchCloseHandler) document.removeEventListener('mousedown', _pvSearchCloseHandler);
-  _pvSearchCloseHandler = e => {
-    if(!res.contains(e.target) && e.target !== inp){ res.style.display='none'; document.removeEventListener('mousedown',_pvSearchCloseHandler); _pvSearchCloseHandler=null; }
-  };
-  setTimeout(()=>document.addEventListener('mousedown',_pvSearchCloseHandler),50);
 }
 
-function pvSelectProduct(itemId, pvId){
-  const flat = [];
-  NPV_CATS.forEach(cat => cat.items.forEach(it => flat.push(it)));
-  const prod = flat.find(it => it.id === itemId);
+function pvCatalogRow(item){
+  const suffix = item.monthly ? '/mese' : item.yearly ? '/anno' : '';
+  const recBadge = item.monthly ? `<span style="margin-left:4px;font-size:.45rem;border:1px solid rgba(0,207,255,.4);color:#00cfff;padding:1px 3px;flex-shrink:0">MENS</span>`
+                 : item.yearly  ? `<span style="margin-left:4px;font-size:.45rem;border:1px solid rgba(155,92,255,.4);color:var(--v2);padding:1px 3px;flex-shrink:0">ANN</span>` : '';
+  return `<div class="pv-prod-opt" onclick="pvSelectProduct('${item.id}')" style="display:flex;align-items:center;gap:.4rem">
+    <span style="flex:1">${item.name.replace(/</g,'&lt;')}${recBadge}</span>
+    <span style="color:var(--g1);flex-shrink:0;font-family:'Share Tech Mono',monospace;font-size:.58rem">${item.price}€${suffix}</span>
+  </div>`;
+}
+
+function pvSelectProduct(itemId){
+  const prod = NPV_CATS.flatMap(c => c.items).find(it => it.id === itemId);
   if(!prod) return;
   const qty = parseInt(document.getElementById('pv-prod-qty')?.value)||1;
   _pvEditItems.push({ id: prod.id, name: prod.name, qty, unit_price: prod.price, total: prod.price * qty, monthly: prod.monthly || false, yearly: prod.yearly || false, added_after: true });
   const el = document.getElementById('pv-edit-items-list');
   if(el) el.innerHTML = renderPvEditList();
-  const inp = document.getElementById('pv-prod-search-input');
-  const res = document.getElementById('pv-prod-results');
-  if(inp) inp.value = '';
-  if(res) res.style.display = 'none';
 }
 
 async function pvSaveItems(pvId){

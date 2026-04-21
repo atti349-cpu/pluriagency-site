@@ -346,8 +346,21 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .proj-step-btn.done{color:var(--muted);background:rgba(255,255,255,.02);}
 .proj-step-btn.done::after{content:' ✓';}
 .proj-step-btn:hover:not(.active){background:rgba(255,255,255,.03);}
+.proj-step-btn[data-step="contratto"]{color:#ffaa00;flex:0 0 auto;padding:.6rem .9rem;}
+.proj-step-btn[data-step="contratto"].active{background:rgba(255,170,0,.1);color:#ffaa00;}
+.proj-step-btn[data-step="contratto"].contratto-firmato{color:var(--g1);}
+.proj-step-btn[data-step="contratto"].contratto-firmato.active{background:rgba(0,255,136,.1);}
 .proj-step-content{display:none;}
 .proj-step-content.active{display:block;}
+/* Contract form */
+.contract-section{margin-bottom:1.25rem;}
+.contract-section-title{font-family:'Share Tech Mono',monospace;font-size:.52rem;letter-spacing:.2em;color:#ffaa00;margin-bottom:.6rem;padding-bottom:.3rem;border-bottom:1px solid rgba(255,170,0,.2);}
+.contract-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
+.contract-grid.single{grid-template-columns:1fr;}
+.contract-firma-box{border:1px solid var(--border);padding:1.5rem;margin-top:.5rem;background:rgba(255,170,0,.03);}
+.contract-status-badge{display:inline-flex;align-items:center;gap:.4rem;font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.1em;padding:.35rem .7rem;border:1px solid;}
+.contract-status-badge.pending{color:#ffaa00;border-color:rgba(255,170,0,.4);}
+.contract-status-badge.signed{color:var(--g1);border-color:rgba(0,255,136,.4);}
 .proj-fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.25rem;}
 .proj-field{display:flex;flex-direction:column;gap:.3rem;}
 .proj-field.full{grid-column:1/-1;}
@@ -1376,11 +1389,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
               <div class="section-title" id="proj-detail-title">PROGETTO</div>
               <div class="section-sub" id="proj-detail-sub"></div>
             </div>
-            <button class="btn-ghost" style="font-size:.55rem" onclick="progettiGeneraPDF()">↓ CONTRATTO PDF</button>
+            <button class="btn-ghost" style="font-size:.55rem" onclick="projShowStep('contratto')">◈ CONTRATTO</button>
           </div>
 
           <!-- Step navigation (sempre visibile) -->
           <div class="proj-step-nav" id="proj-step-nav">
+            <button class="proj-step-btn" data-step="contratto" onclick="projShowStep('contratto')" id="proj-contratto-btn">◈ CONTRATTO</button>
             <button class="proj-step-btn active" data-step="step_1" onclick="projShowStep('step_1')">● CALL OBIETTIVI</button>
             <button class="proj-step-btn" data-step="step_2" onclick="projShowStep('step_2')">○ CALL BOZZA</button>
             <button class="proj-step-btn" data-step="step_3" onclick="projShowStep('step_3')">○ CONSEGNA</button>
@@ -1388,6 +1402,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
           </div>
 
           <!-- Step contents -->
+          <div id="proj-step-contratto" class="proj-step-content" data-step="contratto"></div>
           <div id="proj-step-step_1" class="proj-step-content active" data-step="step_1"></div>
           <div id="proj-step-step_2" class="proj-step-content" data-step="step_2"></div>
           <div id="proj-step-step_3" class="proj-step-content" data-step="step_3"></div>
@@ -4725,25 +4740,28 @@ function projUpdateStepNav(){
   document.querySelectorAll('.proj-step-btn').forEach(btn => {
     const s = btn.dataset.step;
     if(!s) return;
-    btn.classList.remove('active','done');
-    const stepData = p[s];
-    if(stepData?.completed) btn.classList.add('done');
+    btn.classList.remove('active','done','contratto-firmato');
+    if(s === 'contratto'){
+      if(p.contratto_firmato) btn.classList.add('contratto-firmato');
+      btn.textContent = p.contratto_firmato ? '✓ CONTRATTO' : '◈ CONTRATTO';
+    } else {
+      const stepData = p[s];
+      if(stepData?.completed) btn.classList.add('done');
+    }
   });
 }
 
 function projShowStep(stepKey){
   if(!_projCurrent) return;
   _projActiveStep = stepKey;
-  // nav buttons
   document.querySelectorAll('.proj-step-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.step === stepKey);
   });
-  // hide all step contents
   document.querySelectorAll('.proj-step-content').forEach(el => el.classList.remove('active'));
   const contentEl = document.getElementById('proj-step-'+stepKey);
   if(!contentEl) return;
   contentEl.classList.add('active');
-  contentEl.innerHTML = buildStepContent(stepKey);
+  contentEl.innerHTML = stepKey === 'contratto' ? buildContractContent() : buildStepContent(stepKey);
 }
 
 function buildStepContent(stepKey){
@@ -5066,42 +5084,326 @@ function preventivoGeneraPDF(pvId){
   doc.save(`preventivo_${slug}_${pvDate.replace(/\//g,'-')}.pdf`);
 }
 
+// ===== CONTRATTO (STEP 32) =====
+
+const AGENCY_DATA = {
+  nome: 'Pluriagency',
+  titolare: 'Attinà Lorenzo',
+  indirizzo: 'Via Calanchi 8, Anzola dell\'Emilia (BO)',
+  piva: '04129241206',
+  email: 'hello@pluriagency.com',
+  foro: 'Bologna',
+  inactivity_days: 45,
+};
+
+function buildContractContent(){
+  const p = _projCurrent;
+  const cd = p.contract_data || {};
+  const pv = _preventiviMap[p.preventivo_id];
+  const firmato = !!p.contratto_firmato;
+
+  // Prefill attività incluse dagli items del preventivo
+  const defaultIncluded = pv?.items?.length
+    ? pv.items.map(it => `• ${it.name}${it.qty>1?' (×'+it.qty+')':''}${it.monthly?' — canone mensile':it.yearly?' — canone annuale':''}`).join('\n')
+    : '';
+  const defaultExcluded = `• Copywriting e produzione contenuti (testi, foto, video)
+• Hosting, dominio e infrastruttura server (salvo accordo separato)
+• SEO avanzato e campagne advertising
+• Integrazioni con sistemi terzi non esplicitamente indicate
+• Attività di formazione e supporto post-consegna non incluse nel pacchetto`;
+
+  const payOpts = [
+    {val:'30_70', label:'30% anticipo + 70% alla consegna (default)'},
+    {val:'50_50', label:'50% anticipo + 50% alla consegna'},
+    {val:'40_30_30', label:'40% anticipo + 30% metà lavori + 30% alla consegna'},
+  ];
+  const timelineOpts = ['15 giorni','30 giorni','45 giorni','60 giorni','90 giorni','Da concordare'];
+  const callOpts = [1,2,3,4,5];
+
+  const statusBadge = firmato
+    ? `<span class="contract-status-badge signed">✓ CONTRATTO FIRMATO</span>`
+    : `<span class="contract-status-badge pending">○ DA FIRMARE</span>`;
+
+  const esc = s => (s||'').replace(/"/g,'&quot;');
+
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+      <div>
+        ${statusBadge}
+        ${p.contract_number ? `<span style="font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--muted);margin-left:.75rem">${p.contract_number}</span>` : ''}
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn-primary" style="font-size:.6rem" onclick="saveContractData()">↑ SALVA DATI</button>
+        <button class="btn-ghost" style="font-size:.6rem" onclick="progettiGeneraPDF()">↓ GENERA PDF</button>
+      </div>
+    </div>
+
+    <div class="contract-section">
+      <div class="contract-section-title">// DATI CLIENTE</div>
+      <div class="contract-grid">
+        <div><div class="field-label">RAGIONE SOCIALE / NOME</div><input id="cd-client-name" class="field-input" value="${esc(cd.client_name||p.client_name)}"></div>
+        <div><div class="field-label">EMAIL</div><input id="cd-client-email" class="field-input" value="${esc(cd.client_email||p.client_email)}"></div>
+        <div><div class="field-label">P.IVA / CF</div><input id="cd-client-piva" class="field-input" value="${esc(cd.client_piva||'')}"></div>
+        <div><div class="field-label">INDIRIZZO</div><input id="cd-client-address" class="field-input" value="${esc(cd.client_address||'')}"></div>
+        <div><div class="field-label">REFERENTE</div><input id="cd-client-referente" class="field-input" value="${esc(cd.client_referente||'')}"></div>
+        <div><div class="field-label">IBAN (per pagamenti)</div><input id="cd-client-iban" class="field-input" value="${esc(cd.client_iban||'')}"></div>
+      </div>
+    </div>
+
+    <div class="contract-section">
+      <div class="contract-section-title">// CONDIZIONI CONTRATTUALI</div>
+      <div class="contract-grid">
+        <div>
+          <div class="field-label">STRUTTURA PAGAMENTO</div>
+          <select id="cd-payment" class="field-select" style="width:100%">
+            ${payOpts.map(o=>`<option value="${o.val}" ${(cd.payment_structure||'30_70')===o.val?'selected':''}>${o.label}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <div class="field-label">TIMELINE PROGETTO</div>
+          <select id="cd-timeline" class="field-select" style="width:100%">
+            ${timelineOpts.map(o=>`<option value="${o}" ${(cd.timeline||'30 giorni')===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <div class="field-label">CALL INCLUSE</div>
+          <select id="cd-calls" class="field-select" style="width:100%">
+            ${callOpts.map(n=>`<option value="${n}" ${(cd.included_calls||3)==n?'selected':''}>${n} call</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <div class="field-label">REVISIONI INCLUSE</div>
+          <select id="cd-revisions" class="field-select" style="width:100%">
+            ${[1,2,3,4,5].map(n=>`<option value="${n}" ${(cd.included_revisions||2)==n?'selected':''}>${n} revisioni</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="contract-section">
+      <div class="contract-section-title">// SCOPE</div>
+      <div class="contract-grid single">
+        <div>
+          <div class="field-label">ATTIVITÀ INCLUSE</div>
+          <textarea id="cd-included" class="field-input" style="min-height:90px;resize:vertical">${esc(cd.included_activities||defaultIncluded)}</textarea>
+        </div>
+        <div>
+          <div class="field-label">ATTIVITÀ ESCLUSE</div>
+          <textarea id="cd-excluded" class="field-input" style="min-height:90px;resize:vertical">${esc(cd.excluded_activities||defaultExcluded)}</textarea>
+        </div>
+        <div>
+          <div class="field-label">NOTE / CONDIZIONI AGGIUNTIVE</div>
+          <textarea id="cd-notes" class="field-input" style="min-height:60px;resize:vertical">${esc(cd.extra_notes||'')}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="contract-firma-box">
+      <div class="contract-section-title" style="color:${firmato?'var(--g1)':'#ffaa00'}">// FIRMA</div>
+      <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--text)">
+        <input type="checkbox" id="cd-firmato" ${firmato?'checked':''} style="accent-color:var(--g1);width:16px;height:16px" onchange="toggleContrattoFirmato(this.checked)">
+        CONTRATTO FIRMATO (offline) — segna dopo aver ricevuto il documento firmato dal cliente
+      </label>
+      ${firmato ? `<div style="font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--g1);margin-top:.5rem">✓ Firmato il ${p.contract_signed_at ? new Date(p.contract_signed_at).toLocaleDateString('it-IT') : 'data non registrata'}</div>` : ''}
+    </div>
+  `;
+}
+
+async function saveContractData(){
+  if(!_projCurrent) return;
+  const cd = {
+    client_name:          document.getElementById('cd-client-name')?.value.trim() || '',
+    client_email:         document.getElementById('cd-client-email')?.value.trim() || '',
+    client_piva:          document.getElementById('cd-client-piva')?.value.trim() || '',
+    client_address:       document.getElementById('cd-client-address')?.value.trim() || '',
+    client_referente:     document.getElementById('cd-client-referente')?.value.trim() || '',
+    client_iban:          document.getElementById('cd-client-iban')?.value.trim() || '',
+    payment_structure:    document.getElementById('cd-payment')?.value || '30_70',
+    timeline:             document.getElementById('cd-timeline')?.value || '30 giorni',
+    included_calls:       parseInt(document.getElementById('cd-calls')?.value) || 3,
+    included_revisions:   parseInt(document.getElementById('cd-revisions')?.value) || 2,
+    included_activities:  document.getElementById('cd-included')?.value.trim() || '',
+    excluded_activities:  document.getElementById('cd-excluded')?.value.trim() || '',
+    extra_notes:          document.getElementById('cd-notes')?.value.trim() || '',
+  };
+
+  // genera numero contratto se non ancora assegnato
+  let contractNumber = _projCurrent.contract_number;
+  if(!contractNumber){
+    const year = new Date().getFullYear();
+    const { data: existing } = await _sb.from('projects').select('contract_number').like('contract_number', `PLURI-${year}-%`);
+    const nextN = (existing?.length || 0) + 1;
+    contractNumber = `PLURI-${year}-${String(nextN).padStart(3,'0')}`;
+  }
+
+  const { error } = await _sb.from('projects').update({
+    contract_data: cd,
+    contract_number: contractNumber,
+  }).eq('id', _projCurrent.id);
+  if(error){ alert('⚠ ' + error.message); return; }
+
+  _projCurrent.contract_data = cd;
+  _projCurrent.contract_number = contractNumber;
+
+  // aggiorna il numero contratto visualizzato senza rebuild completo
+  const numEl = document.querySelector('[data-step="contratto"].active')?.previousElementSibling;
+  projUpdateStepNav();
+  // feedback
+  const btn = document.querySelector('.proj-step-content.active .btn-primary');
+  if(btn){ const orig = btn.textContent; btn.textContent = '✓ SALVATO'; setTimeout(()=>btn.textContent=orig,2000); }
+  // re-render per aggiornare numero
+  projShowStep('contratto');
+}
+
+async function toggleContrattoFirmato(checked){
+  if(!_projCurrent) return;
+  const payload = {
+    contratto_firmato: checked,
+    contract_signed_at: checked ? new Date().toISOString() : null,
+  };
+  const { error } = await _sb.from('projects').update(payload).eq('id', _projCurrent.id);
+  if(error){ alert('⚠ ' + error.message); return; }
+  Object.assign(_projCurrent, payload);
+  projUpdateStepNav();
+  projShowStep('contratto');
+}
+
 function progettiGeneraPDF(){
   if(!_projCurrent) return;
   const p = _projCurrent;
-  if(typeof jsPDF === 'undefined'){ alert('jsPDF non disponibile — assicurarsi che la libreria sia caricata.'); return; }
-  const doc = new jsPDF();
-  const pageW = doc.internal.pageSize.getWidth();
-  let y = 20;
-  doc.setFontSize(18); doc.setFont('helvetica','bold');
-  doc.text('CONTRATTO DI SERVIZIO', pageW/2, y, {align:'center'}); y+=10;
-  doc.setFontSize(10); doc.setFont('helvetica','normal');
-  doc.text('PLURIAGENCY — Bologna, Italy | hello@pluriagency.com', pageW/2, y, {align:'center'}); y+=12;
-  doc.setDrawColor(0,255,136,100); doc.line(15, y, pageW-15, y); y+=8;
-  doc.setFontSize(11); doc.setFont('helvetica','bold');
-  doc.text('DATI CLIENTE', 15, y); y+=6;
-  doc.setFont('helvetica','normal'); doc.setFontSize(10);
-  doc.text(`Nome: ${p.client_name}`, 15, y); y+=5;
-  if(p.client_email){ doc.text(`Email: ${p.client_email}`, 15, y); y+=5; }
-  y+=4;
-  // Servizi dal preventivo (da _preventiviMap se disponibile)
+  if(typeof jsPDF === 'undefined'){ alert('jsPDF non caricato.'); return; }
+  const cd = p.contract_data || {};
   const pv = _preventiviMap[p.preventivo_id];
-  if(pv && pv.items?.length){
-    doc.setFont('helvetica','bold'); doc.text('SERVIZI', 15, y); y+=6;
-    doc.setFont('helvetica','normal');
-    pv.items.forEach(it => {
-      doc.text(`• ${it.name} x${it.qty||1} — ${(it.total||0).toLocaleString('it-IT')} EUR`, 18, y); y+=5;
-      if(y > 270){ doc.addPage(); y=20; }
-    });
-    y+=3;
-    doc.setFont('helvetica','bold');
-    doc.text(`TOTALE: ${(pv.total||0).toLocaleString('it-IT')} EUR`, pageW-15, y, {align:'right'}); y+=10;
+  const doc = new jsPDF({ unit:'mm', format:'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const L = 18, R = pageW - 18, TW = R - L;
+  let y = 0;
+
+  // helper: nuova pagina se necessario
+  const chk = (need=10) => { if(y + need > pageH - 22){ addFooter(); doc.addPage(); y = 20; addHeader(); } };
+  const ln = (n=5) => { y += n; };
+  const title = (t) => { chk(10); doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(80,80,80); doc.text(t, L, y); doc.setTextColor(0,0,0); ln(6); };
+  const body = (t, indent=0) => {
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5);
+    const lines = doc.splitTextToSize(t, TW - indent);
+    lines.forEach(line => { chk(5); doc.text(line, L+indent, y); y+=4.5; });
+  };
+  const bold = (t) => { doc.setFont('helvetica','bold'); doc.setFontSize(9.5); chk(6); doc.text(t, L, y); doc.setFont('helvetica','normal'); ln(5); };
+  const rule = () => { chk(4); doc.setDrawColor(200,200,200); doc.line(L, y, R, y); ln(5); };
+
+  // dati
+  const clientName  = cd.client_name  || p.client_name  || '—';
+  const clientEmail = cd.client_email || p.client_email || '';
+  const clientPiva  = cd.client_piva  || '';
+  const clientAddr  = cd.client_address || '';
+  const clientRef   = cd.client_referente || '';
+  const payment     = cd.payment_structure || '30_70';
+  const payLabel    = payment==='50_50' ? '50% anticipo + 50% alla consegna'
+                    : payment==='40_30_30' ? '40% anticipo + 30% a metà lavori + 30% alla consegna'
+                    : '30% anticipo + 70% alla consegna';
+  const timeline    = cd.timeline || '30 giorni';
+  const calls       = cd.included_calls || 3;
+  const revisions   = cd.included_revisions || 2;
+  const included    = cd.included_activities || '';
+  const excluded    = cd.excluded_activities || '';
+  const extraNotes  = cd.extra_notes || '';
+  const projectValue = pv?.total || p.total || 0;
+  const contractNum  = p.contract_number || '—';
+  const today        = new Date().toLocaleDateString('it-IT');
+
+  function addHeader(){
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(140,140,140);
+    doc.text(`PLURIAGENCY — ${AGENCY_DATA.email} — P.IVA ${AGENCY_DATA.piva}`, L, 10);
+    doc.text(contractNum, R, 10, {align:'right'});
+    doc.setTextColor(0,0,0);
   }
-  doc.setFont('helvetica','normal'); doc.setFontSize(9);
-  doc.text(`Data: ${new Date().toLocaleDateString('it-IT')}`, 15, y); y+=5;
-  doc.text('_____________________________', pageW-70, y);
-  doc.text('Firma Cliente', pageW-60, y+6);
-  doc.save(`contratto_${p.client_name.replace(/\s+/g,'_')}.pdf`);
+  function addFooter(){
+    const fy = pageH - 10;
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(160,160,160);
+    doc.text(`${AGENCY_DATA.titolare} — ${AGENCY_DATA.indirizzo} — P.IVA ${AGENCY_DATA.piva}`, pageW/2, fy, {align:'center'});
+    const pgNum = doc.internal.getCurrentPageInfo().pageNumber;
+    doc.text(`pag. ${pgNum}`, R, fy, {align:'right'});
+    doc.setTextColor(0,0,0);
+  }
+
+  // ---- PAGINA 1 ----
+  addHeader(); y = 20;
+  doc.setFont('helvetica','bold'); doc.setFontSize(16);
+  doc.text('CONTRATTO DI PRESTAZIONE SERVIZI DIGITALI', pageW/2, y, {align:'center'}); ln(7);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(100,100,100);
+  doc.text(`N. ${contractNum}  |  Data: ${today}`, pageW/2, y, {align:'center'}); doc.setTextColor(0,0,0); ln(10);
+  doc.setDrawColor(0,0,0); doc.line(L, y, R, y); ln(8);
+
+  title('1. PARTI');
+  bold('Fornitore'); body(`${AGENCY_DATA.nome}\n${AGENCY_DATA.titolare}\n${AGENCY_DATA.indirizzo}\nP.IVA: ${AGENCY_DATA.piva} — ${AGENCY_DATA.email}`); ln(2);
+  bold('Cliente'); body(`${clientName}${clientAddr?'\n'+clientAddr:''}${clientPiva?'\nP.IVA/CF: '+clientPiva:''}${clientEmail?'\n'+clientEmail:''}${clientRef?'\nRiferimento: '+clientRef:''}`); ln(4);
+  rule();
+
+  title('2. OGGETTO DEL CONTRATTO');
+  body('Il presente contratto disciplina la realizzazione dei seguenti servizi:'); ln(2);
+  if(included) body(included, 4);
+  else if(pv?.items?.length) pv.items.forEach(it => body(`• ${it.name} x${it.qty||1} — EUR ${(it.total||0).toLocaleString('it-IT')}`, 4));
+  ln(4); rule();
+
+  chk(30);
+  title('3. AMBITO DI INTERVENTO (SCOPE)');
+  bold('3.1 Attività incluse');
+  body(included || 'Vedi sezione 2 — Oggetto del contratto.'); ln(2);
+  bold('3.2 Attività escluse');
+  body(excluded || 'Tutte le attività non esplicitamente indicate nel presente contratto.'); ln(4);
+  rule();
+
+  title('4. WORKFLOW OPERATIVO');
+  body(`Il progetto segue il seguente flusso:\n• Fase 1: Call di briefing iniziale\n• Fase 2: Call di allineamento progettuale\n• Fase 3: Call di presentazione finale e setup\n\nNumero call incluse: ${calls}\nOgni fase richiede approvazione esplicita del Cliente prima di procedere.`); ln(4);
+  rule();
+
+  title('5. REVISIONI');
+  body(`Sono incluse ${revisions} revisioni. Condizioni:\n• Le revisioni devono essere inviate in un'unica soluzione\n• Devono rispettare quanto definito nel brief iniziale\n\nSono considerate EXTRA: richieste successive all'approvazione, modifiche strutturali o fuori scope.`); ln(4);
+  rule();
+
+  title('6. EXTRA E SERVIZI AGGIUNTIVI');
+  body(`Le seguenti attività sono a pagamento:\n• Call aggiuntive: EUR 80/ora\n• Revisioni extra: EUR 100 cad.\n• Nuove funzionalità o modifiche: preventivo dedicato`); ln(4);
+  rule();
+
+  title('7. TEMPISTICHE');
+  body(`Durata stimata del progetto: ${timeline}\n\nLe tempistiche dipendono da:\n• Tempestività del Cliente nel fornire materiali e approvazioni\n• Velocità di risposta nelle fasi di revisione\n\nRitardi imputabili al Cliente comportano slittamento automatico delle scadenze.`); ln(4);
+  rule();
+
+  title('8. CORRISPETTIVI E PAGAMENTI');
+  body(`Valore totale: EUR ${projectValue.toLocaleString('it-IT')}\n\nStruttura di pagamento: ${payLabel}\n\nCondizioni:\n• L'avvio dei lavori è subordinato al pagamento dell'anticipo\n• La consegna finale è subordinata al saldo completo`); ln(4);
+  rule();
+
+  title('9. SOSPENSIONE E INTERRUZIONE');
+  body(`In caso di interruzione da parte del Cliente, gli importi versati non sono rimborsabili e il lavoro svolto deve essere saldato.\n\nSe il progetto resta inattivo per oltre ${AGENCY_DATA.inactivity_days} giorni per cause imputabili al Cliente, il Fornitore si riserva il diritto di sospendere le attività e rivalutare l'accordo.`); ln(4);
+  rule();
+
+  title('10. PROPRIETÀ E DIRITTI');
+  body(`A pagamento completato il Cliente acquisisce i diritti d'uso del progetto.\nIl Fornitore mantiene il diritto di utilizzo a fini di portfolio e promozione.`); ln(4);
+  rule();
+
+  title('11. RESPONSABILITÀ');
+  body(`Il Fornitore non è responsabile per:\n• Risultati commerciali derivanti dall'utilizzo del progetto\n• Servizi di terze parti, API esterne o piattaforme non gestite direttamente\n• Malfunzionamenti derivanti da modifiche apportate dal Cliente dopo la consegna`); ln(4);
+  rule();
+
+  if(extraNotes){ title('12. NOTE E CONDIZIONI AGGIUNTIVE'); body(extraNotes); ln(4); rule(); }
+
+  title(`${extraNotes?'13':'12'}. CLAUSOLE FINALI`);
+  body(`Il presente contratto si considera accettato con la conferma del preventivo di riferimento.\nForo competente per eventuali controversie: Tribunale di ${AGENCY_DATA.foro}.`); ln(8);
+
+  // FIRMA
+  chk(40);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10);
+  doc.text('FIRMA CLIENTE', L, y); doc.text('FIRMA FORNITORE', pageW/2 + 5, y); ln(12);
+  doc.setDrawColor(0,0,0); doc.setLineWidth(0.3);
+  doc.line(L, y, L+70, y); doc.line(pageW/2+5, y, pageW/2+75, y); ln(5);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(100,100,100);
+  doc.text(clientName, L, y); doc.text(AGENCY_DATA.titolare, pageW/2+5, y);
+
+  addFooter();
+
+  const slug = (cd.client_name||p.client_name||'cliente').toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+  doc.save(`${contractNum.replace(/\//g,'-')}_${slug}.pdf`);
 }
 
 // Crea progetto da preventivo → ordine (con articoli selezionati)

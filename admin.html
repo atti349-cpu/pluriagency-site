@@ -1183,6 +1183,16 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
             <div><div class="field-label">INDIRIZZO</div><input id="cl-indirizzo" class="field-input" type="text" placeholder="Via Roma 1, Bologna (BO)"></div>
             <div><div class="field-label">IBAN</div><input id="cl-iban" class="field-input" type="text" placeholder="IT00 X000 0000 0000 0000 0000 000"></div>
             <div>
+              <div class="field-label">MODALITÀ PAGAMENTO</div>
+              <select id="cl-pagamento" class="field-select" style="width:100%">
+                <option value="">Seleziona...</option>
+                <option>Bonifico bancario</option><option>Bonifico SEPA</option>
+                <option>Carta di credito/debito</option><option>PayPal</option>
+                <option>Rate</option><option>Contanti</option>
+                <option>RID / Addebito diretto</option><option>Altro</option>
+              </select>
+            </div>
+            <div style="grid-column:1/-1">
               <div class="field-label">AGENTE RESPONSABILE</div>
               <select id="cl-agent" class="field-select" style="width:100%"><option value="">Seleziona agente...</option></select>
             </div>
@@ -3593,8 +3603,9 @@ async function saveCliente(){
     telefono:        document.getElementById('cl-telefono')?.value.trim() || null,
     piva:            document.getElementById('cl-piva')?.value.trim() || null,
     indirizzo:       document.getElementById('cl-indirizzo')?.value.trim() || null,
-    iban:            document.getElementById('cl-iban')?.value.trim() || null,
-    note:            document.getElementById('cl-note')?.value.trim() || null,
+    iban:               document.getElementById('cl-iban')?.value.trim() || null,
+    modalita_pagamento: document.getElementById('cl-pagamento')?.value || null,
+    note:               document.getElementById('cl-note')?.value.trim() || null,
     agent_id:        null,
     creatore_email:  _currentUserEmail,
   };
@@ -3613,32 +3624,83 @@ async function saveCliente(){
   setTimeout(() => { toggleClienteForm(); loadClienti(); }, 1000);
 }
 
+const _CM_PAY_TYPES = ['Bonifico bancario','Bonifico SEPA','Carta di credito/debito','PayPal','Rate','Contanti','RID / Addebito diretto','Altro'];
+
+function _cmNotesHtml(log){
+  if(!log?.length) return `<div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)">nessuna nota</div>`;
+  return log.slice().reverse().map(n => `
+    <div style="padding:.4rem 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:.52rem;color:var(--muted);margin-bottom:.2rem">
+        <span>${n.author||'—'}</span>
+        <span>${n.date ? new Date(n.date).toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'}) : ''}</span>
+      </div>
+      <div style="font-size:.72rem;color:var(--text);white-space:pre-wrap">${(n.text||'').replace(/</g,'&lt;')}</div>
+    </div>`).join('');
+}
+
 async function openClienteModal(id){
   const c = _clientiMap[id]; if(!c) return;
   document.getElementById('cliente-modal-title').textContent = (c.name||'CLIENTE').toUpperCase();
 
-  // Carica preventivi collegati
-  const { data: prevs } = await _sb.from('preventivi').select('id,client_name,total,status,created_at').eq('client_id', id).order('created_at',{ascending:false});
+  const [{ data: prevs }, { data: freshC }] = await Promise.all([
+    _sb.from('preventivi').select('id,client_name,total,status,created_at').eq('client_id', id).order('created_at',{ascending:false}),
+    _sb.from('clienti').select('notes_log').eq('id', id).single()
+  ]);
+  const notesLog = freshC?.notes_log || c.notes_log || [];
+  _clientiMap[id].notes_log = notesLog;
+
   const prevsHtml = prevs?.length ? prevs.map(p => `
-    <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:.6rem">
-      <span style="color:var(--text)">${new Date(p.created_at).toLocaleDateString('it-IT')} — ${(p.total||0).toLocaleString('it-IT')}\u20AC</span>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;border-bottom:1px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:.6rem">
+      <span style="color:var(--text)">${new Date(p.created_at).toLocaleDateString('it-IT')} — \u20AC${(p.total||0).toLocaleString('it-IT')}</span>
       <span class="pv-status ${p.status||'bozza'}" style="font-size:.5rem">${(p.status||'bozza').toUpperCase()}</span>
       <button class="btn-ghost" style="font-size:.5rem;padding:.2rem .4rem" onclick="openPvModal('${p.id}')">APRI</button>
-    </div>`).join('') : `<div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)">nessun preventivo collegato</div>`;
+    </div>`).join('')
+    : `<div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)">nessun preventivo collegato</div>`;
+
+  const esc = s => (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  const payOpts = _CM_PAY_TYPES.map(t => `<option value="${t}" ${c.modalita_pagamento===t?'selected':''}>${t}</option>`).join('');
+
+  const secHdr = lbl => `<div style="font-family:'Share Tech Mono',monospace;font-size:.52rem;letter-spacing:.2em;color:var(--g3);margin-bottom:.75rem;border-top:1px solid var(--border);padding-top:1rem">// ${lbl}</div>`;
 
   document.getElementById('cliente-modal-body').innerHTML = `
-    <div class="pv-info-grid" style="margin-bottom:1rem">
-      <div class="pv-info-cell"><div class="pv-info-key">Nome / Raz. Sociale</div><div class="pv-info-val">${c.name||'—'}</div></div>
-      <div class="pv-info-cell"><div class="pv-info-key">Email</div><div class="pv-info-val">${c.email||'—'}</div></div>
-      <div class="pv-info-cell"><div class="pv-info-key">Referente</div><div class="pv-info-val">${c.referente||'—'}</div></div>
-      <div class="pv-info-cell"><div class="pv-info-key">Telefono</div><div class="pv-info-val">${c.telefono||'—'}</div></div>
-      <div class="pv-info-cell"><div class="pv-info-key">P.IVA / CF</div><div class="pv-info-val">${c.piva||'—'}</div></div>
-      <div class="pv-info-cell"><div class="pv-info-key">Indirizzo</div><div class="pv-info-val">${c.indirizzo||'—'}</div></div>
-      <div class="pv-info-cell"><div class="pv-info-key">IBAN</div><div class="pv-info-val" style="font-size:.65rem">${c.iban||'—'}</div></div>
-      <div class="pv-info-cell"><div class="pv-info-key">Creato da</div><div class="pv-info-val">${c.creatore_email||'—'}</div></div>
-      ${c.note ? `<div class="pv-info-cell" style="grid-column:1/-1"><div class="pv-info-key">Note</div><div class="pv-info-val" style="white-space:pre-wrap">${c.note.replace(/</g,'&lt;')}</div></div>` : ''}
+    <div style="font-family:'Share Tech Mono',monospace;font-size:.52rem;letter-spacing:.2em;color:var(--g3);margin-bottom:.75rem">// ANAGRAFICA</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.75rem">
+      <div><div class="field-label">NOME / RAGIONE SOCIALE</div><input id="cm-name" class="field-input" value="${esc(c.name)}"></div>
+      <div><div class="field-label">EMAIL</div><input id="cm-email" class="field-input" type="email" value="${esc(c.email)}"></div>
+      <div><div class="field-label">REFERENTE</div><input id="cm-referente" class="field-input" value="${esc(c.referente)}" placeholder="Nome cognome responsabile"></div>
+      <div><div class="field-label">TELEFONO</div><input id="cm-telefono" class="field-input" value="${esc(c.telefono)}"></div>
+      <div><div class="field-label">P.IVA / CF</div><input id="cm-piva" class="field-input" value="${esc(c.piva)}"></div>
+      <div><div class="field-label">INDIRIZZO</div><input id="cm-indirizzo" class="field-input" value="${esc(c.indirizzo)}"></div>
     </div>
-    <div class="pv-info-key" style="margin-bottom:.5rem">PREVENTIVI COLLEGATI</div>
+    <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.5rem">
+      <button class="btn-primary" style="font-size:.6rem" onclick="saveClienteAnagrafica('${id}')">↑ SALVA ANAGRAFICA</button>
+      <span id="cm-anag-msg" style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--g1)"></span>
+    </div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:.52rem;color:var(--muted);margin-bottom:1.25rem">creato da: ${esc(c.creatore_email)}</div>
+
+    ${secHdr('PAGAMENTO')}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.75rem">
+      <div><div class="field-label">IBAN</div><input id="cm-iban" class="field-input" value="${esc(c.iban)}" placeholder="IT00 X000 0000 0000 0000 0000 000"></div>
+      <div>
+        <div class="field-label">MODALITÀ PAGAMENTO</div>
+        <select id="cm-pagamento" class="field-select" style="width:100%">
+          <option value="">Seleziona...</option>${payOpts}
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1.25rem">
+      <button class="btn-primary" style="font-size:.6rem" onclick="saveClientePagamento('${id}')">↑ SALVA PAGAMENTO</button>
+      <span id="cm-pag-msg" style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--g1)"></span>
+    </div>
+
+    ${secHdr('NOTE TEAM')}
+    <div id="cm-notes-list" style="margin-bottom:.75rem;max-height:200px;overflow-y:auto">${_cmNotesHtml(notesLog)}</div>
+    <div style="display:flex;gap:.5rem;margin-bottom:1.5rem;align-items:flex-end">
+      <textarea id="cm-note-input" class="field-input" style="flex:1;min-height:52px;resize:vertical" placeholder="Aggiungi nota interna..."></textarea>
+      <button class="btn-primary" style="font-size:.6rem" onclick="addClienteNote('${id}')">+ NOTA</button>
+    </div>
+
+    ${secHdr('PREVENTIVI COLLEGATI')}
     ${prevsHtml}`;
 
   document.getElementById('cliente-modal').classList.add('open');
@@ -3650,6 +3712,52 @@ function closeClienteModal(){
   document.body.style.overflow = '';
 }
 document.getElementById('cliente-modal').addEventListener('click', e => { if(e.target === e.currentTarget) closeClienteModal(); });
+
+async function saveClienteAnagrafica(id){
+  const msgEl = document.getElementById('cm-anag-msg');
+  if(msgEl) msgEl.textContent = '> salvataggio...';
+  const payload = {
+    name:      document.getElementById('cm-name')?.value.trim() || null,
+    email:     document.getElementById('cm-email')?.value.trim() || null,
+    referente: document.getElementById('cm-referente')?.value.trim() || null,
+    telefono:  document.getElementById('cm-telefono')?.value.trim() || null,
+    piva:      document.getElementById('cm-piva')?.value.trim() || null,
+    indirizzo: document.getElementById('cm-indirizzo')?.value.trim() || null,
+  };
+  const { error } = await _sb.from('clienti').update(payload).eq('id', id);
+  if(error){ if(msgEl) msgEl.textContent = '\u26a0 ' + error.message; return; }
+  Object.assign(_clientiMap[id], payload);
+  document.getElementById('cliente-modal-title').textContent = (payload.name || _clientiMap[id].name || 'CLIENTE').toUpperCase();
+  if(msgEl){ msgEl.textContent = '\u2713 salvato'; setTimeout(()=>{ msgEl.textContent=''; }, 2500); }
+  loadClienti();
+}
+
+async function saveClientePagamento(id){
+  const msgEl = document.getElementById('cm-pag-msg');
+  if(msgEl) msgEl.textContent = '> salvataggio...';
+  const payload = {
+    iban:               document.getElementById('cm-iban')?.value.trim() || null,
+    modalita_pagamento: document.getElementById('cm-pagamento')?.value || null,
+  };
+  const { error } = await _sb.from('clienti').update(payload).eq('id', id);
+  if(error){ if(msgEl) msgEl.textContent = '\u26a0 ' + error.message; return; }
+  Object.assign(_clientiMap[id], payload);
+  if(msgEl){ msgEl.textContent = '\u2713 salvato'; setTimeout(()=>{ msgEl.textContent=''; }, 2500); }
+}
+
+async function addClienteNote(id){
+  const input = document.getElementById('cm-note-input');
+  const text = input?.value.trim();
+  if(!text) return;
+  const currentLog = _clientiMap[id]?.notes_log || [];
+  const updated = [...currentLog, { text, date: new Date().toISOString(), author: _currentUserEmail }];
+  const { error } = await _sb.from('clienti').update({ notes_log: updated }).eq('id', id);
+  if(error){ alert('\u26a0 ' + error.message); return; }
+  _clientiMap[id].notes_log = updated;
+  input.value = '';
+  const listEl = document.getElementById('cm-notes-list');
+  if(listEl) listEl.innerHTML = _cmNotesHtml(updated);
+}
 
 async function deleteCliente(id){
   const c = _clientiMap[id]; if(!c) return;

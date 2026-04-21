@@ -1822,13 +1822,16 @@ function showSitePreview(url){
 
   clearTimeout(_pfSitePreviewTimer);
   _pfSitePreviewTimer = setTimeout(() => {
-    iframe.onerror = null;
-    // Se il sito ha X-Frame-Options il load non triggera errore — usiamo timeout fallback
     iframe.onload = () => {
-      try { iframe.contentDocument; } // Blocca se cross-origin
-      catch(e){
-        blocked.style.display = 'block';
-        iframe.style.display  = 'none';
+      try {
+        const body = iframe.contentDocument?.body;
+        if(!body || !body.innerHTML.trim()){
+          // X-Frame-Options blocca: browser carica doc vuoto accessibile
+          blocked.style.display = 'block';
+          iframe.style.display  = 'none';
+        }
+      } catch(e){
+        // SecurityError: cross-origin senza X-Frame-Options → iframe caricato OK
       }
     };
     iframe.src = url;

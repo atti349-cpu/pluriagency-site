@@ -321,7 +321,7 @@ function renderLayouts() {
     // Il placeholder gradiente è SEMPRE visibile; l'iframe si sovrappone su hover/mobile
     const iframeLayer = hasPreview
       ? `<div class="card-iframe-wrap" data-id="${l.id}">
-           <iframe class="card-iframe" sandbox="allow-scripts allow-same-origin allow-forms" scrolling="no"></iframe>
+           <iframe class="card-iframe" sandbox="allow-scripts allow-same-origin" scrolling="no"></iframe>
          </div>`
       : '';
     return `
@@ -488,7 +488,7 @@ function openDemoPreview(id){
             <button onclick="closeDemoPreview()" style="background:transparent;border:1px solid rgba(0,207,255,.2);color:#4a6a88;width:28px;height:28px;cursor:pointer;font-size:13px;">✕</button>
           </div>
         </div>
-        <iframe id="demo-preview-iframe" sandbox="allow-scripts allow-same-origin allow-forms"
+        <iframe id="demo-preview-iframe" sandbox="allow-scripts allow-same-origin"
           style="flex:1;border:none;width:100%"></iframe>
       </div>`;
     modal.addEventListener('click', e => { if(e.target===modal) closeDemoPreview(); });

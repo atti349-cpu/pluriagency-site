@@ -418,14 +418,14 @@ function buildGrid(cat){
       // Anteprima sito live via iframe src (interattiva se il sito lo permette)
       imgHtml = `<div class="port-img-wrap port-iframe-wrap port-siteurl-wrap" style="${hStyle};position:relative;overflow:hidden;background:#06060a" data-id="${p.id}" data-siteurl="${encodeURIComponent(p.siteUrl)}">
         <div class="port-iframe-inner">
-          <iframe class="port-preview-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" scrolling="no" style="position:absolute;top:0;left:0;width:1440px;height:900px;border:none;pointer-events:none;transform-origin:top left"></iframe>
+          <iframe class="port-preview-iframe" sandbox="allow-scripts allow-same-origin" scrolling="no" style="position:absolute;top:0;left:0;width:1440px;height:900px;border:none;pointer-events:none;transform-origin:top left"></iframe>
         </div>
         ${makePlaceholder(p.color||catColor, p.pattern, p.h)}
       </div>`;
     } else if(p.htmlSnippet){
       imgHtml = `<div class="port-img-wrap port-iframe-wrap" style="${hStyle};position:relative;overflow:hidden;background:#06060a" data-id="${p.id}">
         <div class="port-iframe-inner">
-          <iframe class="port-preview-iframe" sandbox="allow-scripts allow-same-origin allow-forms" scrolling="no" style="position:absolute;top:0;left:0;width:1440px;height:900px;border:none;pointer-events:none;transform-origin:top left"></iframe>
+          <iframe class="port-preview-iframe" sandbox="allow-scripts allow-same-origin" scrolling="no" style="position:absolute;top:0;left:0;width:1440px;height:900px;border:none;pointer-events:none;transform-origin:top left"></iframe>
         </div>
         ${makePlaceholder(p.color||catColor, p.pattern, p.h)}
       </div>`;
@@ -532,7 +532,7 @@ function openLightbox(id){
     const safeUrl = p.siteUrl.replace(/"/g,'&quot;');
     imgWrap.innerHTML = `<div style="width:100%;height:460px;position:relative;background:#000;overflow:hidden;">
       <iframe id="lb-siteurl-iframe"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        sandbox="allow-scripts allow-same-origin"
         src="${safeUrl}"
         style="width:100%;height:100%;border:none"></iframe>
       <div id="lb-site-overlay" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:rgba(4,6,13,.88)">
@@ -550,7 +550,7 @@ function openLightbox(id){
     }, 1500);
   } else if(p.htmlSnippet){
     imgWrap.innerHTML = `<div style="width:100%;height:420px;position:relative;background:#000;overflow:hidden;border-radius:4px">
-      <iframe id="lb-snippet-iframe" sandbox="allow-scripts allow-same-origin allow-forms"
+      <iframe id="lb-snippet-iframe" sandbox="allow-scripts allow-same-origin"
         style="width:100%;height:100%;border:none"></iframe>
     </div>`;
     document.getElementById('lb-snippet-iframe').srcdoc = p.htmlSnippet;

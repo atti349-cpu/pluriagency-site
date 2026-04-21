@@ -181,6 +181,18 @@
     .loader-bar::after{content:'';position:absolute;top:0;left:-50%;width:50%;height:100%;background:var(--green);animation:lslide 1s ease infinite;}
     @keyframes lslide{to{left:150%;}}
 
+    /* ── PROJECT MODAL ── */
+    #proj-modal{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.92);display:none;flex-direction:column;}
+    #proj-modal.open{display:flex;}
+    .pm-header{display:flex;align-items:center;gap:1rem;padding:.75rem 1.25rem;background:var(--bg2);border-bottom:1px solid var(--border2);flex-shrink:0;}
+    .pm-title{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--green);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .pm-visit{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--cyan);text-decoration:none;border:1px solid var(--cyan);padding:.3rem .8rem;white-space:nowrap;flex-shrink:0;}
+    .pm-close{font-family:var(--mono);font-size:16px;color:var(--muted);background:none;border:none;cursor:pointer;padding:.2rem .5rem;flex-shrink:0;}
+    .pm-close:hover{color:var(--white);}
+    .pm-body{flex:1;overflow:auto;display:flex;background:var(--bg);}
+    #pm-iframe{width:100%;flex:1;border:none;}
+    #pm-img{max-width:100%;max-height:100%;object-fit:contain;margin:auto;display:block;padding:1rem;}
+
     /* ── FADE-UP ── */
     .fade-up{opacity:0;transform:translateY(20px);transition:opacity .55s ease,transform .55s ease;}
     .fade-up.visible{opacity:1;transform:translateY(0);}
@@ -344,6 +356,16 @@
   </footer>
 </div>
 
+<!-- PROJECT MODAL -->
+<div id="proj-modal" onclick="if(event.target===this)closeProjModal()">
+  <div class="pm-header">
+    <span class="pm-title" id="pm-title"></span>
+    <a class="pm-visit" id="pm-visit" href="#" target="_blank" rel="noopener" style="display:none">↗ VISITA SITO</a>
+    <button class="pm-close" onclick="closeProjModal()">✕</button>
+  </div>
+  <div class="pm-body" id="pm-body"></div>
+</div>
+
 <script>
 /* ── CANVAS ── */
 (function(){
@@ -382,6 +404,8 @@ function startPhotoBoot(nome){
   function next(){if(li>=lines.length){el.textContent='';return;}typeLine(lines[li++],next);}
   setTimeout(next,600);
 }
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeProjModal();});
 
 /* ── FADE-UP ── */
 function initFadeUp(){
@@ -429,18 +453,43 @@ document.getElementById('contactForm').addEventListener('submit',async function(
 /* ── PROJECT CARDS ── */
 let _allProjects=[];
 function buildProjectCard(item,isDemo){
-  const card=document.createElement(item.site_url?'a':'div');
-  if(item.site_url){card.href=item.site_url;card.target='_blank';card.rel='noopener';}
+  const card=document.createElement('div');
   card.className='project-card fade-up';
+  card.style.cursor='pointer';
+  card.addEventListener('click',()=>openProjModal(item));
   let prev='';
-  if(item.html_snippet)prev=`<div class="card-preview"><iframe srcdoc="${item.html_snippet.replace(/"/g,'&quot;')}" loading="lazy"></iframe><div class="card-overlay"><span>↗ PREVIEW</span></div></div>`;
-  else if(item.media_url)prev=`<div class="card-screenshot"><img src="${item.media_url}" alt="${item.title||''}" loading="lazy"><div class="card-overlay"><span>${item.site_url?'↗ VISITA':'↗ DETTAGLIO'}</span></div></div>`;
+  if(item.html_snippet)prev=`<div class="card-preview"><iframe srcdoc="${item.html_snippet.replace(/"/g,'&quot;')}" sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe><div class="card-overlay"><span>↗ PREVIEW</span></div></div>`;
+  else if(item.site_url)prev=`<div class="card-placeholder" style="position:relative;overflow:hidden;background:var(--bg3)"><div class="card-placeholder-icon" style="font-size:1.2rem;opacity:.15">🔗</div><div class="card-placeholder-label">${(item.site_url.replace(/^https?:\/\//,'')).slice(0,30)}</div><div class="card-overlay"><span>↗ PREVIEW</span></div></div>`;
+  else if(item.media_url)prev=`<div class="card-screenshot"><img src="${item.media_url}" alt="${item.title||''}" loading="lazy"><div class="card-overlay"><span>↗ DETTAGLIO</span></div></div>`;
   else prev=`<div class="card-placeholder"><div class="card-placeholder-icon">◈</div><div class="card-placeholder-label">${item.type_tag||'PROGETTO'}</div></div>`;
   const tags=(item.tags||[]).map(t=>`<span class="card-tag">${t}</span>`).join('');
   const urlRow=item.site_url?`<span class="card-url">${item.site_url.replace(/^https?:\/\//,'')}</span>`:'';
   const typeLabel=isDemo?(item.type_tag||'DEMO').toUpperCase():(item.type_tag||'WEB').toUpperCase();
   card.innerHTML=`${prev}<div class="card-body"><div class="card-type-badge">${typeLabel}${item.client_name?` · ${item.client_name}`:''}</div><div class="card-title"><span>${item.title||''}</span>${item.site_url?`<span class="card-arrow">↗</span>`:''}</div>${item.description?`<p class="card-desc">${item.description}</p>`:''}${tags?`<div class="card-tags">${tags}</div>`:''}${urlRow}</div>`;
   return card;
+}
+function openProjModal(item){
+  document.getElementById('pm-title').textContent=(item.title||'PREVIEW').toUpperCase();
+  const visit=document.getElementById('pm-visit');
+  if(item.site_url){visit.href=item.site_url;visit.style.display='';}
+  else visit.style.display='none';
+  const body=document.getElementById('pm-body');
+  if(item.html_snippet){
+    body.innerHTML=`<iframe id="pm-iframe" sandbox="allow-scripts allow-same-origin" srcdoc="${item.html_snippet.replace(/"/g,'&quot;')}"></iframe>`;
+  } else if(item.site_url){
+    body.innerHTML=`<iframe id="pm-iframe" sandbox="allow-scripts allow-same-origin" src="${item.site_url}"></iframe>`;
+  } else if(item.media_url){
+    body.innerHTML=`<img id="pm-img" src="${item.media_url}" alt="${item.title||''}">`;
+  } else {
+    body.innerHTML=`<div style="margin:auto;font-family:var(--mono);color:var(--muted);font-size:12px;letter-spacing:2px">&gt; nessuna anteprima disponibile</div>`;
+  }
+  document.getElementById('proj-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeProjModal(){
+  document.getElementById('proj-modal').classList.remove('open');
+  document.getElementById('pm-body').innerHTML='';
+  document.body.style.overflow='';
 }
 function renderProjects(filter){
   const grid=document.getElementById('projectsGrid');grid.innerHTML='';

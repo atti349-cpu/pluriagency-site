@@ -199,13 +199,12 @@
 
     /* ── RESPONSIVE ── */
     @media(max-width:900px){
-      /* hero: stacked — photo first, then info */
+      /* hero: stacked — info first (name+skills), then photo */
       .hero{display:flex;flex-direction:column;min-height:auto;}
-      .hero-photo{height:min(70vw,340px);width:100%;order:0;}
-      .hero-photo::after{display:none;} /* no right-edge fade on mobile */
-      /* bottom fade on mobile photo */
+      .hero-photo{height:min(70vw,340px);width:100%;order:1;}
+      .hero-photo::after{display:none;}
       .hero-photo::before{content:'';position:absolute;bottom:0;left:0;right:0;height:80px;background:linear-gradient(to bottom,transparent,var(--bg));z-index:2;pointer-events:none;}
-      .hero-info{order:1;padding:2rem 1.5rem 3rem;text-align:center;}
+      .hero-info{order:0;padding:5rem 1.5rem 2rem;text-align:center;}
       .hero-meta{justify-content:center;}
       .hero-stats-row{justify-content:center;}
       .hpc.tr,.hpc.br{display:none;}
@@ -415,10 +414,10 @@ function initFadeUp(){
 
 /* ── INTEREST CHIPS ── */
 const DIVISIONI=[
-  {id:'web',label:'WEB',sub:'Siti · E-commerce · App'},
-  {id:'grafica',label:'GRAFICA',sub:'Logo · Brand · Social'},
-  {id:'servizi',label:'SERVIZI',sub:'SEO · Hosting · Manutenzione'},
-  {id:'auto',label:'AUTOMAZIONE',sub:'AI · Bot · Workflow'},
+  {id:'web',    label:'WEB',        sub:'Siti · E-commerce · App',       color:'#00ff88'},
+  {id:'grafica',label:'GRAFICA',    sub:'Logo · Brand · Social',          color:'#9b5cff'},
+  {id:'servizi',label:'SERVIZI',    sub:'SEO · Hosting · Manutenzione',   color:'#00cfff'},
+  {id:'auto',   label:'AUTOMAZIONE',sub:'AI · Bot · Workflow',            color:'#ffaa00'},
 ];
 const _sel=new Set();
 function buildChips(){
@@ -426,7 +425,16 @@ function buildChips(){
   DIVISIONI.forEach(d=>{
     const btn=document.createElement('button');btn.type='button';btn.className='chip';btn.dataset.id=d.id;
     btn.innerHTML=`${d.label}<span class="chip-sub">${d.sub}</span>`;
-    btn.addEventListener('click',()=>{if(_sel.has(d.id)){_sel.delete(d.id);btn.classList.remove('active');}else{_sel.add(d.id);btn.classList.add('active');}});
+    btn.addEventListener('click',()=>{
+      if(_sel.has(d.id)){
+        _sel.delete(d.id);btn.classList.remove('active');
+        btn.style.borderColor='';btn.style.color='';btn.style.background='';btn.style.boxShadow='';
+      }else{
+        _sel.add(d.id);btn.classList.add('active');
+        btn.style.borderColor=d.color;btn.style.color=d.color;
+        btn.style.background=d.color+'10';btn.style.boxShadow=`0 0 14px ${d.color}28`;
+      }
+    });
     wrap.appendChild(btn);
   });
 }
@@ -458,7 +466,7 @@ function buildProjectCard(item,isDemo){
   card.style.cursor='pointer';
   card.addEventListener('click',()=>openProjModal(item));
   let prev='';
-  if(item.html_snippet)prev=`<div class="card-preview"><iframe srcdoc="${item.html_snippet.replace(/"/g,'&quot;')}" sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe><div class="card-overlay"><span>↗ PREVIEW</span></div></div>`;
+  if(item.html_snippet)prev=`<div class="card-preview"><iframe srcdoc="${item.html_snippet.replace(/"/g,'&quot;')}" sandbox="allow-scripts allow-same-origin" loading="lazy" style="width:100%;height:100%;border:none;pointer-events:none;position:absolute;top:0;left:0"></iframe><div class="card-overlay"><span>↗ PREVIEW</span></div></div>`;
   else if(item.site_url)prev=`<div class="card-placeholder" style="position:relative;overflow:hidden;background:var(--bg3)"><div class="card-placeholder-icon" style="font-size:1.2rem;opacity:.15">🔗</div><div class="card-placeholder-label">${(item.site_url.replace(/^https?:\/\//,'')).slice(0,30)}</div><div class="card-overlay"><span>↗ PREVIEW</span></div></div>`;
   else if(item.media_url)prev=`<div class="card-screenshot"><img src="${item.media_url}" alt="${item.title||''}" loading="lazy"><div class="card-overlay"><span>↗ DETTAGLIO</span></div></div>`;
   else prev=`<div class="card-placeholder"><div class="card-placeholder-icon">◈</div><div class="card-placeholder-label">${item.type_tag||'PROGETTO'}</div></div>`;

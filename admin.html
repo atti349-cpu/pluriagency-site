@@ -1456,6 +1456,17 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
           <div class="rm-breadcrumb">// SISTEMA › <span>ROADMAP</span></div>
           <div class="rm-page-title"><span class="rm-title-bar"></span>ROADMAP</div>
           <div class="rm-stats-strip" id="rm-stats"></div>
+          <!-- admin-only: visualizza roadmap collega -->
+          <div id="rm-colleague-bar" style="display:none;align-items:center;gap:.6rem;margin-bottom:.8rem;padding:.5rem .8rem;background:rgba(0,207,255,0.05);border:1px solid rgba(0,207,255,0.2);border-radius:2px;">
+            <span style="font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:2px;color:#00cfff">// VISUALIZZA ROADMAP COLLEGA</span>
+            <select id="rm-colleague-sel" style="font-family:'Share Tech Mono',monospace;font-size:.6rem;background:var(--panel2);border:1px solid rgba(0,207,255,0.3);color:var(--text);padding:.25rem .5rem;cursor:pointer;" onchange="rmViewColleague(this.value)">
+              <option value="">— SELEZIONA AGENTE —</option>
+            </select>
+          </div>
+          <div id="rm-readonly-banner" style="display:none;align-items:center;gap:.8rem;margin-bottom:.8rem;padding:.5rem .8rem;background:rgba(255,170,0,0.07);border:1px solid rgba(255,170,0,0.3);border-radius:2px;">
+            <span id="rm-readonly-label" style="font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:2px;color:#ffaa00;flex:1"></span>
+            <button class="rm-btn" onclick="rmBackToOwn()" style="font-size:.55rem;padding:.25rem .6rem;">← TUA ROADMAP</button>
+          </div>
           <div class="rm-topbar-row">
             <div class="rm-section-tag">// <span>PROGETTI ATTIVI</span></div>
             <div class="rm-unsaved-badge hidden" id="rm-u-badge"><div class="rm-u-dot"></div>MODIFICHE NON SALVATE</div>
@@ -1470,7 +1481,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3h8l2 2v8H3V3zM6 3v4h5M6 9h4"/></svg>
               <span id="rm-save-lbl">SALVATO</span>
             </button>
-            <button class="rm-btn rm-primary" onclick="rmAddProject()">
+            <button class="rm-btn rm-primary" id="rm-add-proj-btn" onclick="rmAddProject()">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>+ PROGETTO
             </button>
           </div>
@@ -1631,6 +1642,9 @@ async function showDashboard(user){
   // ROADMAP visibile a tutti — contenuto personalizzato (admin=main, agente=email)
   const navRm = document.getElementById('nav-roadmap');
   if(navRm) navRm.style.display = 'flex';
+
+  // Admin: carica dropdown colleghi per roadmap
+  if(isAdmin) rmLoadColleagueDropdown();
 
   // Super-admin only: token monitor
   if(_currentUserEmail === 'atti349@gmail.com'){
@@ -2018,8 +2032,10 @@ function buildPortfolioCard(item){
       thumb = `<img class="item-thumb" src="${item.media_url}" alt="${item.title}" loading="lazy" onerror="this.outerHTML='<div class=\\'item-thumb-placeholder\\'>&gt; nessuna immagine</div>'">`;
     }
   } else if(item.site_url){
-    thumb = `<div class="item-thumb-placeholder" style="position:relative;overflow:hidden;background:#04060d;">
-      <span style="position:relative;z-index:2;font-size:.55rem;letter-spacing:.2em;opacity:.5">&gt; sito live</span>
+    thumb = `<div class="item-thumb-placeholder" style="position:relative;overflow:hidden;background:#04060d;height:160px;">
+      <iframe sandbox="allow-scripts allow-same-origin" src="${item.site_url}"
+        style="position:absolute;top:0;left:0;width:1440px;height:900px;border:none;pointer-events:none;transform-origin:top left;transform:scale(0.178)"
+        loading="lazy"></iframe>
       <span style="position:absolute;top:4px;right:6px;z-index:2;font-family:monospace;font-size:.5rem;color:var(--g3);opacity:.8">🔗</span>
     </div>`;
   } else if(item.html_snippet){
@@ -2434,13 +2450,17 @@ function buildPvEditItems(pv){
 
 function renderPvEditList(){
   if(!_pvEditItems.length) return '<div style="font-family:\'Share Tech Mono\',monospace;font-size:.62rem;color:var(--muted);padding:.4rem 0">// nessun prodotto</div>';
-  return _pvEditItems.map((it,i) => `
-    <div class="pv-edit-item-row" data-idx="${i}">
-      <span style="color:var(--text)">${it.name}${it.added_after ? ' <span class="new-badge">NEW</span>' : ''}</span>
-      <span style="color:var(--muted);font-family:\'Share Tech Mono\',monospace;font-size:.62rem">×${it.qty||1}</span>
-      <span style="font-family:\'Orbitron\',monospace;font-size:.7rem;color:var(--v)">${(it.total||0).toLocaleString('it-IT')} €</span>
+  return _pvEditItems.map((it,i) => {
+    const newBadge = it.added_after ? ' <span class="new-badge">NEW</span>' : '';
+    const recBadge = it.monthly ? `<span style="margin-left:4px;font-size:.5rem;border:1px solid rgba(0,207,255,.5);color:#00cfff;padding:1px 4px">MENSILE</span>`
+                   : it.yearly  ? `<span style="margin-left:4px;font-size:.5rem;border:1px solid rgba(155,92,255,.5);color:var(--v2);padding:1px 4px">ANNUALE</span>` : '';
+    return `<div class="pv-edit-item-row" data-idx="${i}">
+      <span style="color:var(--text)">${it.name}${newBadge}${recBadge}</span>
+      <span style="color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:.62rem">×${it.qty||1}</span>
+      <span style="font-family:'Orbitron',monospace;font-size:.7rem;color:var(--v)">${(it.total||0).toLocaleString('it-IT')} €</span>
       <button class="pv-edit-item-rm" onclick="pvRemoveItem(${i})">✕</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function pvRemoveItem(idx){
@@ -2468,9 +2488,11 @@ function pvSearchProducts(q, pvId){
     : flat.slice(0, 20);
   if(!matches.length){ res.style.display='none'; return; }
   res.style.display = 'block';
-  res.innerHTML = matches.map(it =>
-    `<div class="pv-prod-opt" onclick="pvSelectProduct('${it.id}','${pvId}')" data-id="${it.id}">${it.name} — <span style="color:var(--g1)">${it.price} €</span></div>`
-  ).join('');
+  res.innerHTML = matches.map(it => {
+    const recBadge = it.monthly ? `<span style="margin-left:4px;font-size:.5rem;border:1px solid rgba(0,207,255,.5);color:#00cfff;padding:1px 4px">MENS</span>`
+                   : it.yearly  ? `<span style="margin-left:4px;font-size:.5rem;border:1px solid rgba(155,92,255,.5);color:var(--v2);padding:1px 4px">ANN</span>` : '';
+    return `<div class="pv-prod-opt" onclick="pvSelectProduct('${it.id}','${pvId}')" data-id="${it.id}">${it.name}${recBadge} — <span style="color:var(--g1)">${it.price} €</span></div>`;
+  }).join('');
   // un unico handler di chiusura — rimuove il precedente prima di aggiungere
   if(_pvSearchCloseHandler) document.removeEventListener('mousedown', _pvSearchCloseHandler);
   _pvSearchCloseHandler = e => {
@@ -2485,7 +2507,7 @@ function pvSelectProduct(itemId, pvId){
   const prod = flat.find(it => it.id === itemId);
   if(!prod) return;
   const qty = parseInt(document.getElementById('pv-prod-qty')?.value)||1;
-  _pvEditItems.push({ id: prod.id, name: prod.name, qty, unit_price: prod.price, total: prod.price * qty, added_after: true });
+  _pvEditItems.push({ id: prod.id, name: prod.name, qty, unit_price: prod.price, total: prod.price * qty, monthly: prod.monthly || false, yearly: prod.yearly || false, added_after: true });
   const el = document.getElementById('pv-edit-items-list');
   if(el) el.innerHTML = renderPvEditList();
   const inp = document.getElementById('pv-prod-search-input');
@@ -3462,7 +3484,8 @@ function buildClienteRow(c){
       <div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)">${c.email||''}${c.piva ? ' · P.IVA '+c.piva : ''}</div>
     </div>
     <div style="font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--muted)">${c.referente||''}${c.telefono ? '<br>'+c.telefono : ''}</div>
-    <button class="btn-ghost" style="font-size:.55rem;padding:.3rem .6rem" onclick="openClienteModal('${c.id}')">SCHEDA</button>`;
+    <button class="btn-ghost" style="font-size:.55rem;padding:.3rem .6rem" onclick="openClienteModal('${c.id}')">SCHEDA</button>
+    <button class="btn-ghost" style="font-size:.55rem;padding:.3rem .6rem;border-color:rgba(255,107,107,.4);color:#ff6b6b" onclick="deleteCliente('${c.id}')">✕</button>`;
   return row;
 }
 
@@ -3560,6 +3583,21 @@ function closeClienteModal(){
   document.body.style.overflow = '';
 }
 document.getElementById('cliente-modal').addEventListener('click', e => { if(e.target === e.currentTarget) closeClienteModal(); });
+
+async function deleteCliente(id){
+  const c = _clientiMap[id]; if(!c) return;
+  // impact analysis: conta preventivi collegati
+  const { data: prevs } = await _sb.from('preventivi').select('id').eq('client_id', id);
+  const count = prevs?.length || 0;
+  let msg = `Eliminare "${c.name||c.email}"?`;
+  if(count > 0) msg += `\n\n⚠ Questo cliente ha ${count} preventiv${count===1?'o':'i'} collegat${count===1?'o':'i'}.\nI preventivi resteranno nel sistema senza cliente associato.`;
+  else msg += '\n\nNessun preventivo collegato.';
+  if(!confirm(msg)) return;
+  const { error } = await _sb.from('clienti').delete().eq('id', id);
+  if(error){ alert('Errore: ' + error.message); return; }
+  delete _clientiMap[id];
+  loadClienti();
+}
 
 // ===== TEAM CARDS =====
 let _tcEditId = null;
@@ -3914,6 +3952,55 @@ async function saveRoadmapToDb(){
   if(!_sb) return;
   const { error } = await _sb.from('roadmap_data').upsert({ id: _rmRowId, data: rmData, updated_at: new Date().toISOString() });
   return !error;
+}
+
+// ===== ROADMAP COLLEGHI (admin-only) =====
+let _rmViewingColleague = false;
+
+async function rmLoadColleagueDropdown(){
+  const bar = document.getElementById('rm-colleague-bar');
+  if(!bar) return;
+  bar.style.display = 'flex';
+  const sel = document.getElementById('rm-colleague-sel');
+  const { data } = await _sb.from('agenti').select('name,email').eq('active',true).neq('role','admin').order('name');
+  if(!data || !data.length) return;
+  data.forEach(ag => {
+    const opt = document.createElement('option');
+    opt.value = ag.email;
+    opt.textContent = ag.name || ag.email;
+    sel.appendChild(opt);
+  });
+}
+
+async function rmViewColleague(email){
+  if(!email){ rmBackToOwn(); return; }
+  const { data: ag } = await _sb.from('agenti').select('name').eq('email',email).maybeSingle();
+  const nome = ag?.name || email;
+  // salva se ci sono modifiche proprie
+  if(_rmDirty){ await saveRoadmapToDb(); rmSetClean(); }
+  // carica roadmap agente (read-only)
+  _rmViewingColleague = true;
+  _rmRowId = email;
+  _rmLoaded = false;
+  document.getElementById('rm-readonly-banner').style.display = 'flex';
+  document.getElementById('rm-readonly-label').textContent = `// VISUALIZZAZIONE: ${nome.toUpperCase()} — SOLA LETTURA`;
+  document.getElementById('rm-add-proj-btn').style.display = 'none';
+  document.getElementById('rm-save-btn').style.display = 'none';
+  document.getElementById('rm-u-badge').style.display = 'none';
+  await loadRoadmap();
+  // disabilita tutte le interazioni di editing nella roadmap
+  document.querySelectorAll('#rm-proj-list button, #rm-proj-list input, #rm-proj-list textarea, #rm-proj-list select').forEach(el => el.disabled = true);
+}
+
+function rmBackToOwn(){
+  _rmViewingColleague = false;
+  _rmRowId = 'main';
+  _rmLoaded = false;
+  document.getElementById('rm-readonly-banner').style.display = 'none';
+  document.getElementById('rm-add-proj-btn').style.display = '';
+  document.getElementById('rm-save-btn').style.display = '';
+  document.getElementById('rm-colleague-sel').value = '';
+  loadRoadmap();
 }
 
 function rmAutoSave(){

@@ -426,33 +426,23 @@ footer{border-top:1px solid var(--border);padding:40px 40px;text-align:center;}
 </section>
 
 <section id="contact" style="padding-left:0;padding-right:0;max-width:none;">
-  <div style="max-width:1100px;margin:0 auto;padding:0 40px 12px;text-align:center;">
+  <div style="max-width:900px;margin:0 auto;padding:0 40px 12px;text-align:center;">
     <p class="section-label">// 004 — TRASMETTI SEGNALE</p>
     <h2 class="section-title">CONTATTI</h2>
   </div>
   <div class="contact-module-wrap">
-    <div class="contact-module-inner">
-      <p class="module-label2">// BRIEF.EXE — SELEZIONA E INVIA</p>
-      <div class="brief-step">
-        <div class="brief-step-label">01 // AREA DI INTERESSE</div>
-        <div class="brief-cats">
-          <button class="brief-cat active" data-cat="web" onclick="briefSelectCat('web',this)">&#x25C8; WEB</button>
-          <button class="brief-cat" data-cat="grafics" onclick="briefSelectCat('grafics',this)">&#x25C8; GRAFICS</button>
-          <button class="brief-cat" data-cat="servizi" onclick="briefSelectCat('servizi',this)">&#x25C8; SERVIZI</button>
-        </div>
-      </div>
-      <div class="brief-step">
-        <div class="brief-step-label">02 // SERVIZI — MAX 3</div>
-        <div class="brief-subcats" id="brief-subcats"></div>
-        <div class="brief-counter" id="brief-counter">0 / 3 selezionati</div>
-      </div>
-      <div class="brief-step">
-        <div class="brief-step-label">03 // TRASMETTI</div>
-        <input type="text" class="brief-input" id="brief-name" placeholder="NOME_">
-        <input type="email" class="brief-input" id="brief-email" placeholder="EMAIL_">
-        <textarea class="brief-input brief-textarea" id="brief-msg" placeholder="MESSAGGIO OPZIONALE_"></textarea>
-        <button class="brief-submit" id="brief-submit" onclick="sendBrief()"><span>&#9654; SEND SIGNAL</span></button>
-      </div>
+    <div class="contact-module-inner" style="max-width:900px;margin:0 auto;">
+      <p class="module-label2" style="margin-bottom:1.2rem">// COSA TI INTERESSA?</p>
+      <div id="home-chips" style="display:flex;flex-wrap:wrap;gap:.55rem;margin-bottom:2rem;"></div>
+      <form id="home-contact-form" novalidate>
+        <input type="text" id="home-nome" class="brief-input" placeholder="NOME_" required style="margin-bottom:.6rem">
+        <input type="email" id="home-email" class="brief-input" placeholder="EMAIL_" required style="margin-bottom:.6rem">
+        <textarea id="home-msg" class="brief-input brief-textarea" placeholder="MESSAGGIO OPZIONALE_" style="margin-bottom:.6rem"></textarea>
+        <button type="submit" class="brief-submit" id="brief-submit">
+          <span class="submit-text">&#9654; SEND SIGNAL</span>
+          <span class="submit-sending" style="display:none">&#9654; TRASMISSIONE...</span>
+        </button>
+      </form>
     </div>
   </div>
 </section>
@@ -861,65 +851,69 @@ let teamCardsMap = {}; // keyed by nome.toUpperCase()
 
 // ===== CONTACT FORM =====
 // ===== BRIEF CONTACT =====
-const briefCats = {
-  web:     { color:'#00ff88', items:['SITO VETRINA','E-COMMERCE','WEB APP'] },
-  grafics: { color:'#9b5cff', items:['RENDERING 3D','BRAND IDENTITY','VISUAL DESIGN'] },
-  servizi: { color:'#00cfff', items:['PAPER DESIGN','AUTOMAZIONI & AI','MARKETING'] }
-};
-let briefActiveCat='web', briefSelected=[];
-
-function briefSelectCat(cat){
-  briefActiveCat=cat;
-  document.querySelectorAll('.brief-cat').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));
-  renderBriefSubcats();
-}
-function renderBriefSubcats(){
-  const cat=briefCats[briefActiveCat];
-  document.getElementById('brief-subcats').innerHTML=cat.items.map(item=>{
-    const sel=briefSelected.includes(item);
-    const dis=!sel&&briefSelected.length>=3;
-    return `<button class="brief-sub${sel?' selected':''}"
-      style="${sel?'color:'+cat.color+';border-color:'+cat.color+'55;':''}"
-      ${dis?'disabled':''}
-      onclick="toggleBriefSub('${item}')">${item}</button>`;
-  }).join('');
-  document.getElementById('brief-counter').textContent=briefSelected.length+' / 3 selezionati';
-}
-function toggleBriefSub(item){
-  const i=briefSelected.indexOf(item);
-  if(i>-1)briefSelected.splice(i,1);
-  else if(briefSelected.length<3)briefSelected.push(item);
-  renderBriefSubcats();
-}
-async function sendBrief(){
+// ===== HOME CONTACT CHIPS =====
+const HOME_CATS=[
+  {id:'web',     label:'WEB',         sub:'Siti · E-commerce · App',       color:'#00ff88'},
+  {id:'grafics', label:'GRAFICS',     sub:'Logo · Brand · Social',          color:'#9b5cff'},
+  {id:'servizi', label:'SERVIZI',     sub:'SEO · Hosting · Manutenzione',   color:'#00cfff'},
+  {id:'auto',    label:'AUTOMAZIONE', sub:'AI · Bot · Workflow',            color:'#ffaa00'},
+];
+const _homeSel=new Set();
+(function buildHomeChips(){
+  const wrap=document.getElementById('home-chips');
+  if(!wrap)return;
+  HOME_CATS.forEach(d=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.style.cssText='font-family:\'Share Tech Mono\',monospace;font-size:.65rem;letter-spacing:2px;padding:.35rem .8rem;background:transparent;border:1px solid rgba(255,255,255,0.15);color:var(--muted);cursor:pointer;transition:all .18s;border-radius:2px;';
+    btn.textContent=d.label;
+    btn.title=d.sub;
+    btn.addEventListener('click',()=>{
+      const on=_homeSel.has(d.id);
+      if(on){
+        _homeSel.delete(d.id);
+        btn.style.borderColor='rgba(255,255,255,0.15)';
+        btn.style.color='var(--muted)';
+        btn.style.background='transparent';
+        btn.style.boxShadow='none';
+      } else {
+        _homeSel.add(d.id);
+        btn.style.borderColor=d.color+'88';
+        btn.style.color=d.color;
+        btn.style.background=d.color+'12';
+        btn.style.boxShadow='0 0 8px '+d.color+'33';
+      }
+    });
+    wrap.appendChild(btn);
+  });
+})();
+document.getElementById('home-contact-form').addEventListener('submit',async function(e){
+  e.preventDefault();
   const btn=document.getElementById('brief-submit');
-  const name=document.getElementById('brief-name').value.trim();
-  const email=document.getElementById('brief-email').value.trim();
-  const msg=document.getElementById('brief-msg').value.trim();
+  const name=document.getElementById('home-nome').value.trim();
+  const email=document.getElementById('home-email').value.trim();
+  const msg=document.getElementById('home-msg').value.trim();
   if(!name||!email){alert('Nome e email sono obbligatori');return;}
-  btn.disabled=true; btn.querySelector('span').textContent='⟳ TRASMISSIONE...';
+  btn.disabled=true;
+  btn.querySelector('.submit-text').style.display='none';
+  btn.querySelector('.submit-sending').style.display='';
   try{
+    const selected=[..._homeSel];
     const r=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        name, email, message: msg,
-        area: briefActiveCat.toUpperCase(),
-        services: briefSelected,
-        site:'pluriagency.com'
-      })});
+      body:JSON.stringify({name,email,message:msg,area:selected.join(',').toUpperCase()||'GENERICO',services:selected,site:'pluriagency.com'})});
     if(r.ok){
-      // Salva lead su Supabase (fire & forget — non blocca l'UX)
       fetch('/api/save-lead',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({nome:name,email,messaggio:msg,area:briefActiveCat.toUpperCase(),servizi:briefSelected,fonte:'homepage'})
+        body:JSON.stringify({nome:name,email,messaggio:msg,area:selected.join(',').toUpperCase()||'GENERICO',servizi:selected,fonte:'homepage'})
       }).catch(()=>{});
       showBriefToast();
-      btn.querySelector('span').textContent='✓ SEGNALE TRASMESSO';
-      setTimeout(()=>{btn.querySelector('span').textContent='▶ SEND SIGNAL';btn.disabled=false;},5000);
+      btn.querySelector('.submit-sending').textContent='✓ SEGNALE TRASMESSO';
+      setTimeout(()=>{btn.querySelector('.submit-text').style.display='';btn.querySelector('.submit-sending').style.display='none';btn.querySelector('.submit-sending').textContent='▶ TRASMISSIONE...';btn.disabled=false;},5000);
     }else throw new Error();
   }catch{
-    btn.querySelector('span').textContent='✕ ERRORE — RIPROVA';
-    setTimeout(()=>{btn.querySelector('span').textContent='▶ SEND SIGNAL';btn.disabled=false;},3000);
+    btn.querySelector('.submit-sending').textContent='✕ ERRORE — RIPROVA';
+    setTimeout(()=>{btn.querySelector('.submit-text').style.display='';btn.querySelector('.submit-sending').style.display='none';btn.querySelector('.submit-sending').textContent='▶ TRASMISSIONE...';btn.disabled=false;},3000);
   }
-}
+});
 function showBriefToast(){
   document.getElementById('brief-toast').classList.add('visible');
   document.getElementById('brief-overlay').classList.add('visible');
@@ -929,7 +923,6 @@ function closeBriefToast(){
   document.getElementById('brief-toast').classList.remove('visible');
   document.getElementById('brief-overlay').classList.remove('visible');
 }
-briefSelectCat('web');
 
 // ===== NAV MOBILE =====
 function toggleMenu(){

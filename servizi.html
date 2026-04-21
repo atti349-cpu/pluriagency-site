@@ -348,31 +348,18 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
 </div>
 
 <div class="contact-module-wrap" id="contact">
-  <div class="contact-module-inner">
-    <h2 style="font-family:'Orbitron',monospace;font-size:clamp(22px,3vw,32px);font-weight:900;letter-spacing:3px;color:var(--text);margin-bottom:8px;">CONTATTI</h2>
-    <p class="module-label2" style="margin-bottom:28px;">// BRIEF.EXE — SELEZIONA E INVIA</p>
-    <div class="brief-step">
-      <div class="brief-step-label">01 // AREA DI INTERESSE</div>
-      <div class="brief-cats">
-        <button class="brief-cat active" data-cat="web" onclick="briefSelectCat('web')">&#x25C8; WEB</button>
-        <button class="brief-cat" data-cat="grafics" onclick="briefSelectCat('grafics')">&#x25C8; GRAFICS</button>
-        <button class="brief-cat" data-cat="servizi" onclick="briefSelectCat('servizi')">&#x25C8; SERVIZI</button>
-      </div>
-    </div>
-    <div class="brief-step">
-      <div class="brief-step-label">02 // SERVIZI — MAX 3</div>
-      <div class="brief-subcats" id="brief-subcats"></div>
-      <div class="brief-counter" id="brief-counter">0 / 3 selezionati</div>
-    </div>
-    <div class="brief-step">
-      <div class="brief-step-label">03 // TRASMETTI</div>
-      <input type="text" class="brief-input" id="brief-name" placeholder="NOME_">
-      <input type="email" class="brief-input" id="brief-email" placeholder="EMAIL_">
-      <textarea class="brief-input brief-textarea" id="brief-msg" placeholder="MESSAGGIO OPZIONALE_"></textarea>
-      <button class="brief-submit" id="brief-submit" onclick="sendBrief()">
-        <span>&#9654; INVIA RICHIESTA</span>
+  <div class="contact-module-inner" style="max-width:900px;margin:0 auto;">
+    <p class="module-label2" style="margin-bottom:1.2rem">// COSA TI INTERESSA?</p>
+    <div id="svc-chips" style="display:flex;flex-wrap:wrap;gap:.55rem;margin-bottom:2rem;"></div>
+    <form id="svc-contact-form" novalidate>
+      <input type="text" id="svc-nome" class="brief-input" placeholder="NOME_" required style="margin-bottom:.6rem">
+      <input type="email" id="svc-email" class="brief-input" placeholder="EMAIL_" required style="margin-bottom:.6rem">
+      <textarea id="svc-msg" class="brief-input brief-textarea" placeholder="MESSAGGIO OPZIONALE_" style="margin-bottom:.6rem"></textarea>
+      <button type="submit" class="brief-submit" id="svc-submit">
+        <span class="submit-text">&#9654; INVIA RICHIESTA</span>
+        <span class="submit-sending" style="display:none">&#9654; TRASMISSIONE...</span>
       </button>
-    </div>
+    </form>
   </div>
 </div>
 
@@ -597,66 +584,69 @@ function renderCards(){
 switchCat(currentCat, document.querySelector(`.tab-btn[data-cat="${currentCat}"]`));
 updateFrameColor(data[currentCat].color);
 
-// ===== CONTACT MODULE =====
-// ===== BRIEF CONTACT =====
-const briefCats = {
-  web:     { color: data.web.color,     items: data.web.items.map(i=>i.name) },
-  grafics: { color: data.grafics.color, items: data.grafics.items.map(i=>i.name) },
-  servizi: { color: data.servizi.color, items: data.servizi.items.map(i=>i.name) }
-};
-let briefActiveCat='web', briefSelected=[];
-
-function briefSelectCat(cat){
-  briefActiveCat=cat;
-  document.querySelectorAll('.brief-cat').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));
-  renderBriefSubcats();
-}
-function renderBriefSubcats(){
-  const cat=briefCats[briefActiveCat];
-  const el=document.getElementById('brief-subcats');
-  if(!el)return;
-  el.innerHTML=cat.items.map(item=>{
-    const sel=briefSelected.includes(item);
-    const dis=!sel&&briefSelected.length>=3;
-    return `<button class="brief-sub${sel?' selected':''}"
-      style="${sel?'color:'+cat.color+';border-color:'+cat.color+'55;':''}"
-      ${dis?'disabled':''}
-      onclick="toggleBriefSub('${item}')">${item}</button>`;
-  }).join('');
-  const counter=document.getElementById('brief-counter');
-  if(counter)counter.textContent=briefSelected.length+' / 3 selezionati';
-}
-function toggleBriefSub(item){
-  const i=briefSelected.indexOf(item);
-  if(i>-1)briefSelected.splice(i,1);
-  else if(briefSelected.length<3)briefSelected.push(item);
-  renderBriefSubcats();
-}
-async function sendBrief(){
-  const btn=document.getElementById('brief-submit');
-  const name=document.getElementById('brief-name').value.trim();
-  const email=document.getElementById('brief-email').value.trim();
-  const msg=document.getElementById('brief-msg').value.trim();
+// ===== SERVIZI CONTACT CHIPS =====
+const SVC_CATS=[
+  {id:'web',     label:'WEB',         sub:'Siti · E-commerce · App',       color:'#00ff88'},
+  {id:'grafics', label:'GRAFICS',     sub:'Logo · Brand · Social',          color:'#9b5cff'},
+  {id:'servizi', label:'SERVIZI',     sub:'SEO · Hosting · Manutenzione',   color:'#00cfff'},
+  {id:'auto',    label:'AUTOMAZIONE', sub:'AI · Bot · Workflow',            color:'#ffaa00'},
+];
+const _svcSel=new Set();
+(function buildSvcChips(){
+  const wrap=document.getElementById('svc-chips');
+  if(!wrap)return;
+  SVC_CATS.forEach(d=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.style.cssText='font-family:\'Share Tech Mono\',monospace;font-size:.65rem;letter-spacing:2px;padding:.35rem .8rem;background:transparent;border:1px solid rgba(255,255,255,0.15);color:var(--muted);cursor:pointer;transition:all .18s;border-radius:2px;';
+    btn.textContent=d.label;
+    btn.title=d.sub;
+    btn.addEventListener('click',()=>{
+      const on=_svcSel.has(d.id);
+      if(on){
+        _svcSel.delete(d.id);
+        btn.style.borderColor='rgba(255,255,255,0.15)';
+        btn.style.color='var(--muted)';
+        btn.style.background='transparent';
+        btn.style.boxShadow='none';
+      } else {
+        _svcSel.add(d.id);
+        btn.style.borderColor=d.color+'88';
+        btn.style.color=d.color;
+        btn.style.background=d.color+'12';
+        btn.style.boxShadow='0 0 8px '+d.color+'33';
+      }
+    });
+    wrap.appendChild(btn);
+  });
+})();
+document.getElementById('svc-contact-form').addEventListener('submit',async function(e){
+  e.preventDefault();
+  const btn=document.getElementById('svc-submit');
+  const name=document.getElementById('svc-nome').value.trim();
+  const email=document.getElementById('svc-email').value.trim();
+  const msg=document.getElementById('svc-msg').value.trim();
   if(!name||!email){alert('Nome e email sono obbligatori');return;}
-  btn.disabled=true; btn.querySelector('span').textContent='⟳ TRASMISSIONE...';
+  btn.disabled=true;
+  btn.querySelector('.submit-text').style.display='none';
+  btn.querySelector('.submit-sending').style.display='';
   try{
+    const selected=[..._svcSel];
     const r=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        name, email, message: msg,
-        area: briefActiveCat.toUpperCase(),
-        services: briefSelected,
-        site:'pluriagency.com'
-      })});
+      body:JSON.stringify({name,email,message:msg,area:selected.join(',').toUpperCase()||'GENERICO',services:selected,site:'pluriagency.com'})});
     if(r.ok){
+      fetch('/api/save-lead',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({nome:name,email,messaggio:msg,area:selected.join(',').toUpperCase()||'GENERICO',servizi:selected,fonte:'servizi'})
+      }).catch(()=>{});
       showBriefToast();
-      btn.querySelector('span').textContent='✓ RICHIESTA INVIATA';
-      setTimeout(()=>{btn.querySelector('span').textContent='▶ INVIA RICHIESTA';btn.disabled=false;},5000);
+      btn.querySelector('.submit-sending').textContent='✓ SEGNALE TRASMESSO';
+      setTimeout(()=>{btn.querySelector('.submit-text').style.display='';btn.querySelector('.submit-sending').style.display='none';btn.querySelector('.submit-sending').textContent='▶ TRASMISSIONE...';btn.disabled=false;},5000);
     }else throw new Error();
   }catch{
-    btn.querySelector('span').textContent='✕ ERRORE — RIPROVA';
-    setTimeout(()=>{btn.querySelector('span').textContent='▶ INVIA RICHIESTA';btn.disabled=false;},3000);
+    btn.querySelector('.submit-sending').textContent='✕ ERRORE — RIPROVA';
+    setTimeout(()=>{btn.querySelector('.submit-text').style.display='';btn.querySelector('.submit-sending').style.display='none';btn.querySelector('.submit-sending').textContent='▶ TRASMISSIONE...';btn.disabled=false;},3000);
   }
-}
+});
 function showBriefToast(){
   document.getElementById('brief-toast').classList.add('visible');
   document.getElementById('brief-overlay').classList.add('visible');
@@ -666,7 +656,6 @@ function closeBriefToast(){
   document.getElementById('brief-toast').classList.remove('visible');
   document.getElementById('brief-overlay').classList.remove('visible');
 }
-briefSelectCat('web');
 
 window.addEventListener('resize',()=>{
   const canvas=document.getElementById('svc-canvas');

@@ -186,16 +186,24 @@
     @keyframes lslide{to{left:150%;}}
 
     /* ── PROJECT MODAL ── */
-    #proj-modal{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.92);display:none;flex-direction:column;}
+    #proj-modal{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;padding:40px;}
     #proj-modal.open{display:flex;}
-    .pm-header{display:flex;align-items:center;gap:1rem;padding:.75rem 1.25rem;background:var(--bg2);border-bottom:1px solid var(--border2);flex-shrink:0;}
+    .pm-inner{background:var(--bg2);border:1px solid var(--border2);width:100%;max-width:900px;max-height:90vh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;position:relative;}
+    .pm-header{display:flex;align-items:center;gap:1rem;padding:.75rem 1.25rem;background:var(--bg2);border-bottom:1px solid var(--border2);flex-shrink:0;position:sticky;top:0;z-index:2;}
     .pm-title{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--green);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .pm-visit{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--cyan);text-decoration:none;border:1px solid var(--cyan);padding:.3rem .8rem;white-space:nowrap;flex-shrink:0;}
     .pm-close{font-family:var(--mono);font-size:16px;color:var(--muted);background:none;border:none;cursor:pointer;padding:.2rem .5rem;flex-shrink:0;}
     .pm-close:hover{color:var(--white);}
-    .pm-body{flex:1;overflow:auto;display:flex;background:var(--bg);overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
-    #pm-iframe{width:100%;flex:1;border:none;}
-    #pm-img{max-width:100%;max-height:100%;object-fit:contain;margin:auto;display:block;padding:1rem;}
+    .pm-preview{width:100%;position:relative;overflow:hidden;background:#000;flex-shrink:0;}
+    .pm-info{padding:1.4rem 1.6rem 1.8rem;}
+    .pm-info-type{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--green);text-transform:uppercase;margin-bottom:.5rem;}
+    .pm-info-title{font-family:var(--display);font-size:clamp(1rem,2.5vw,1.5rem);font-weight:700;letter-spacing:2px;color:var(--white);margin-bottom:.3rem;}
+    .pm-info-client{font-family:var(--mono);font-size:10px;color:var(--cyan);letter-spacing:2px;margin-bottom:.9rem;opacity:.7;}
+    .pm-info-desc{font-size:.82rem;color:rgba(232,237,242,.55);line-height:1.9;margin-bottom:1rem;}
+    .pm-tags{display:flex;flex-wrap:wrap;gap:.35rem;}
+    .pm-tag{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:.25rem .6rem;border:1px solid rgba(255,255,255,.08);color:var(--muted);}
+    @media(max-width:768px){#proj-modal{padding:0;}
+      .pm-inner{max-width:100%;max-height:100%;border:none;}}
 
     /* ── FADE-UP ── */
     .fade-up{opacity:0;transform:translateY(20px);transition:opacity .55s ease,transform .55s ease;}
@@ -362,12 +370,21 @@
 
 <!-- PROJECT MODAL -->
 <div id="proj-modal" onclick="if(event.target===this)closeProjModal()">
-  <div class="pm-header">
-    <span class="pm-title" id="pm-title"></span>
-    <a class="pm-visit" id="pm-visit" href="#" target="_blank" rel="noopener" style="display:none">↗ VISITA SITO</a>
-    <button class="pm-close" onclick="closeProjModal()">✕</button>
+  <div class="pm-inner" id="pm-inner">
+    <div class="pm-header">
+      <span class="pm-title" id="pm-title"></span>
+      <a class="pm-visit" id="pm-visit" href="#" target="_blank" rel="noopener" style="display:none">↗ VISITA SITO</a>
+      <button class="pm-close" onclick="closeProjModal()">✕</button>
+    </div>
+    <div class="pm-preview" id="pm-preview"></div>
+    <div class="pm-info" id="pm-info" style="display:none">
+      <div class="pm-info-type" id="pm-info-type"></div>
+      <div class="pm-info-title" id="pm-info-title"></div>
+      <div class="pm-info-client" id="pm-info-client"></div>
+      <div class="pm-info-desc" id="pm-info-desc"></div>
+      <div class="pm-tags" id="pm-tags"></div>
+    </div>
   </div>
-  <div class="pm-body" id="pm-body"></div>
 </div>
 
 <script>
@@ -491,19 +508,26 @@ function buildProjectCard(item,isDemo){
 }
 let _pmTouchHandler=null;
 function openProjModal(item){
+  // Header
   document.getElementById('pm-title').textContent=(item.title||'PREVIEW').toUpperCase();
   const visit=document.getElementById('pm-visit');
   if(item.site_url){visit.href=item.site_url;visit.style.display='';}
   else visit.style.display='none';
-  const body=document.getElementById('pm-body');
-  const mode=item.interaction_mode||'view';
-  // siteUrl is always cross-origin: scroll mode → promote to full
+
+  // Demo items default to scroll (immersive layout), portfolio items default to view
+  const mode=item.interaction_mode||(item._isDemo?'scroll':'view');
+
+  // Preview area
+  const preview=document.getElementById('pm-preview');
+  const previewHeight=item.html_snippet||item.site_url?'min(60vh,520px)':'auto';
+  preview.style.height=previewHeight;
+
   if(item.html_snippet){
     const pe=mode==='full'?'auto':'none';
-    body.innerHTML=`<div style="flex:1;position:relative;display:flex;overflow:hidden;">
+    preview.innerHTML=`<div style="width:100%;height:100%;position:relative;overflow:hidden;">
       <iframe id="pm-iframe" sandbox="allow-scripts allow-same-origin"
         srcdoc="${item.html_snippet.replace(/"/g,'&quot;')}"
-        style="width:100%;flex:1;border:none;pointer-events:${pe}"></iframe>
+        style="width:100%;height:100%;border:none;pointer-events:${pe};display:block"></iframe>
       ${mode==='scroll'?`<div id="pm-scroll-overlay" style="position:absolute;inset:0;cursor:ns-resize;z-index:2;background:transparent;"></div>`:''}
     </div>`;
     if(mode==='scroll'){
@@ -519,24 +543,50 @@ function openProjModal(item){
   } else if(item.site_url){
     const effectiveMode=(mode==='scroll')?'full':mode;
     const pe=effectiveMode==='view'?'none':'auto';
-    body.innerHTML=`<iframe id="pm-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-      src="${item.site_url}" style="width:100%;flex:1;border:none;pointer-events:${pe}"></iframe>`;
-  } else if(item.media_url){
-    body.innerHTML=`<img id="pm-img" src="${item.media_url}" alt="${item.title||''}">`;
+    preview.innerHTML=`<iframe id="pm-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+      src="${item.site_url}" style="width:100%;height:100%;border:none;pointer-events:${pe};display:block"></iframe>`;
+  } else if(item.preview_image_url||item.media_url){
+    preview.style.height='auto';
+    preview.innerHTML=`<img src="${item.preview_image_url||item.media_url}" alt="${item.title||''}" style="width:100%;max-height:420px;object-fit:cover;display:block">`;
   } else {
-    body.innerHTML=`<div style="margin:auto;font-family:var(--mono);color:var(--muted);font-size:12px;letter-spacing:2px">&gt; nessuna anteprima disponibile</div>`;
+    preview.style.height='0';
+    preview.innerHTML='';
   }
+
+  // Info panel: description + tags + team
+  const hasInfo=item.description||(item.tags&&item.tags.length)||(item.team_members&&item.team_members.length)||(item.client_name);
+  const infoEl=document.getElementById('pm-info');
+  if(hasInfo){
+    document.getElementById('pm-info-type').textContent=(item._isDemo?'DEMO':'PROGETTO')+' — '+(item.type_tag||'').toUpperCase();
+    document.getElementById('pm-info-title').textContent=item.title||'';
+    const clientEl=document.getElementById('pm-info-client');
+    clientEl.textContent=item.client_name?'> '+item.client_name:'';
+    clientEl.style.display=item.client_name?'':'none';
+    const descEl=document.getElementById('pm-info-desc');
+    descEl.textContent=item.description||'';
+    descEl.style.display=item.description?'':'none';
+    const tagsEl=document.getElementById('pm-tags');
+    const tagHtml=(item.tags||[]).map(t=>`<span class="pm-tag">${t}</span>`).join('');
+    const teamHtml=(item.team_members||[]).map(n=>`<span class="pm-tag" style="border-color:rgba(0,255,136,.25);color:var(--green)">👤 ${n}</span>`).join('');
+    tagsEl.innerHTML=tagHtml+teamHtml;
+    infoEl.style.display='';
+  } else {
+    infoEl.style.display='none';
+  }
+
   const modal=document.getElementById('proj-modal');
   modal.classList.add('open');
   document.body.style.overflow='hidden';
-  _pmTouchHandler=e=>{if(!e.target.closest('.pm-header')&&!e.target.closest('#pm-body'))e.preventDefault();};
+  _pmTouchHandler=e=>{if(!e.target.closest('.pm-inner'))e.preventDefault();};
   modal.addEventListener('touchmove',_pmTouchHandler,{passive:false});
 }
 function closeProjModal(){
   const modal=document.getElementById('proj-modal');
   modal.classList.remove('open');
   if(_pmTouchHandler){modal.removeEventListener('touchmove',_pmTouchHandler);_pmTouchHandler=null;}
-  document.getElementById('pm-body').innerHTML='';
+  document.getElementById('pm-preview').innerHTML='';
+  document.getElementById('pm-preview').style.height='';
+  document.getElementById('pm-info').style.display='none';
   document.body.style.overflow='';
 }
 function renderProjects(filter){

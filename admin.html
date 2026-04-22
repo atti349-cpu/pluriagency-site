@@ -1776,7 +1776,7 @@ async function showDashboard(user){
     tmStartCountdown();
   }
 
-  loadDashboard();
+  switchSection('dashboard', document.getElementById('nav-dashboard'));
 }
 
 function showError(msg){
@@ -1850,7 +1850,7 @@ function closeSidebarMobile(){
 
 function switchSection(name, btnEl){
   closeSidebarMobile();
-  ['portfolio','demo','preventivi','leads','clienti','agenti','team','progetti','fatturazione','roadmap','tokens','editor'].forEach(s => {
+  ['dashboard','portfolio','demo','preventivi','leads','clienti','agenti','team','progetti','fatturazione','roadmap','tokens','editor'].forEach(s => {
     const sec = document.getElementById('section-'+s);
     if(sec) sec.style.display = s===name ? 'block' : 'none';
     const nav = document.getElementById('nav-'+s);
@@ -4241,19 +4241,21 @@ async function dbFetchAndRender(){
 
   // Parallel queries
   let pvQ = _sb.from('preventivi').select('stato,total,agente_email,created_at');
-  let projQ = _sb.from('projects').select('id,cliente_nome,status,updated_at');
+  let projQ = _sb.from('projects').select('id,client_name,agent_email,status,updated_at');
   let leadsQ = _sb.from('leads').select('created_at,stato');
   let canoniQ = _sb.from('canoni').select('amount,frequency,stato,agente_email');
-  let clientiQ = _sb.from('clienti').select('id,agente_email');
+  let clientiQ = _sb.from('clienti').select('id,creatore_email');
 
   if(filter){
     pvQ = pvQ.eq('agente_email', filter);
     canoniQ = canoniQ.eq('agente_email', filter);
-    clientiQ = clientiQ.eq('agente_email', filter);
+    clientiQ = clientiQ.eq('creatore_email', filter);
+    projQ = projQ.eq('agent_email', filter);
   } else if(!isAdmin){
     pvQ = pvQ.eq('agente_email', _currentUserEmail);
     canoniQ = canoniQ.eq('agente_email', _currentUserEmail);
-    clientiQ = clientiQ.eq('agente_email', _currentUserEmail);
+    clientiQ = clientiQ.eq('creatore_email', _currentUserEmail);
+    projQ = projQ.eq('agent_email', _currentUserEmail);
   }
 
   const [r1,r2,r3,r4,r5] = await Promise.all([pvQ, projQ, leadsQ, canoniQ, clientiQ]);
@@ -4324,7 +4326,7 @@ function dbRender(){
   const recProj = [...proj].sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at)).slice(0,6);
   const PROJ_STEP_C = {step_1:'#00cfff',step_2:'#a78bfa',step_3:'#00ff88',step_extra:'#ffaa00',completato:'#555'};
   document.getElementById('db-rec-proj').innerHTML = recProj.length
-    ? recProj.map(p=>`<div class="db-rec-row"><span class="db-rec-name">${(p.cliente_nome||p.id||'-').toUpperCase()}</span><span class="db-rec-badge" style="color:${PROJ_STEP_C[p.status]||'var(--muted)'};border-color:${PROJ_STEP_C[p.status]||'var(--muted)'}44">${p.status||'—'}</span></div>`).join('')
+    ? recProj.map(p=>`<div class="db-rec-row"><span class="db-rec-name">${(p.client_name||p.id||'-').toUpperCase()}</span><span class="db-rec-badge" style="color:${PROJ_STEP_C[p.status]||'var(--muted)'};border-color:${PROJ_STEP_C[p.status]||'var(--muted)'}44">${p.status||'—'}</span></div>`).join('')
     : '<div style="color:var(--muted);font-size:.6rem;font-family:\'Share Tech Mono\',monospace;padding:.5rem 0">// nessun progetto_</div>';
 }
 

@@ -193,7 +193,7 @@
     .pm-visit{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--cyan);text-decoration:none;border:1px solid var(--cyan);padding:.3rem .8rem;white-space:nowrap;flex-shrink:0;}
     .pm-close{font-family:var(--mono);font-size:16px;color:var(--muted);background:none;border:none;cursor:pointer;padding:.2rem .5rem;flex-shrink:0;}
     .pm-close:hover{color:var(--white);}
-    .pm-body{flex:1;overflow:auto;display:flex;background:var(--bg);}
+    .pm-body{flex:1;overflow:auto;display:flex;background:var(--bg);overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
     #pm-iframe{width:100%;flex:1;border:none;}
     #pm-img{max-width:100%;max-height:100%;object-fit:contain;margin:auto;display:block;padding:1rem;}
 
@@ -470,37 +470,72 @@ function buildProjectCard(item,isDemo){
   card.className='project-card fade-up';
   card.style.cursor='pointer';
   card.addEventListener('click',()=>openProjModal(item));
+  const isMobile=!window.matchMedia('(hover:hover)').matches;
   let prev='';
-  if(item.html_snippet)prev=`<div class="card-preview"><iframe srcdoc="${item.html_snippet.replace(/"/g,'&quot;')}" sandbox="allow-scripts allow-same-origin" loading="lazy" style="width:100%;height:100%;border:none;pointer-events:none;position:absolute;top:0;left:0"></iframe><div class="card-overlay"><span>↗ PREVIEW</span></div></div>`;
-  else if(item.site_url)prev=`<div class="card-placeholder" style="position:relative;overflow:hidden;background:var(--bg3)"><div class="card-placeholder-icon" style="font-size:1.2rem;opacity:.15">🔗</div><div class="card-placeholder-label">${(item.site_url.replace(/^https?:\/\//,'')).slice(0,30)}</div><div class="card-overlay"><span>↗ PREVIEW</span></div></div>`;
-  else if(item.media_url)prev=`<div class="card-screenshot"><img src="${item.media_url}" alt="${item.title||''}" loading="lazy"><div class="card-overlay"><span>↗ DETTAGLIO</span></div></div>`;
-  else prev=`<div class="card-placeholder"><div class="card-placeholder-icon">◈</div><div class="card-placeholder-label">${item.type_tag||'PROGETTO'}</div></div>`;
+  // Priority: preview_image_url > html_snippet (desktop hover only) > site_url > media_url > placeholder
+  const previewImg=item.preview_image_url||item.media_url||'';
+  if(previewImg){
+    prev=`<div class="card-screenshot"><img src="${previewImg}" alt="${item.title||''}" loading="lazy"><div class="card-overlay"><span>↗ PREVIEW</span></div></div>`;
+  } else if(item.html_snippet&&!isMobile){
+    prev=`<div class="card-preview"><iframe srcdoc="${item.html_snippet.replace(/"/g,'&quot;')}" sandbox="allow-scripts allow-same-origin" loading="lazy" style="width:100%;height:100%;border:none;pointer-events:none;position:absolute;top:0;left:0"></iframe><div class="card-overlay"><span>↗ PREVIEW</span></div></div>`;
+  } else if(item.site_url){
+    prev=`<div class="card-placeholder" style="position:relative;overflow:hidden;background:var(--bg3)"><div class="card-placeholder-icon" style="font-size:1.2rem;opacity:.15">🔗</div><div class="card-placeholder-label">${(item.site_url.replace(/^https?:\/\//,'')).slice(0,30)}</div><div class="card-overlay"><span>↗ PREVIEW</span></div></div>`;
+  } else {
+    prev=`<div class="card-placeholder"><div class="card-placeholder-icon">◈</div><div class="card-placeholder-label">${item.type_tag||'PROGETTO'}</div></div>`;
+  }
   const tags=(item.tags||[]).map(t=>`<span class="card-tag">${t}</span>`).join('');
   const urlRow=item.site_url?`<span class="card-url">${item.site_url.replace(/^https?:\/\//,'')}</span>`:'';
   const typeLabel=isDemo?(item.type_tag||'DEMO').toUpperCase():(item.type_tag||'WEB').toUpperCase();
   card.innerHTML=`${prev}<div class="card-body"><div class="card-type-badge">${typeLabel}${item.client_name?` · ${item.client_name}`:''}</div><div class="card-title"><span>${item.title||''}</span>${item.site_url?`<span class="card-arrow">↗</span>`:''}</div>${item.description?`<p class="card-desc">${item.description}</p>`:''}${tags?`<div class="card-tags">${tags}</div>`:''}${urlRow}</div>`;
   return card;
 }
+let _pmTouchHandler=null;
 function openProjModal(item){
   document.getElementById('pm-title').textContent=(item.title||'PREVIEW').toUpperCase();
   const visit=document.getElementById('pm-visit');
   if(item.site_url){visit.href=item.site_url;visit.style.display='';}
   else visit.style.display='none';
   const body=document.getElementById('pm-body');
+  const mode=item.interaction_mode||'view';
+  // siteUrl is always cross-origin: scroll mode → promote to full
   if(item.html_snippet){
-    body.innerHTML=`<iframe id="pm-iframe" sandbox="allow-scripts allow-same-origin" srcdoc="${item.html_snippet.replace(/"/g,'&quot;')}"></iframe>`;
+    const pe=mode==='full'?'auto':'none';
+    body.innerHTML=`<div style="flex:1;position:relative;display:flex;overflow:hidden;">
+      <iframe id="pm-iframe" sandbox="allow-scripts allow-same-origin"
+        srcdoc="${item.html_snippet.replace(/"/g,'&quot;')}"
+        style="width:100%;flex:1;border:none;pointer-events:${pe}"></iframe>
+      ${mode==='scroll'?`<div id="pm-scroll-overlay" style="position:absolute;inset:0;cursor:ns-resize;z-index:2;background:transparent;"></div>`:''}
+    </div>`;
+    if(mode==='scroll'){
+      const ov=document.getElementById('pm-scroll-overlay');
+      const fr=document.getElementById('pm-iframe');
+      if(ov&&fr){
+        ov.addEventListener('wheel',e=>{e.preventDefault();try{fr.contentWindow?.scrollBy(0,e.deltaY);}catch(err){}},{passive:false});
+        let _ty=null;
+        ov.addEventListener('touchstart',e=>{_ty=e.touches[0].clientY;},{passive:true});
+        ov.addEventListener('touchmove',e=>{if(_ty===null)return;const dy=_ty-e.touches[0].clientY;_ty=e.touches[0].clientY;try{fr.contentWindow?.scrollBy(0,dy);}catch(err){}e.preventDefault();},{passive:false});
+      }
+    }
   } else if(item.site_url){
-    body.innerHTML=`<iframe id="pm-iframe" sandbox="allow-scripts allow-same-origin" src="${item.site_url}"></iframe>`;
+    const effectiveMode=(mode==='scroll')?'full':mode;
+    const pe=effectiveMode==='view'?'none':'auto';
+    body.innerHTML=`<iframe id="pm-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+      src="${item.site_url}" style="width:100%;flex:1;border:none;pointer-events:${pe}"></iframe>`;
   } else if(item.media_url){
     body.innerHTML=`<img id="pm-img" src="${item.media_url}" alt="${item.title||''}">`;
   } else {
     body.innerHTML=`<div style="margin:auto;font-family:var(--mono);color:var(--muted);font-size:12px;letter-spacing:2px">&gt; nessuna anteprima disponibile</div>`;
   }
-  document.getElementById('proj-modal').classList.add('open');
+  const modal=document.getElementById('proj-modal');
+  modal.classList.add('open');
   document.body.style.overflow='hidden';
+  _pmTouchHandler=e=>{if(!e.target.closest('.pm-header')&&!e.target.closest('#pm-body'))e.preventDefault();};
+  modal.addEventListener('touchmove',_pmTouchHandler,{passive:false});
 }
 function closeProjModal(){
-  document.getElementById('proj-modal').classList.remove('open');
+  const modal=document.getElementById('proj-modal');
+  modal.classList.remove('open');
+  if(_pmTouchHandler){modal.removeEventListener('touchmove',_pmTouchHandler);_pmTouchHandler=null;}
   document.getElementById('pm-body').innerHTML='';
   document.body.style.overflow='';
 }

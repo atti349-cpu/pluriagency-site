@@ -1063,6 +1063,22 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
               <div class="team-picker" id="pf-team-picker"><span style="font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--muted);opacity:.5">&gt; caricamento team_</span></div>
               <div class="field-hint">&gt; seleziona uno o più membri del team — click per attivare/disattivare</div>
             </div>
+            <div class="field">
+              <label class="field-label">FOTO PREVIEW <span style="opacity:.5">(thumbnail mobile + fallback)</span></label>
+              <div style="display:flex;gap:.4rem;align-items:center">
+                <input class="field-input" id="pf-preview-img" type="url" placeholder="https://... oppure carica ↑" style="flex:1">
+                <button type="button" class="btn-ghost" style="font-size:.55rem;padding:.45rem .75rem;white-space:nowrap;flex-shrink:0" onclick="uploadPortfolioPreview()">↑ CARICA</button>
+              </div>
+              <div class="field-hint">&gt; usata su mobile e come fallback se il sito non è embeddabile</div>
+            </div>
+            <div class="field">
+              <label class="field-label">INTERATTIVITÀ</label>
+              <select class="field-select" id="pf-interaction">
+                <option value="view">Solo visualizzazione (default)</option>
+                <option value="scroll">Scorri — no clic (solo HTML snippet)</option>
+                <option value="full">Interattivo completo (scroll + clic)</option>
+              </select>
+            </div>
             <div class="field full">
               <label class="field-check-row">
                 <input type="checkbox" id="pf-visible" checked>
@@ -1137,6 +1153,14 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
               <label class="field-label">TEAM — CHI HA LAVORATO AL PROGETTO <span style="opacity:.5">(opzionale)</span></label>
               <div class="team-picker" id="dm-team-picker"><span style="font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--muted);opacity:.5">&gt; caricamento team_</span></div>
               <div class="field-hint">&gt; seleziona uno o più membri del team — click per attivare/disattivare</div>
+            </div>
+            <div class="field">
+              <label class="field-label">INTERATTIVITÀ</label>
+              <select class="field-select" id="dm-interaction">
+                <option value="view">Solo visualizzazione (default)</option>
+                <option value="scroll">Scorri — no clic</option>
+                <option value="full">Interattivo completo (scroll + clic)</option>
+              </select>
             </div>
             <div class="field full">
               <label class="field-check-row">
@@ -1986,11 +2010,12 @@ function hideSitePreview(){
 function clearPortfolioForm(){
   _editPortfolioId = null;
   _pfTeamMembers   = [];
-  ['pf-title','pf-client','pf-creator','pf-desc','pf-tags','pf-url','pf-html'].forEach(id => {
+  ['pf-title','pf-client','pf-creator','pf-desc','pf-tags','pf-url','pf-html','pf-preview-img'].forEach(id => {
     document.getElementById(id).value = '';
   });
   document.getElementById('pf-file').value = '';
   document.getElementById('pf-type').value = 'web';
+  document.getElementById('pf-interaction').value = 'view';
   document.getElementById('pf-visible').checked = true;
   document.getElementById('pf-save-btn').textContent = '▶ SALVA ITEM';
   setFormMsg('pf-msg','','');
@@ -2005,10 +2030,12 @@ function populatePortfolioForm(item){
   document.getElementById('pf-title').value   = item.title || '';
   document.getElementById('pf-client').value  = item.client_name || '';
   document.getElementById('pf-creator').value = item.creator_tag || '';
-  document.getElementById('pf-desc').value    = item.description || '';
-  document.getElementById('pf-tags').value    = (item.tags || []).join(', ');
-  document.getElementById('pf-type').value    = item.type_tag || 'web';
-  document.getElementById('pf-visible').checked = item.visible !== false;
+  document.getElementById('pf-desc').value        = item.description || '';
+  document.getElementById('pf-tags').value        = (item.tags || []).join(', ');
+  document.getElementById('pf-type').value        = item.type_tag || 'web';
+  document.getElementById('pf-preview-img').value = item.preview_image_url || '';
+  document.getElementById('pf-interaction').value = item.interaction_mode || 'view';
+  document.getElementById('pf-visible').checked   = item.visible !== false;
   document.getElementById('pf-save-btn').textContent = '▶ AGGIORNA ITEM';
 
   // WEB: site_url ha priorità su media_url; HTML e site_url si escludono a vicenda
@@ -2065,11 +2092,13 @@ async function savePortfolioItem(){
     tags,
     media_url:    mediaUrl || null,
     media_type:   mediaType,
-    html_snippet: siteUrl ? null : htmlSnippet, // se ho site_url, non serve html_snippet
-    site_url:     siteUrl || null,
-    team_members: _pfTeamMembers,
-    visible:      document.getElementById('pf-visible').checked,
-    updated_at:   new Date().toISOString()
+    html_snippet:      siteUrl ? null : htmlSnippet,
+    site_url:          siteUrl || null,
+    preview_image_url: document.getElementById('pf-preview-img').value.trim() || null,
+    interaction_mode:  document.getElementById('pf-interaction').value,
+    team_members:      _pfTeamMembers,
+    visible:           document.getElementById('pf-visible').checked,
+    updated_at:        new Date().toISOString()
   };
 
   let error;
@@ -2224,6 +2253,7 @@ function clearDemoForm(){
     document.getElementById(id).value = '';
   });
   document.getElementById('dm-type').value = 'food';
+  document.getElementById('dm-interaction').value = 'view';
   document.getElementById('dm-visible').checked = true;
   document.getElementById('dm-save-btn').textContent = '▶ SALVA DEMO';
   setFormMsg('dm-msg','','');
@@ -2239,6 +2269,7 @@ function populateDemoForm(item){
   document.getElementById('dm-thumb').value = item.preview_image_url || '';
   document.getElementById('dm-desc').value  = item.description || '';
   document.getElementById('dm-html').value  = item.html_snippet || '';
+  document.getElementById('dm-interaction').value = item.interaction_mode || 'view';
   document.getElementById('dm-visible').checked = item.visible !== false;
   document.getElementById('dm-save-btn').textContent = '▶ AGGIORNA DEMO';
   renderTeamPicker('dm-team-picker', _dmTeamMembers);
@@ -2259,6 +2290,7 @@ async function saveDemoItem(){
     price_range:       document.getElementById('dm-price').value.trim() || null,
     preview_image_url: document.getElementById('dm-thumb').value.trim() || null,
     description:       document.getElementById('dm-desc').value.trim() || null,
+    interaction_mode:  document.getElementById('dm-interaction').value || 'view',
     html_snippet:      snippet,
     team_members:      _dmTeamMembers,
     visible:           document.getElementById('dm-visible').checked,
@@ -2303,6 +2335,24 @@ async function uploadDemoThumb(){
       alert('Errore upload: ' + err.message);
       if(btn){ btn.disabled=false; btn.textContent='↑ CARICA'; }
     }
+  };
+  input.click();
+}
+
+async function uploadPortfolioPreview(){
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*';
+  input.onchange = async e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `portfolio/prev_${Date.now()}.${ext}`;
+      const { error } = await _sb.storage.from('portfolio-media').upload(path, file, { cacheControl:'3600', upsert:false });
+      if(error) throw error;
+      const { data } = _sb.storage.from('portfolio-media').getPublicUrl(path);
+      document.getElementById('pf-preview-img').value = data.publicUrl;
+    } catch(err) { alert('Errore upload: ' + err.message); }
   };
   input.click();
 }

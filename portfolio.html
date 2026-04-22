@@ -126,7 +126,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   display:none;align-items:center;justify-content:center;padding:40px;}
 .lightbox.open{display:flex;}
 .lb-inner{background:var(--panel);border:1px solid var(--border);max-width:900px;width:100%;
-  max-height:90vh;overflow-y:auto;position:relative;}
+  max-height:90vh;overflow-y:auto;position:relative;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
 .lb-close{position:absolute;top:14px;right:14px;width:32px;height:32px;
   background:transparent;border:1px solid var(--border);color:var(--muted);
   font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;
@@ -453,10 +453,12 @@ function buildGrid(cat){
     const catLabel = CAT_LABELS[p.cat]||p.cat;
     const hStyle = p.h==='tall'?'height:280px':p.h==='short'?'height:160px':'height:220px';
     let imgHtml;
-    if(p.img){
-      imgHtml = p.mediaType === 'video'
-        ? `<div class="port-img-wrap" style="${hStyle}"><video src="${p.img}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video></div>`
-        : `<div class="port-img-wrap" style="${hStyle}"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>`;
+    // preview_image_url is the dedicated card thumbnail (priority over live site/iframe)
+    const cardThumb = p.preview_image_url || (p.img && p.mediaType !== 'video' ? p.img : '');
+    if(cardThumb){
+      imgHtml = `<div class="port-img-wrap" style="${hStyle}"><img src="${cardThumb}" alt="${p.name}" loading="lazy"></div>`;
+    } else if(p.img && p.mediaType === 'video'){
+      imgHtml = `<div class="port-img-wrap" style="${hStyle}"><video src="${p.img}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video></div>`;
     } else if(p.siteUrl){
       // Anteprima sito live via iframe src (interattiva se il sito lo permette)
       imgHtml = `<div class="port-img-wrap port-iframe-wrap port-siteurl-wrap" style="${hStyle};position:relative;overflow:hidden;background:#06060a" data-id="${p.id}" data-siteurl="${encodeURIComponent(p.siteUrl)}">
@@ -500,6 +502,8 @@ function setupPortfolioIframePreviews(){
     if(!item) return;
     if(!isSiteUrl && !item.htmlSnippet) return;
     if(isSiteUrl && !item.siteUrl) return;
+    // On mobile, never load live-site iframes in cards — only load in lightbox
+    if(isMobile && isSiteUrl) return;
 
     const iframe = wrap.querySelector('.port-preview-iframe');
     let loaded = false;
@@ -549,6 +553,8 @@ function filterCat(cat, btn){
 }
 
 // ===== LIGHTBOX =====
+let _lbTouchHandler = null;
+
 function openLightbox(id){
   const p = projects.find(x=>String(x.id)===String(id));
   if(!p) return;
@@ -563,49 +569,86 @@ function openLightbox(id){
     : '';
   document.getElementById('lb-tags').innerHTML =
     p.tags.map(t=>`<span class="lb-tag" style="border-color:${catColor}33;color:${catColor}">${t}</span>`).join('') + teamHtml;
+
   const imgWrap = document.getElementById('lb-img-wrap');
-  if(p.img){
-    if(p.mediaType === 'video'){
+  const mode = p.interaction_mode || 'view';
+
+  const lbImg = p.img || p.preview_image_url || '';
+  if(lbImg){
+    if(p.mediaType === 'video' && p.img){
       imgWrap.innerHTML = `<video class="lb-img" src="${p.img}" autoplay muted loop playsinline controls style="width:100%;max-height:480px;object-fit:contain;background:#000"></video>`;
     } else {
-      imgWrap.innerHTML = `<img class="lb-img" src="${p.img}" alt="${p.name}">`;
+      imgWrap.innerHTML = `<img class="lb-img" src="${lbImg}" alt="${p.name}">`;
     }
   } else if(p.siteUrl){
-    // Sito live in lightbox — interattivo con pointer-events abilitati
+    // siteUrl is always cross-origin — scroll mode can't block clicks, promote to full
+    const effectiveMode = (mode === 'scroll') ? 'full' : mode;
+    const pe = effectiveMode === 'view' ? 'none' : 'auto';
     const safeUrl = p.siteUrl.replace(/"/g,'&quot;');
     imgWrap.innerHTML = `<div style="width:100%;height:460px;position:relative;background:#000;overflow:hidden;">
       <iframe id="lb-siteurl-iframe"
-        sandbox="allow-scripts allow-same-origin"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
         src="${safeUrl}"
-        style="width:100%;height:100%;border:none;pointer-events:none"></iframe>
+        style="width:100%;height:100%;border:none;pointer-events:${pe}"></iframe>
       <div id="lb-site-overlay" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:rgba(4,6,13,.88)">
         <div style="font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--muted);letter-spacing:.1em">&gt; sito non embeddable (X-Frame-Options)</div>
         <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--g1);border:1px solid var(--g1);padding:8px 20px;text-decoration:none;letter-spacing:.1em">&gt; APRI SITO &#8599;</a>
       </div>
     </div>`;
-    // Se il sito blocca l'embedding, mostra overlay con link diretto
     setTimeout(() => {
       const fr = document.getElementById('lb-siteurl-iframe');
       if(fr){
         fr.onerror = () => { const ov = document.getElementById('lb-site-overlay'); if(ov){ ov.style.display='flex'; } };
-        try { fr.contentDocument; } catch(e) { const ov = document.getElementById('lb-site-overlay'); if(ov){ ov.style.display='flex'; } }
+        try { fr.contentDocument; } catch(e){ const ov = document.getElementById('lb-site-overlay'); if(ov){ ov.style.display='flex'; } }
       }
     }, 1500);
   } else if(p.htmlSnippet){
+    const pe = mode === 'full' ? 'auto' : 'none';
     imgWrap.innerHTML = `<div style="width:100%;height:420px;position:relative;background:#000;overflow:hidden;border-radius:4px">
       <iframe id="lb-snippet-iframe" sandbox="allow-scripts allow-same-origin"
-        style="width:100%;height:100%;border:none;pointer-events:none"></iframe>
+        style="width:100%;height:100%;border:none;pointer-events:${pe}"></iframe>
+      ${mode === 'scroll' ? `<div id="lb-scroll-overlay" style="position:absolute;inset:0;cursor:ns-resize;z-index:2;background:transparent;"></div>` : ''}
     </div>`;
     document.getElementById('lb-snippet-iframe').srcdoc = p.htmlSnippet;
+    if(mode === 'scroll'){
+      const overlay = document.getElementById('lb-scroll-overlay');
+      const iframe  = document.getElementById('lb-snippet-iframe');
+      if(overlay && iframe){
+        overlay.addEventListener('wheel', e => {
+          e.preventDefault();
+          try { iframe.contentWindow?.scrollBy(0, e.deltaY); } catch(err){}
+        }, { passive: false });
+        let _ty = null;
+        overlay.addEventListener('touchstart', e => { _ty = e.touches[0].clientY; }, { passive: true });
+        overlay.addEventListener('touchmove', e => {
+          if(_ty === null) return;
+          const dy = _ty - e.touches[0].clientY;
+          _ty = e.touches[0].clientY;
+          try { iframe.contentWindow?.scrollBy(0, dy); } catch(err){}
+          e.preventDefault();
+        }, { passive: false });
+      }
+    }
   } else {
     imgWrap.innerHTML = makePlaceholder(p.color||catColor, p.pattern, 'tall').replace('height:280px','height:320px').replace(/<div style="width:100%;height:\d+px;/,'<div style="width:100%;height:320px;');
   }
+
   document.getElementById('lightbox').classList.add('open');
   document.body.style.overflow='hidden';
+  // Prevent background scroll on mobile when touching outside lb-inner
+  _lbTouchHandler = e => { if(!e.target.closest('.lb-inner')) e.preventDefault(); };
+  document.getElementById('lightbox').addEventListener('touchmove', _lbTouchHandler, { passive: false });
 }
+
 function closeLightbox(){
-  document.getElementById('lightbox').classList.remove('open');
+  const lb = document.getElementById('lightbox');
+  lb.classList.remove('open');
   document.body.style.overflow='';
+  if(_lbTouchHandler){ lb.removeEventListener('touchmove', _lbTouchHandler); _lbTouchHandler = null; }
+  // stop iframes
+  const fr = document.getElementById('lb-siteurl-iframe');
+  if(fr){ try{ fr.src='about:blank'; }catch(e){} }
+  document.getElementById('lb-img-wrap').innerHTML = '';
 }
 function closeLB(e){ if(e.target===document.getElementById('lightbox'))closeLightbox(); }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeLightbox(); });
@@ -637,11 +680,13 @@ async function initPortfolio(){
           desc:        item.description || '',
           tags:        item.tags || [],
           color:       CAT_COLORS[item.type_tag] || '#9b5cff',
-          img:         item.media_url || '',
-          mediaType:   item.media_type || 'image',
-          htmlSnippet: item.html_snippet || null,
-          siteUrl:     item.site_url || null,
-          teamMembers: item.team_members || [],
+          img:              item.media_url || '',
+          mediaType:        item.media_type || 'image',
+          preview_image_url: item.preview_image_url || null,
+          htmlSnippet:      item.html_snippet || null,
+          siteUrl:          item.site_url || null,
+          teamMembers:      item.team_members || [],
+          interaction_mode: item.interaction_mode || 'view',
           pattern:     PATTERNS[i % PATTERNS.length]
         });
       });

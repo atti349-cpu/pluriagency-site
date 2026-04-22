@@ -372,18 +372,23 @@ function renderLayouts() {
   const isMobileDevice = !window.matchMedia('(hover:hover)').matches;
 
   grid.innerHTML = filtered.map(l => {
-    const hasPreview = !!l.htmlSnippet;
-    // Il placeholder gradiente è SEMPRE visibile; l'iframe si sovrappone su hover/mobile
-    const iframeLayer = hasPreview
+    const hasSnippet = !!l.htmlSnippet;
+    // If preview image exists: show it. Otherwise on desktop show iframe on hover.
+    const previewImgLayer = l.previewUrl
+      ? `<img src="${l.previewUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1" loading="lazy">`
+      : '';
+    // Only add iframe layer if no preview image (desktop hover only; mobile skip)
+    const iframeLayer = (!l.previewUrl && hasSnippet && !isMobileDevice)
       ? `<div class="card-iframe-wrap" data-id="${l.id}">
            <iframe class="card-iframe" sandbox="allow-scripts allow-same-origin" scrolling="no"></iframe>
          </div>`
       : '';
     return `
     <div class="layout-card" onclick="openDemoPreview('${l.id}')">
-      <div class="card-preview" style="background:${makePlaceholderBg(l.colors)}">
+      <div class="card-preview" style="background:${makePlaceholderBg(l.colors)};position:relative">
+        ${previewImgLayer}
         ${iframeLayer}
-        <div class="card-preview-inner">
+        <div class="card-preview-inner" style="position:relative;z-index:${l.previewUrl ? 0 : 1}">
           <div style="text-align:center">
             <div style="font-family:'Orbitron',monospace;font-size:22px;font-weight:900;letter-spacing:3px;color:${l.colors[0]};text-shadow:0 0 24px ${l.colors[0]}60;margin-bottom:10px">${l.name.split(' ').slice(0,1)[0]}</div>
             <div style="font-size:9px;letter-spacing:3px;color:rgba(255,255,255,0.2)">${l.sector.toUpperCase()}</div>
@@ -507,8 +512,9 @@ async function initDemos(){
           price:       item.price_range || 'su richiesta',
           available:   true,
           colors:      SECTOR_COLORS[item.type_tag] || ['#9b5cff','#6b2fff'],
-          htmlSnippet: item.html_snippet || null,
-          previewUrl:  item.preview_image_url || null
+          htmlSnippet:      item.html_snippet || null,
+          previewUrl:       item.preview_image_url || null,
+          interaction_mode: item.interaction_mode || 'view'
         });
       });
     }
@@ -521,16 +527,21 @@ async function initDemos(){
 initDemos();
 
 // ===== PREVIEW IFRAME MODAL =====
+let _dmTouchHandler = null;
+
 function openDemoPreview(id){
   const layout = LAYOUTS.find(l => String(l.id) === String(id));
   if(!layout || !layout.htmlSnippet) return;
+  const mode = layout.interaction_mode || 'view';
+  const pe = mode === 'full' ? 'auto' : 'none';
+
   let modal = document.getElementById('demo-preview-modal');
   if(!modal){
     modal = document.createElement('div');
     modal.id = 'demo-preview-modal';
     modal.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:20px';
     modal.innerHTML = `
-      <div style="width:100%;max-width:1100px;height:88vh;background:#fff;display:flex;flex-direction:column;position:relative;border:1px solid rgba(0,207,255,.2)">
+      <div id="demo-modal-inner" style="width:100%;max-width:1100px;height:88vh;background:#fff;display:flex;flex-direction:column;position:relative;border:1px solid rgba(0,207,255,.2)">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#04060d;border-bottom:1px solid rgba(0,207,255,.15);flex-shrink:0">
           <span id="demo-modal-title" style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--g1)">ANTEPRIMA</span>
           <div style="display:flex;gap:8px;align-items:center">
@@ -543,20 +554,51 @@ function openDemoPreview(id){
             <button onclick="closeDemoPreview()" style="background:transparent;border:1px solid rgba(0,207,255,.2);color:#4a6a88;width:28px;height:28px;cursor:pointer;font-size:13px;">✕</button>
           </div>
         </div>
-        <iframe id="demo-preview-iframe" sandbox="allow-scripts allow-same-origin"
-          style="flex:1;border:none;width:100%;pointer-events:none"></iframe>
+        <div style="flex:1;position:relative;overflow:hidden;">
+          <iframe id="demo-preview-iframe" sandbox="allow-scripts allow-same-origin"
+            style="width:100%;height:100%;border:none;pointer-events:none;display:block"></iframe>
+          <div id="demo-scroll-overlay" style="display:none;position:absolute;inset:0;cursor:ns-resize;z-index:2;background:transparent;"></div>
+        </div>
       </div>`;
     modal.addEventListener('click', e => { if(e.target===modal) closeDemoPreview(); });
     document.body.appendChild(modal);
   }
+
   const iframe = document.getElementById('demo-preview-iframe');
+  const scrollOverlay = document.getElementById('demo-scroll-overlay');
   const pauseBtn = document.getElementById('demo-pause-btn');
   document.getElementById('demo-modal-title').textContent = 'ANTEPRIMA — ' + layout.name;
+  iframe.style.pointerEvents = pe;
   iframe.srcdoc = layout.htmlSnippet;
   iframe.dataset.paused = '0';
   if(pauseBtn){ pauseBtn.textContent = '⏸ PAUSA'; pauseBtn.style.color='#4a6a88'; }
+
+  // Setup scroll overlay for scroll mode
+  if(scrollOverlay){
+    scrollOverlay.style.display = mode === 'scroll' ? 'block' : 'none';
+    scrollOverlay.onwheel = null; scrollOverlay.ontouchstart = null; scrollOverlay.ontouchmove = null;
+    if(mode === 'scroll'){
+      scrollOverlay.addEventListener('wheel', e => {
+        e.preventDefault();
+        try { iframe.contentWindow?.scrollBy(0, e.deltaY); } catch(err){}
+      }, { passive: false });
+      let _ty = null;
+      scrollOverlay.addEventListener('touchstart', e => { _ty = e.touches[0].clientY; }, { passive: true });
+      scrollOverlay.addEventListener('touchmove', e => {
+        if(_ty === null) return;
+        const dy = _ty - e.touches[0].clientY;
+        _ty = e.touches[0].clientY;
+        try { iframe.contentWindow?.scrollBy(0, dy); } catch(err){}
+        e.preventDefault();
+      }, { passive: false });
+    }
+  }
+
   modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
+  // Prevent background scroll on mobile
+  _dmTouchHandler = e => { if(!e.target.closest('#demo-modal-inner')) e.preventDefault(); };
+  modal.addEventListener('touchmove', _dmTouchHandler, { passive: false });
 }
 
 function toggleDemoPreviewPause(){
@@ -584,7 +626,12 @@ function toggleDemoPreviewPause(){
 
 function closeDemoPreview(){
   const modal = document.getElementById('demo-preview-modal');
-  if(modal){ modal.style.display='none'; document.getElementById('demo-preview-iframe').srcdoc=''; }
+  if(modal){
+    modal.style.display='none';
+    if(_dmTouchHandler){ modal.removeEventListener('touchmove', _dmTouchHandler); _dmTouchHandler = null; }
+    const fr = document.getElementById('demo-preview-iframe');
+    if(fr){ fr.srcdoc = ''; }
+  }
   document.body.style.overflow = '';
 }
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeDemoPreview(); });

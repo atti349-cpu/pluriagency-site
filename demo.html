@@ -395,7 +395,7 @@ function renderLayouts() {
           </div>
         </div>
         <div class="card-overlay">
-          <div class="card-overlay-btn">${hasPreview ? '&#9654; ANTEPRIMA' : l.available ? '&#9654; ANTEPRIMA' : '&#9654; RICHIEDI INFO'}</div>
+          <div class="card-overlay-btn">${hasSnippet ? '&#9654; ANTEPRIMA' : l.available ? '&#9654; ANTEPRIMA' : '&#9654; RICHIEDI INFO'}</div>
         </div>
       </div>
       <div class="card-info">
@@ -532,7 +532,8 @@ let _dmTouchHandler = null;
 function openDemoPreview(id){
   const layout = LAYOUTS.find(l => String(l.id) === String(id));
   if(!layout || !layout.htmlSnippet) return;
-  const mode = layout.interaction_mode || 'view';
+  // Demo is an immersive preview — default to 'scroll' so layouts are browseable
+  const mode = layout.interaction_mode || 'scroll';
   const pe = mode === 'full' ? 'auto' : 'none';
 
   let modal = document.getElementById('demo-preview-modal');

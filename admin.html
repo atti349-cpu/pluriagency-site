@@ -4240,7 +4240,7 @@ async function dbFetchAndRender(){
   const filter = _dbFilterAgent || (!isAdmin ? _currentUserEmail : '');
 
   // Parallel queries
-  let pvQ = _sb.from('preventivi').select('stato,total,agente_email,created_at');
+  let pvQ = _sb.from('preventivi').select('status,total,agente_email,created_at');
   let projQ = _sb.from('projects').select('id,client_name,agent_email,status,updated_at');
   let leadsQ = _sb.from('leads').select('created_at,stato');
   let canoniQ = _sb.from('canoni').select('amount,frequency,stato,agente_email');
@@ -4268,8 +4268,8 @@ function dbRender(){
   const isAdmin = _currentUserRole === 'admin';
 
   // KPI
-  const pvAttivi = pv.filter(p=>!['rifiutato'].includes(p.stato)).length;
-  const fatturatoPot = pv.filter(p=>['check','ordine'].includes(p.stato)).reduce((s,p)=>s+(p.total||0),0);
+  const pvAttivi = pv.filter(p=>!['rifiutato'].includes(p.status)).length;
+  const fatturatoPot = pv.filter(p=>['check','ordine'].includes(p.status)).reduce((s,p)=>s+(p.total||0),0);
   const mrr = canoni.filter(c=>c.stato==='attivo'&&c.frequency==='monthly').reduce((s,c)=>s+(c.amount||0),0);
   const projAttivi = proj.filter(p=>p.status!=='completato').length;
   const clientiTot = clienti.length;
@@ -4278,7 +4278,7 @@ function dbRender(){
     <div class="db-kpi" style="--db-kpi-c:#00d4ff">
       <div class="db-kpi-label">Preventivi attivi</div>
       <div class="db-kpi-val">${pvAttivi}</div>
-      <div class="db-kpi-sub">${pv.filter(p=>p.stato==='inviato').length} inviati · ${pv.filter(p=>p.stato==='check').length} in check</div>
+      <div class="db-kpi-sub">${pv.filter(p=>p.status==='inviato').length} inviati · ${pv.filter(p=>p.status==='check').length} in check</div>
     </div>
     <div class="db-kpi" style="--db-kpi-c:#a78bfa">
       <div class="db-kpi-label">Fatturato potenziale</div>
@@ -4304,7 +4304,7 @@ function dbRender(){
   // Chart 1: Preventivi per stato (donut)
   const STATI_COLORS = {bozza:'#555',inviato:'#00d4ff',check:'#a78bfa',ordine:'#ffaa00',venduto:'#00ff88',rifiutato:'#ff6b6b'};
   const statiCount = {};
-  pv.forEach(p=>{ statiCount[p.stato]=(statiCount[p.stato]||0)+1; });
+  pv.forEach(p=>{ statiCount[p.status]=(statiCount[p.status]||0)+1; });
   document.getElementById('db-chart-stati').innerHTML = dbDonut(statiCount, STATI_COLORS);
 
   // Chart 2: Leads ultimi 8 mesi (bar)
@@ -4319,7 +4319,7 @@ function dbRender(){
   // Recenti preventivi
   const recPv = [...pv].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,6);
   document.getElementById('db-rec-pv').innerHTML = recPv.length
-    ? recPv.map(p=>`<div class="db-rec-row"><span class="db-rec-name">${p.agente_email||'-'}</span><span class="db-rec-badge" style="color:${STATI_COLORS[p.stato]||'var(--muted)'};border-color:${STATI_COLORS[p.stato]||'var(--muted)'}44">${p.stato}</span><span style="color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:.55rem;margin-left:.5rem">€${(p.total||0).toLocaleString('it-IT')}</span></div>`).join('')
+    ? recPv.map(p=>`<div class="db-rec-row"><span class="db-rec-name">${p.agente_email||'-'}</span><span class="db-rec-badge" style="color:${STATI_COLORS[p.status]||'var(--muted)'};border-color:${STATI_COLORS[p.status]||'var(--muted)'}44">${p.status}</span><span style="color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:.55rem;margin-left:.5rem">€${(p.total||0).toLocaleString('it-IT')}</span></div>`).join('')
     : '<div style="color:var(--muted);font-size:.6rem;font-family:\'Share Tech Mono\',monospace;padding:.5rem 0">// nessun preventivo_</div>';
 
   // Recenti progetti

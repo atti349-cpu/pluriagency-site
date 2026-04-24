@@ -5702,10 +5702,11 @@ async function toggleContrattoFirmato(checked){
 function progettiGeneraPDF(){
   if(!_projCurrent) return;
   const p = _projCurrent;
-  if(typeof jsPDF === 'undefined'){ alert('jsPDF non caricato.'); return; }
+  const _jsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+  if(!_jsPDF){ alert('jsPDF non caricato — riprova tra un secondo.'); return; }
   const cd = p.contract_data || {};
   const pv = _preventiviMap[p.preventivo_id];
-  const doc = new jsPDF({ unit:'mm', format:'a4' });
+  const doc = new _jsPDF({ unit:'mm', format:'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
   const L = 18, R = pageW - 18, TW = R - L;

@@ -106,6 +106,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .port-iframe-wrap.revealed .port-iframe-inner { opacity:1; }
 .port-iframe-wrap.revealed .port-placeholder { opacity:0; }
 
+/* THUMB OVERLAY: immagine preview sopra l'iframe — svanisce all'hover su desktop */
+.port-thumb-overlay{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;transition:opacity .4s;}
+@media(hover:hover){
+  .port-card:hover .port-thumb-overlay{opacity:0;}
+}
+
 /* OVERLAY */
 .port-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   opacity:0;transition:opacity .25s;z-index:2;}
@@ -453,14 +459,25 @@ function buildGrid(cat){
     const catLabel = CAT_LABELS[p.cat]||p.cat;
     const hStyle = p.h==='tall'?'height:280px':p.h==='short'?'height:160px':'height:220px';
     let imgHtml;
-    // preview_image_url is the dedicated card thumbnail (priority over live site/iframe)
     const cardThumb = p.preview_image_url || (p.img && p.mediaType !== 'video' ? p.img : '');
-    if(cardThumb){
-      imgHtml = `<div class="port-img-wrap" style="${hStyle}"><img src="${cardThumb}" alt="${p.name}" loading="lazy"></div>`;
+    const hasLive = !!(p.siteUrl || p.htmlSnippet);
+
+    if(cardThumb && hasLive){
+      // Immagine preview sopra + iframe sotto: hover → immagine svanisce, sito emerge
+      const siteClass = p.siteUrl ? ' port-siteurl-wrap' : '';
+      const dataAttr  = p.siteUrl ? `data-siteurl="${encodeURIComponent(p.siteUrl)}"` : '';
+      imgHtml = `<div class="port-img-wrap port-iframe-wrap${siteClass}" style="${hStyle};position:relative;overflow:hidden;background:#06060a" data-id="${p.id}" ${dataAttr}>
+        <div class="port-iframe-inner">
+          <iframe class="port-preview-iframe" sandbox="allow-scripts allow-same-origin" scrolling="no" style="position:absolute;top:0;left:0;width:1440px;height:900px;border:none;pointer-events:none;transform-origin:top left"></iframe>
+        </div>
+        ${makePlaceholder(p.color||catColor, p.pattern, p.h)}
+        <img class="port-thumb-overlay" src="${cardThumb}" alt="${p.name}" loading="lazy">
+      </div>`;
+    } else if(cardThumb){
+      imgHtml = `<div class="port-img-wrap" style="${hStyle}"><img src="${cardThumb}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block"></div>`;
     } else if(p.img && p.mediaType === 'video'){
       imgHtml = `<div class="port-img-wrap" style="${hStyle}"><video src="${p.img}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;display:block"></video></div>`;
     } else if(p.siteUrl){
-      // Anteprima sito live via iframe src (interattiva se il sito lo permette)
       imgHtml = `<div class="port-img-wrap port-iframe-wrap port-siteurl-wrap" style="${hStyle};position:relative;overflow:hidden;background:#06060a" data-id="${p.id}" data-siteurl="${encodeURIComponent(p.siteUrl)}">
         <div class="port-iframe-inner">
           <iframe class="port-preview-iframe" sandbox="allow-scripts allow-same-origin" scrolling="no" style="position:absolute;top:0;left:0;width:1440px;height:900px;border:none;pointer-events:none;transform-origin:top left"></iframe>

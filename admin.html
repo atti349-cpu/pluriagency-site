@@ -353,10 +353,13 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .proj-step-content{display:none;}
 .proj-step-content.active{display:block;}
 /* Contract form */
-.contract-section{margin-bottom:1.25rem;}
-.contract-section-title{font-family:'Share Tech Mono',monospace;font-size:.52rem;letter-spacing:.2em;color:#ffaa00;margin-bottom:.6rem;padding-bottom:.3rem;border-bottom:1px solid rgba(255,170,0,.2);}
-.contract-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
+.contract-section{margin-bottom:1.5rem;}
+.contract-section-title{font-family:'Share Tech Mono',monospace;font-size:.52rem;letter-spacing:.2em;color:#ffaa00;margin-bottom:.75rem;padding-bottom:.35rem;border-bottom:1px solid rgba(255,170,0,.2);}
+.contract-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
 .contract-grid.single{grid-template-columns:1fr;}
+.contract-grid.scope-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+.contract-grid.scope-grid .scope-full{grid-column:1/-1;}
+.contract-textarea{font-family:'Share Tech Mono',monospace;font-size:.62rem;line-height:1.7;min-height:160px;resize:vertical;white-space:pre;}
 .contract-firma-box{border:1px solid var(--border);padding:1.5rem;margin-top:.5rem;background:rgba(255,170,0,.03);}
 .contract-status-badge{display:inline-flex;align-items:center;gap:.4rem;font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.1em;padding:.35rem .7rem;border:1px solid;}
 .contract-status-badge.pending{color:#ffaa00;border-color:rgba(255,170,0,.4);}
@@ -5609,18 +5612,18 @@ function buildContractContent(){
 
     <div class="contract-section">
       <div class="contract-section-title">// SCOPE</div>
-      <div class="contract-grid single">
+      <div class="contract-grid scope-grid">
         <div>
-          <div class="field-label">ATTIVITÀ INCLUSE</div>
-          <textarea id="cd-included" class="field-input" style="min-height:90px;resize:vertical">${esc(cd.included_activities||defaultIncluded)}</textarea>
+          <div class="field-label" style="color:var(--g1)">✓ ATTIVITÀ INCLUSE</div>
+          <textarea id="cd-included" class="field-input contract-textarea" placeholder="• Servizio 1&#10;• Servizio 2&#10;...">${esc(cd.included_activities||defaultIncluded)}</textarea>
         </div>
         <div>
-          <div class="field-label">ATTIVITÀ ESCLUSE</div>
-          <textarea id="cd-excluded" class="field-input" style="min-height:90px;resize:vertical">${esc(cd.excluded_activities||defaultExcluded)}</textarea>
+          <div class="field-label" style="color:#ff6b6b">✕ ATTIVITÀ ESCLUSE</div>
+          <textarea id="cd-excluded" class="field-input contract-textarea" placeholder="• Escluso 1&#10;• Escluso 2&#10;...">${esc(cd.excluded_activities||defaultExcluded)}</textarea>
         </div>
-        <div>
+        <div class="scope-full">
           <div class="field-label">NOTE / CONDIZIONI AGGIUNTIVE</div>
-          <textarea id="cd-notes" class="field-input" style="min-height:60px;resize:vertical">${esc(cd.extra_notes||'')}</textarea>
+          <textarea id="cd-notes" class="field-input contract-textarea" style="min-height:80px" placeholder="Eventuali condizioni speciali, accordi particolari...">${esc(cd.extra_notes||'')}</textarea>
         </div>
       </div>
     </div>

@@ -357,9 +357,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .contract-section-title{font-family:'Share Tech Mono',monospace;font-size:.52rem;letter-spacing:.2em;color:#ffaa00;margin-bottom:.75rem;padding-bottom:.35rem;border-bottom:1px solid rgba(255,170,0,.2);}
 .contract-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
 .contract-grid.single{grid-template-columns:1fr;}
-.contract-grid.scope-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+.contract-grid.scope-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;width:100%;}
+.contract-grid.scope-grid>div{min-width:0;}
 .contract-grid.scope-grid .scope-full{grid-column:1/-1;}
-.contract-textarea{font-family:'Share Tech Mono',monospace;font-size:.62rem;line-height:1.7;min-height:160px;resize:vertical;white-space:pre;}
+.contract-textarea{font-family:'Share Tech Mono',monospace;font-size:.62rem;line-height:1.7;min-height:160px;resize:vertical;white-space:pre-wrap;overflow-wrap:break-word;word-break:break-word;width:100%;box-sizing:border-box;overflow-x:hidden;}
 .contract-firma-box{border:1px solid var(--border);padding:1.5rem;margin-top:.5rem;background:rgba(255,170,0,.03);}
 .contract-status-badge{display:inline-flex;align-items:center;gap:.4rem;font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.1em;padding:.35rem .7rem;border:1px solid;}
 .contract-status-badge.pending{color:#ffaa00;border-color:rgba(255,170,0,.4);}

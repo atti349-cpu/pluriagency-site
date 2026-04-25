@@ -1693,7 +1693,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
               <div class="section-title" id="proj-detail-title">PROGETTO</div>
               <div class="section-sub" id="proj-detail-sub"></div>
             </div>
-            <button class="btn-ghost" style="font-size:.55rem" onclick="projShowStep('contratto')">◈ CONTRATTO</button>
+            <div style="display:flex;gap:.5rem;align-items:center">
+              <button class="btn-ghost" style="font-size:.55rem" onclick="projShowStep('contratto')">◈ CONTRATTO</button>
+              <button class="btn-danger" style="font-size:.55rem" onclick="deleteProgetto()">✕ ELIMINA</button>
+            </div>
           </div>
 
           <!-- Step navigation (sempre visibile) -->
@@ -2715,19 +2718,28 @@ function openPvModal(id){
     </tr>`;
   }).join('');
 
+  // Cerca se esiste già un progetto collegato a questo preventivo
+  const projCollegato = Object.values(_progettiMap||{}).find(p => p.preventivo_id === id);
+  const progettoBtn = projCollegato
+    ? `<button class="pv-status-btn" style="color:var(--v);border-color:rgba(155,92,255,.4);background:rgba(155,92,255,.06)" onclick="apriProgettoCollegato('${projCollegato.id}')">◈ VAI AL PROGETTO →</button>`
+    : `<button class="pv-status-btn" style="color:var(--v);border-color:rgba(155,92,255,.4);background:rgba(155,92,255,.06)" onclick="creaProgettoFromPv('${id}')">◈ CREA PROGETTO</button>`;
+
   let statusActions;
   if(isLocked){
-    statusActions = `<div class="pv-status venduto" style="display:inline-block">✓ VENDUTO — TRATTATIVA CHIUSA</div>`;
+    statusActions = `<div class="pv-status venduto" style="display:inline-block">✓ VENDUTO — TRATTATIVA CHIUSA</div>
+      ${progettoBtn}`;
   } else if(isOrdine){
     statusActions = `
       <div class="pv-status ordine" style="display:inline-block">◈ ORDINE ATTIVO</div>
-      <button class="pv-status-btn confirm" onclick="setPvStatus('${id}','venduto')">✓ CHIUDI / PAGATO</button>`;
+      <button class="pv-status-btn confirm" onclick="setPvStatus('${id}','venduto')">✓ CHIUDI / PAGATO</button>
+      ${progettoBtn}`;
   } else {
     statusActions = `
       <button class="pv-status-btn" onclick="setPvStatus('${id}','inviato')">▶ INVIATO</button>
       <button class="pv-status-btn" style="color:#ffc800;border-color:rgba(255,200,0,.4)" onclick="setPvStatus('${id}','check')">⏳ IN CHECK</button>
       <button class="pv-status-btn" style="color:#00cfff;border-color:rgba(0,207,255,.4);background:rgba(0,207,255,.05)" onclick="openOrdineOverlay('${id}')">◈ CONVERTI IN ORDINE</button>
-      <button class="pv-status-btn danger" onclick="setPvStatus('${id}','rifiutato')">✕ RIFIUTATO</button>`;
+      <button class="pv-status-btn danger" onclick="setPvStatus('${id}','rifiutato')">✕ RIFIUTATO</button>
+      ${progettoBtn}`;
   }
 
   // Cliente cell: unified (assign inline if not yet linked)
@@ -5578,6 +5590,53 @@ function progettiBackToList(){
   document.getElementById('proj-detail-view').classList.remove('open');
   document.getElementById('proj-list-view').style.display = 'block';
   loadProgetti();
+}
+
+async function deleteProgetto(){
+  if(!_projCurrent) return;
+  const nome = _projCurrent.client_name || 'questo progetto';
+  if(!confirm(`Eliminare definitivamente il progetto di ${nome}?\n\nQuesta azione è irreversibile — note, task e dati saranno persi.`)) return;
+  const { error } = await _sb.from('projects').delete().eq('id', _projCurrent.id);
+  if(error){ alert('Errore eliminazione: ' + error.message); return; }
+  progettiBackToList();
+}
+
+async function creaProgettoFromPv(pvId){
+  const pv = _preventiviMap[pvId];
+  if(!pv) return;
+  if(!confirm(`Creare un progetto per ${pv.client_name}?\n\nVerrà avviato in STEP 1 con i dati del preventivo.`)) return;
+  const emptyStep = { notes:[], tasks:[], completed:false, fields:{} };
+  const payload = {
+    preventivo_id: pvId,
+    client_name:   pv.client_name,
+    client_email:  pv.client_email || null,
+    agent_email:   pv.agent_email  || _currentUserEmail,
+    agent_name:    pv.agent_name   || null,
+    total:         pv.total        || 0,
+    title:         pv.title        || pv.client_name,
+    status:        'step_1',
+    step_1:        emptyStep,
+    step_2:        emptyStep,
+    step_3:        emptyStep,
+    step_extra:    { ...emptyStep, enabled: false },
+    created_at:    new Date().toISOString(),
+    updated_at:    new Date().toISOString()
+  };
+  const { data, error } = await _sb.from('projects').insert(payload).select().single();
+  if(error){ alert('Errore creazione progetto: ' + error.message); return; }
+  closePvModal();
+  // Aggiorna mappa locale e apri il progetto appena creato
+  _progettiMap = _progettiMap || {};
+  _progettiMap[data.id] = data;
+  switchSection('progetti', document.getElementById('nav-progetti'));
+  await loadProgetti();
+  openProgetto(data.id);
+}
+
+function apriProgettoCollegato(projId){
+  closePvModal();
+  switchSection('progetti', document.getElementById('nav-progetti'));
+  loadProgetti().then(() => openProgetto(projId));
 }
 
 // ===== PDF PREVENTIVO =====

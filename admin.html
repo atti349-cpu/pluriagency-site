@@ -83,6 +83,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .sb-item:disabled{opacity:.35;cursor:not-allowed;}
 .sb-badge{font-family:'Share Tech Mono',monospace;font-size:.5rem;letter-spacing:.1em;
   background:rgba(155,92,255,0.15);color:var(--v);padding:2px 6px;margin-left:auto;border-radius:2px;}
+.sb-badge-alert{background:rgba(255,80,80,0.15);color:#ff5c5c;border:1px solid rgba(255,80,80,0.3);animation:badge-pulse 2s ease-in-out infinite;}
+@keyframes badge-pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,80,80,0.4);}50%{box-shadow:0 0 0 4px rgba(255,80,80,0);}}
+#notif-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(70px);z-index:9999;background:var(--panel);border:1px solid rgba(155,92,255,0.5);border-radius:4px;padding:13px 22px;font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--v);letter-spacing:.12em;text-transform:uppercase;opacity:0;transition:all .32s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;box-shadow:0 0 32px rgba(155,92,255,0.25),0 4px 20px rgba(0,0,0,.5);}
+#notif-toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 .sb-section-label{font-family:'Share Tech Mono',monospace;font-size:.5rem;letter-spacing:.3em;
   text-transform:uppercase;color:rgba(107,107,128,.4);padding:.5rem 1.25rem .25rem;}
 .sb-divider{height:1px;background:var(--border);margin:.5rem 1.25rem;}
@@ -984,9 +988,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         <button class="sb-item" id="nav-demo" onclick="switchSection('demo',this)">◈ DEMO SITI</button>
         <div class="sb-divider"></div>
         <div class="sb-section-label">FUNNEL</div>
-        <button class="sb-item" id="nav-leads" onclick="switchSection('leads',this)" style="display:none">◈ LEADS</button>
+        <button class="sb-item" id="nav-leads" onclick="switchSection('leads',this)" style="display:none">◈ LEADS<span class="sb-badge sb-badge-alert" id="badge-leads" style="display:none"></span></button>
         <button class="sb-item" id="nav-clienti" onclick="switchSection('clienti',this)">◈ CLIENTI</button>
-        <button class="sb-item" id="nav-preventivi" onclick="switchSection('preventivi',this)">◈ PREVENTIVI</button>
+        <button class="sb-item" id="nav-preventivi" onclick="switchSection('preventivi',this)">◈ PREVENTIVI<span class="sb-badge sb-badge-alert" id="badge-preventivi" style="display:none"></span></button>
         <button class="sb-item" id="nav-progetti" onclick="switchSection('progetti',this)">◈ PROGETTI</button>
         <button class="sb-item" id="nav-fatturazione" onclick="switchSection('fatturazione',this)" style="display:none">◈ FATTURAZIONE</button>
         <div class="sb-divider"></div>
@@ -1964,6 +1968,9 @@ async function showDashboard(user){
   const navRm = document.getElementById('nav-roadmap');
   if(navRm) navRm.style.display = 'flex';
 
+  // Notifiche in-app: badge leads/preventivi + toast al login
+  _checkNotifs(user.email);
+
   // Admin: carica dropdown colleghi per roadmap
   if(isAdmin) rmLoadColleagueDropdown();
 
@@ -2059,8 +2066,14 @@ function switchSection(name, btnEl){
   if(name==='demo' && !document.getElementById('demo-list').querySelector('.demo-row'))
     loadDemo();
   if(name==='dashboard') loadDashboard();
-  if(name==='preventivi'){ loadPreventivi(); loadServiceCatalog(); }
-  if(name==='leads') loadLeads();
+  if(name==='preventivi'){
+    loadPreventivi(); loadServiceCatalog();
+    if(_currentUserEmail){ localStorage.setItem(`pluri_seen_preventivi_${_currentUserEmail}`, new Date().toISOString()); _setNotifBadge('badge-preventivi', 0); }
+  }
+  if(name==='leads'){
+    loadLeads();
+    if(_currentUserEmail){ localStorage.setItem(`pluri_seen_leads_${_currentUserEmail}`, new Date().toISOString()); _setNotifBadge('badge-leads', 0); }
+  }
   if(name==='clienti') loadClienti();
   if(name==='agenti') loadAgenti();
   if(name==='team') loadTeamCards();
@@ -6674,8 +6687,49 @@ async function lsSaveAzienda(){
 
 function _escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+// ===== NOTIFICHE IN-APP =====
+async function _checkNotifs(email){
+  const kL = `pluri_seen_leads_${email}`;
+  const kP = `pluri_seen_preventivi_${email}`;
+  // Prima visita: imposta timestamp ora → nessun falso positivo
+  if(!localStorage.getItem(kL)) localStorage.setItem(kL, new Date().toISOString());
+  if(!localStorage.getItem(kP)) localStorage.setItem(kP, new Date().toISOString());
+  const seenL = localStorage.getItem(kL);
+  const seenP = localStorage.getItem(kP);
+  try {
+    const [resL, resP] = await Promise.all([
+      _sb.from('leads').select('id', {count:'exact',head:true}).gt('created_at', seenL),
+      _sb.from('preventivi').select('id', {count:'exact',head:true}).gt('created_at', seenP)
+    ]);
+    const cL = resL.count || 0;
+    const cP = resP.count || 0;
+    _setNotifBadge('badge-leads', cL);
+    _setNotifBadge('badge-preventivi', cP);
+    const msgs = [];
+    if(cL > 0) msgs.push(`${cL} nuovo${cL > 1 ? 'i' : ''} lead`);
+    if(cP > 0) msgs.push(`${cP} nuovo${cP > 1 ? 'i' : ''} preventiv${cP > 1 ? 'i' : 'o'}`);
+    if(msgs.length) _notifToast('◈  ' + msgs.join('  ·  '), 5500);
+  } catch(e){ /* silenzioso */ }
+}
+
+function _setNotifBadge(id, count){
+  const el = document.getElementById(id);
+  if(!el) return;
+  if(count > 0){ el.textContent = count > 99 ? '99+' : count; el.style.display = 'inline-flex'; }
+  else el.style.display = 'none';
+}
+
+function _notifToast(msg, dur=4500){
+  const t = document.getElementById('notif-toast');
+  if(!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
 // ===== BOOT =====
 init();
 </script>
+<div id="notif-toast"></div>
 </body>
 </html>

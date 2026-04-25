@@ -2727,6 +2727,7 @@ function openPvModal(id){
   let statusActions;
   if(isLocked){
     statusActions = `<div class="pv-status venduto" style="display:inline-block">✓ VENDUTO — TRATTATIVA CHIUSA</div>
+      <button class="pv-status-btn" style="color:var(--muted);border-color:rgba(255,255,255,.15)" onclick="riaprePv('${id}')">↩ RIAPRI</button>
       ${progettoBtn}`;
   } else if(isOrdine){
     statusActions = `
@@ -2988,6 +2989,17 @@ async function setPvStatus(id, newStatus){
   loadPreventivi();
 }
 
+async function riaprePv(id){
+  if(!confirm('Riaprire il preventivo?\n\nVerrà resettato a BOZZA — potrai modificarlo e riconvertirlo in ordine.')) return;
+  const { error } = await _sb.from('preventivi')
+    .update({ status: 'bozza', updated_at: new Date().toISOString() })
+    .eq('id', id);
+  if(error){ alert('Errore: ' + error.message); return; }
+  if(_preventiviMap[id]) _preventiviMap[id].status = 'bozza';
+  closePvModal();
+  loadPreventivi();
+}
+
 // ── ORDINE OVERLAY ──
 let _ordineCurrentPvId = null;
 
@@ -3000,15 +3012,22 @@ function openOrdineOverlay(pvId){
     const isRecurring = it.monthly || it.yearly;
     const badge = it.monthly ? '<span class="ordine-item-badge">MENSILE</span>'
                 : it.yearly  ? '<span class="ordine-item-badge" style="border-color:rgba(200,155,255,.4);color:var(--v2)">ANNUALE</span>' : '';
+    const unitPrice = it.unit_price ?? (it.qty ? (it.total||0)/(it.qty||1) : (it.total||0));
     return `<div class="ordine-item">
       <input type="checkbox" id="ordine-chk-${i}" data-idx="${i}" checked
         style="accent-color:#00cfff;width:16px;height:16px;cursor:pointer;flex-shrink:0"
         onchange="ordineUpdateCount()">
-      <div>
+      <div style="flex:1;min-width:0">
         <div class="ordine-item-name">${escHtml(it.name)} ${badge}</div>
         ${it.qty>1 ? `<div style="font-family:'Share Tech Mono',monospace;font-size:.5rem;color:var(--muted)">x${it.qty}</div>` : ''}
       </div>
-      <div class="ordine-item-price">${(it.total||0).toLocaleString('it-IT')} €</div>
+      <div style="display:flex;align-items:center;gap:.35rem;flex-shrink:0">
+        <input type="number" id="ordine-price-${i}" data-idx="${i}"
+          value="${unitPrice.toFixed(2)}" min="0" step="0.01"
+          style="width:84px;font-family:'Orbitron',monospace;font-size:.65rem;font-weight:700;color:var(--v);background:var(--panel2);border:1px solid var(--border2);border-radius:4px;padding:.25rem .4rem;text-align:right"
+          oninput="ordineUpdateCount()">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--muted)">€</span>
+      </div>
     </div>`;
   }).join('');
   ordineUpdateCount();
@@ -3016,10 +3035,19 @@ function openOrdineOverlay(pvId){
 }
 
 function ordineUpdateCount(){
+  const pv = _preventiviMap[_ordineCurrentPvId];
+  let runningTotal = 0;
+  document.querySelectorAll('#ordine-items-list input[type=checkbox]').forEach(chk => {
+    if(!chk.checked) return;
+    const idx = parseInt(chk.dataset.idx);
+    const priceInput = document.getElementById(`ordine-price-${idx}`);
+    const qty = pv?.items?.[idx]?.qty || 1;
+    runningTotal += (parseFloat(priceInput?.value)||0) * qty;
+  });
   const checked = document.querySelectorAll('#ordine-items-list input[type=checkbox]:checked').length;
-  const total = document.querySelectorAll('#ordine-items-list input[type=checkbox]').length;
+  const totalItems = document.querySelectorAll('#ordine-items-list input[type=checkbox]').length;
   const el = document.getElementById('ordine-selected-count');
-  if(el) el.textContent = `${checked} / ${total} articoli selezionati`;
+  if(el) el.textContent = `${checked} / ${totalItems} articoli · totale ${runningTotal.toLocaleString('it-IT',{style:'currency',currency:'EUR'})}`;
 }
 
 async function confermaOrdine(){
@@ -3029,7 +3057,11 @@ async function confermaOrdine(){
   const checkboxes = document.querySelectorAll('#ordine-items-list input[type=checkbox]');
   const selectedItems = [];
   checkboxes.forEach((chk, i) => {
-    if(chk.checked && pv.items[i]) selectedItems.push(pv.items[i]);
+    if(!chk.checked || !pv.items[i]) return;
+    const priceInput = document.getElementById(`ordine-price-${i}`);
+    const newUnitPrice = priceInput ? Math.max(0, parseFloat(priceInput.value)||0) : (pv.items[i].unit_price||0);
+    const qty = pv.items[i].qty || 1;
+    selectedItems.push({ ...pv.items[i], unit_price: newUnitPrice, total: Math.round(newUnitPrice * qty * 100) / 100 });
   });
   if(!selectedItems.length){ alert('Seleziona almeno un articolo.'); return; }
 

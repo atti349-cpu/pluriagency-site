@@ -868,6 +868,72 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
   letter-spacing:.1em;padding:4px 12px;border:1px solid var(--g3);color:var(--g3);
   text-decoration:none;text-transform:uppercase;transition:all .15s;margin-top:.4rem;}
 .site-url-open-btn:hover{background:rgba(0,207,255,.1);}
+
+/* ===== LO-SITE SECTION ===== */
+.ls-list{display:flex;flex-direction:column;gap:.5rem;margin-bottom:2rem}
+.ls-row{display:grid;grid-template-columns:40px 1fr auto auto;align-items:center;gap:.75rem;
+  background:var(--panel);border:1px solid var(--border);padding:.75rem 1rem;cursor:pointer;
+  transition:border-color .15s;}
+.ls-row:hover{border-color:var(--g1)}
+.ls-row-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:.9rem;font-weight:700;color:#fff;flex-shrink:0}
+.ls-row-info{min-width:0}
+.ls-row-nome{font-size:.75rem;font-weight:600;letter-spacing:.08em;color:var(--text)}
+.ls-row-tag{font-size:.6rem;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ls-row-badge{font-size:.5rem;letter-spacing:.12em;padding:2px 7px;border-radius:2px;font-weight:600;text-transform:uppercase}
+.ls-row-badge.active{background:rgba(0,207,255,.12);color:var(--g3);border:1px solid rgba(0,207,255,.25)}
+.ls-row-badge.inactive{background:rgba(255,100,100,.1);color:#f56;border:1px solid rgba(255,100,100,.2)}
+.ls-edit-btn{font-size:.55rem;letter-spacing:.1em;padding:4px 10px;border:1px solid var(--border2);
+  color:var(--muted);background:transparent;cursor:pointer;text-transform:uppercase;transition:all .15s}
+.ls-edit-btn:hover{border-color:var(--g1);color:var(--g1)}
+.ls-edit-btn.active{border-color:var(--g1);color:var(--g1);background:rgba(0,255,136,.07)}
+.ls-form-wrap{background:var(--panel);border:1px solid var(--border2);padding:1.5rem}
+.ls-form-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;gap:1rem}
+.ls-form-title{font-size:.65rem;letter-spacing:.18em;font-weight:700;color:var(--g1)}
+.ls-vedi-btn{font-size:.55rem;letter-spacing:.1em;padding:5px 12px;border:1px solid var(--border2);
+  color:var(--muted);background:transparent;cursor:pointer;text-transform:uppercase;transition:all .15s;text-decoration:none;display:inline-block}
+.ls-vedi-btn:hover{border-color:var(--g3);color:var(--g3)}
+.ls-section-label{font-size:.55rem;letter-spacing:.18em;color:var(--g3);font-weight:600;
+  text-transform:uppercase;margin:1.5rem 0 .75rem;padding-top:1rem;border-top:1px solid var(--border)}
+.ls-cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:.5rem}
+.ls-cat-card{background:var(--deep);border:1px solid var(--border);padding:1rem}
+.ls-cat-card-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem}
+.ls-cat-idx{font-size:.55rem;letter-spacing:.12em;color:var(--muted);font-weight:600}
+.ls-cat-icon-input{width:48px;font-size:1.3rem;text-align:center;background:var(--panel);border:1px solid var(--border2);
+  padding:4px;color:var(--text);cursor:text}
+.ls-cat-row{margin-bottom:.5rem}
+.ls-cat-label{font-size:.5rem;letter-spacing:.14em;color:var(--muted);font-weight:600;margin-bottom:3px;display:block;text-transform:uppercase}
+.ls-cat-input{width:100%;background:var(--panel);border:1px solid var(--border2);color:var(--text);
+  padding:5px 8px;font-size:.65rem;font-family:var(--font-mono)}
+.ls-cat-input:focus{outline:none;border-color:var(--g1)}
+.ls-cat-textarea{width:100%;background:var(--panel);border:1px solid var(--border2);color:var(--text);
+  padding:5px 8px;font-size:.65rem;font-family:var(--font-mono);resize:vertical;min-height:54px}
+.ls-cat-textarea:focus{outline:none;border-color:var(--g1)}
+.ls-cat-foto-row{display:flex;gap:.4rem;align-items:center}
+.ls-cat-foto-input{flex:1;background:var(--panel);border:1px solid var(--border2);color:var(--text);
+  padding:5px 8px;font-size:.6rem;font-family:var(--font-mono)}
+.ls-cat-foto-input:focus{outline:none;border-color:var(--g1)}
+.ls-cat-upload-btn{font-size:.5rem;letter-spacing:.1em;padding:5px 8px;border:1px solid var(--border2);
+  color:var(--muted);background:transparent;cursor:pointer;white-space:nowrap;transition:all .15s}
+.ls-cat-upload-btn:hover{border-color:var(--g1);color:var(--g1)}
+.ls-catalog-list{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.75rem}
+.ls-catalog-row{display:grid;grid-template-columns:1fr 1.5fr auto auto;gap:.5rem;align-items:center;
+  background:var(--deep);border:1px solid var(--border);padding:.5rem .75rem}
+.ls-catalog-input{background:var(--panel);border:1px solid var(--border2);color:var(--text);
+  padding:4px 8px;font-size:.62rem;font-family:var(--font-mono);width:100%}
+.ls-catalog-input:focus{outline:none;border-color:var(--g1)}
+.ls-catalog-type{background:var(--panel);border:1px solid var(--border2);color:var(--text);
+  padding:4px 6px;font-size:.6rem;font-family:var(--font-mono)}
+.ls-catalog-del{background:transparent;border:1px solid rgba(255,100,100,.3);color:#f56;
+  padding:4px 8px;cursor:pointer;font-size:.6rem;transition:all .15s;flex-shrink:0}
+.ls-catalog-del:hover{background:rgba(255,100,100,.1)}
+.ls-img-preview{width:100%;height:100px;object-fit:cover;border:1px solid var(--border);margin-top:.4rem;display:none}
+.ls-upload-row{display:flex;gap:.5rem;align-items:flex-start;flex-wrap:wrap}
+.ls-color-row{display:flex;gap:.5rem;align-items:center}
+.ls-color-input{width:48px;height:32px;border:1px solid var(--border2);background:transparent;cursor:pointer;padding:2px}
+.ls-color-text{flex:1;background:var(--panel);border:1px solid var(--border2);color:var(--text);
+  padding:5px 8px;font-size:.65rem;font-family:var(--font-mono)}
+.ls-color-text:focus{outline:none;border-color:var(--g1)}
 </style>
 </head>
 <body>
@@ -927,6 +993,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         <div class="sb-section-label">TEAM</div>
         <button class="sb-item" id="nav-agenti" onclick="switchSection('agenti',this)" style="display:none">◈ AGENTI</button>
         <button class="sb-item" id="nav-team" onclick="switchSection('team',this)" style="display:none">◈ TEAM</button>
+        <button class="sb-item" id="nav-losite" onclick="switchSection('losite',this)" style="display:none">◈ LO-SITE</button>
         <div class="sb-divider"></div>
         <div class="sb-section-label">SISTEMA</div>
         <button class="sb-item" id="nav-editor" onclick="switchSection('editor',this)" style="display:none">◈ EDITOR</button>
@@ -1470,6 +1537,106 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         </div>
       </section>
 
+      <!-- === LO-SITE SECTION === -->
+      <section id="section-losite" style="display:none">
+        <div class="section-head">
+          <div>
+            <div class="section-eyebrow">// LO.PLURIAGENCY.COM</div>
+            <h1 class="section-h1">LO-SITE</h1>
+          </div>
+        </div>
+
+        <div class="ls-list" id="ls-aziende-list">
+          <div class="loading-row">&gt; caricamento aziende_</div>
+        </div>
+
+        <!-- FORM MODIFICA AZIENDA -->
+        <div id="ls-form-wrap" style="display:none">
+          <div class="ls-form-wrap">
+            <div class="ls-form-header">
+              <div class="ls-form-title" id="ls-form-title">// MODIFICA AZIENDA</div>
+              <a class="ls-vedi-btn" id="ls-vedi-btn" href="#" target="_blank">↗ VEDI LIVE</a>
+            </div>
+
+            <!-- Intestazione -->
+            <div class="form-grid">
+              <div class="field">
+                <label class="field-label">NOME *</label>
+                <input class="field-input" id="ls-nome" type="text" placeholder="Es. EmilTecnica">
+              </div>
+              <div class="field">
+                <label class="field-label">TAG LINE</label>
+                <input class="field-input" id="ls-tagline" type="text" placeholder="Es. DPI · Utensili · Forniture">
+              </div>
+              <div class="field">
+                <label class="field-label">LETTERA (iniziale grande)</label>
+                <input class="field-input" id="ls-lettera" type="text" maxlength="1" placeholder="E" style="width:60px">
+              </div>
+              <div class="field">
+                <label class="field-label">SORT ORDER</label>
+                <input class="field-input" id="ls-sort" type="number" min="0" placeholder="1" style="width:80px">
+              </div>
+              <div class="field" style="grid-column:1/-1">
+                <label class="field-label">COLORE ACCENTO</label>
+                <div class="ls-color-row">
+                  <input class="ls-color-input" id="ls-color-pick" type="color" value="#4a90d9"
+                    oninput="document.getElementById('ls-color-text').value=this.value">
+                  <input class="ls-color-text field-input" id="ls-color-text" type="text" placeholder="#4a90d9"
+                    oninput="document.getElementById('ls-color-pick').value=this.value">
+                </div>
+              </div>
+              <div class="field" style="grid-column:1/-1">
+                <label class="field-label">DESCRIZIONE</label>
+                <textarea class="field-input" id="ls-descrizione" rows="5" placeholder="Descrizione lunga per la pagina azienda..."></textarea>
+              </div>
+            </div>
+
+            <!-- Attiva toggle -->
+            <div style="display:flex;align-items:center;gap:.75rem;margin-top:.75rem">
+              <input type="checkbox" id="ls-attiva" checked style="accent-color:var(--g1);width:1rem;height:1rem">
+              <label for="ls-attiva" class="field-label" style="margin:0">AZIENDA ATTIVA (visibile su lo.pluriagency.com)</label>
+            </div>
+
+            <!-- Immagini -->
+            <div class="ls-section-label">IMMAGINI</div>
+            <div class="form-grid">
+              <div class="field">
+                <label class="field-label">FOTO HERO (URL o upload)</label>
+                <div class="ls-upload-row">
+                  <input class="field-input" id="ls-hero-url" type="url" placeholder="https://..." style="flex:1">
+                  <label class="ls-edit-btn" style="cursor:pointer">↑ CARICA<input type="file" accept="image/*" style="display:none" onchange="lsUploadHero(this.files[0])"></label>
+                </div>
+                <img class="ls-img-preview" id="ls-hero-preview">
+              </div>
+              <div class="field">
+                <label class="field-label">LOGO (URL o upload)</label>
+                <div class="ls-upload-row">
+                  <input class="field-input" id="ls-logo-url" type="url" placeholder="https://..." style="flex:1">
+                  <label class="ls-edit-btn" style="cursor:pointer">↑ CARICA<input type="file" accept="image/*" style="display:none" onchange="lsUploadLogo(this.files[0])"></label>
+                </div>
+                <img class="ls-img-preview" id="ls-logo-preview">
+              </div>
+            </div>
+
+            <!-- Categorie -->
+            <div class="ls-section-label">CATEGORIE (6 fissi)</div>
+            <div class="ls-cat-grid" id="ls-cat-grid"></div>
+
+            <!-- Cataloghi -->
+            <div class="ls-section-label">CATALOGHI</div>
+            <div class="ls-catalog-list" id="ls-catalog-list"></div>
+            <button class="ls-edit-btn" onclick="lsAddCatalogo()" style="margin-bottom:.5rem">+ AGGIUNGI CATALOGO</button>
+
+            <!-- Salva -->
+            <div class="form-actions" style="margin-top:1.5rem">
+              <button class="btn-primary" onclick="lsSaveAzienda()">&#9654; SALVA AZIENDA</button>
+              <button class="btn-ghost" onclick="closeLoSiteEdit()">ANNULLA</button>
+            </div>
+            <div class="form-msg" id="ls-msg"></div>
+          </div>
+        </div>
+      </section>
+
       <!-- === TOKEN MONITOR SECTION (super-admin only) === -->
       <section id="section-tokens" style="display:none">
         <div class="tm-wrap">
@@ -1788,8 +1955,8 @@ async function showDashboard(user){
   const isAdmin = _currentUserRole === 'admin';
   _isAdmin = isAdmin;
 
-  // Sezioni admin-only: LEADS, AGENTI, TEAM, EDITOR
-  ['nav-leads','nav-agenti','nav-team','nav-editor','nav-fatturazione'].forEach(id => {
+  // Sezioni admin-only: LEADS, AGENTI, TEAM, EDITOR, LO-SITE
+  ['nav-leads','nav-agenti','nav-team','nav-losite','nav-editor','nav-fatturazione'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.style.display = isAdmin ? 'flex' : 'none';
   });
@@ -1881,7 +2048,7 @@ function closeSidebarMobile(){
 
 function switchSection(name, btnEl){
   closeSidebarMobile();
-  ['dashboard','portfolio','demo','preventivi','leads','clienti','agenti','team','progetti','fatturazione','roadmap','tokens','editor'].forEach(s => {
+  ['dashboard','portfolio','demo','preventivi','leads','clienti','agenti','team','losite','progetti','fatturazione','roadmap','tokens','editor'].forEach(s => {
     const sec = document.getElementById('section-'+s);
     if(sec) sec.style.display = s===name ? 'block' : 'none';
     const nav = document.getElementById('nav-'+s);
@@ -1902,6 +2069,7 @@ function switchSection(name, btnEl){
   if(name==='tokens') loadTokens();
   if(name==='fatturazione') loadFatturazione();
   if(name==='editor') loadEditor();
+  if(name==='losite') loadLoSite();
 }
 
 // ===== PORTFOLIO =====
@@ -6266,6 +6434,245 @@ function tmStartCountdown(){
     }
   }, 1000);
 }
+
+// ===== LO-SITE =====
+let _lsAziende = [];
+let _lsCurrentSlug = null;
+let _lsEditData = null;
+
+async function loadLoSite(){
+  const list = document.getElementById('ls-aziende-list');
+  list.innerHTML = '<div class="loading-row">> caricamento aziende_</div>';
+  closeLoSiteEdit();
+  const { data, error } = await _sb
+    .from('lo_aziende')
+    .select('*')
+    .order('sort_order', { ascending: true });
+  if(error){ list.innerHTML = `<div class="empty-state">⚠ Errore: ${error.message}</div>`; return; }
+  _lsAziende = data || [];
+  buildLoSiteList(_lsAziende);
+}
+
+function buildLoSiteList(items){
+  const list = document.getElementById('ls-aziende-list');
+  if(!items.length){ list.innerHTML = '<div class="empty-state">> nessuna azienda — inserire seed DB_</div>'; return; }
+  list.innerHTML = items.map(az => {
+    const attiva = az.attiva !== false;
+    const isActive = _lsCurrentSlug === az.slug;
+    return `<div class="ls-row" onclick="openLoSiteEdit('${az.slug}')">
+      <div class="ls-row-dot" style="background:${az.colore_accento||'#4a90d9'}">${az.lettera||az.nome[0]}</div>
+      <div class="ls-row-info">
+        <div class="ls-row-nome">${az.nome}</div>
+        <div class="ls-row-tag">${az.tag_line||''}</div>
+      </div>
+      <span class="ls-row-badge ${attiva?'active':'inactive'}">${attiva?'ATTIVA':'INATTIVA'}</span>
+      <button class="ls-edit-btn ${isActive?'active':''}" onclick="event.stopPropagation();openLoSiteEdit('${az.slug}')">✎ MODIFICA</button>
+    </div>`;
+  }).join('');
+}
+
+function openLoSiteEdit(slug){
+  const az = _lsAziende.find(a => a.slug === slug);
+  if(!az) return;
+  _lsCurrentSlug = slug;
+  _lsEditData = JSON.parse(JSON.stringify(az)); // deep copy
+  buildLoSiteList(_lsAziende);
+
+  document.getElementById('ls-form-title').textContent = `// MODIFICA — ${az.nome.toUpperCase()}`;
+  const vediBtn = document.getElementById('ls-vedi-btn');
+  vediBtn.href = `https://lo.pluriagency.com/${slug}`;
+
+  document.getElementById('ls-nome').value = az.nome || '';
+  document.getElementById('ls-tagline').value = az.tag_line || '';
+  document.getElementById('ls-lettera').value = az.lettera || '';
+  document.getElementById('ls-sort').value = az.sort_order || 0;
+  const col = az.colore_accento || '#4a90d9';
+  document.getElementById('ls-color-pick').value = col;
+  document.getElementById('ls-color-text').value = col;
+  document.getElementById('ls-descrizione').value = az.descrizione || '';
+  document.getElementById('ls-attiva').checked = az.attiva !== false;
+
+  const heroUrl = az.foto_hero_url || '';
+  document.getElementById('ls-hero-url').value = heroUrl;
+  const heroPrev = document.getElementById('ls-hero-preview');
+  heroPrev.src = heroUrl; heroPrev.style.display = heroUrl ? 'block' : 'none';
+
+  const logoUrl = az.logo_url || '';
+  document.getElementById('ls-logo-url').value = logoUrl;
+  const logoPrev = document.getElementById('ls-logo-preview');
+  logoPrev.src = logoUrl; logoPrev.style.display = logoUrl ? 'block' : 'none';
+
+  if(!Array.isArray(_lsEditData.categorie) || !_lsEditData.categorie.length){
+    _lsEditData.categorie = Array.from({length:6}, () => ({icona:'📦',titolo:'',descrizione:'',foto_url:''}));
+  }
+  while(_lsEditData.categorie.length < 6) _lsEditData.categorie.push({icona:'📦',titolo:'',descrizione:'',foto_url:''});
+  if(!Array.isArray(_lsEditData.cataloghi)) _lsEditData.cataloghi = [];
+
+  lsRenderCategorie();
+  lsRenderCatalogoList();
+
+  const wrap = document.getElementById('ls-form-wrap');
+  wrap.style.display = 'block';
+  setTimeout(() => wrap.scrollIntoView({ behavior:'smooth', block:'start' }), 80);
+  document.getElementById('ls-msg').textContent = '';
+}
+
+function closeLoSiteEdit(){
+  _lsCurrentSlug = null;
+  _lsEditData = null;
+  document.getElementById('ls-form-wrap').style.display = 'none';
+  buildLoSiteList(_lsAziende);
+}
+
+function lsRenderCategorie(){
+  const grid = document.getElementById('ls-cat-grid');
+  grid.innerHTML = _lsEditData.categorie.map((cat, i) => `
+    <div class="ls-cat-card">
+      <div class="ls-cat-card-head">
+        <span class="ls-cat-idx">CAT ${i+1}</span>
+        <input class="ls-cat-icon-input" value="${cat.icona||'📦'}" maxlength="2"
+          oninput="_lsEditData.categorie[${i}].icona=this.value" title="Icona emoji">
+      </div>
+      <div class="ls-cat-row">
+        <span class="ls-cat-label">Titolo</span>
+        <input class="ls-cat-input" value="${_escHtml(cat.titolo||'')}"
+          oninput="_lsEditData.categorie[${i}].titolo=this.value" placeholder="Es. DPI & Sicurezza">
+      </div>
+      <div class="ls-cat-row">
+        <span class="ls-cat-label">Descrizione</span>
+        <textarea class="ls-cat-textarea" oninput="_lsEditData.categorie[${i}].descrizione=this.value"
+          placeholder="Descrizione breve...">${_escHtml(cat.descrizione||'')}</textarea>
+      </div>
+      <div class="ls-cat-row">
+        <span class="ls-cat-label">Foto URL</span>
+        <div class="ls-cat-foto-row">
+          <input class="ls-cat-foto-input" value="${_escHtml(cat.foto_url||'')}"
+            oninput="_lsEditData.categorie[${i}].foto_url=this.value" placeholder="https://... (opzionale)">
+          <label class="ls-cat-upload-btn" title="Carica foto categoria" style="cursor:pointer">↑<input type="file" accept="image/*" style="display:none" onchange="lsUploadCatFoto(this.files[0],${i})"></label>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function lsRenderCatalogoList(){
+  const list = document.getElementById('ls-catalog-list');
+  if(!_lsEditData.cataloghi.length){
+    list.innerHTML = '<div style="color:var(--muted);font-size:.6rem;padding:.5rem 0">// nessun catalogo — usa + AGGIUNGI</div>';
+    return;
+  }
+  list.innerHTML = _lsEditData.cataloghi.map((c, i) => `
+    <div class="ls-catalog-row">
+      <input class="ls-catalog-input" value="${_escHtml(c.nome||'')}"
+        oninput="_lsEditData.cataloghi[${i}].nome=this.value" placeholder="Nome catalogo">
+      <input class="ls-catalog-input" value="${_escHtml(c.url||'')}"
+        oninput="_lsEditData.cataloghi[${i}].url=this.value" placeholder="https://... o link Drive">
+      <select class="ls-catalog-type" onchange="_lsEditData.cataloghi[${i}].tipo=this.value">
+        <option value="pdf" ${(c.tipo||'pdf')==='pdf'?'selected':''}>PDF</option>
+        <option value="link" ${c.tipo==='link'?'selected':''}>LINK</option>
+        <option value="altro" ${c.tipo==='altro'?'selected':''}>ALTRO</option>
+      </select>
+      <button class="ls-catalog-del" onclick="lsRemoveCatalogo(${i})">✕</button>
+    </div>`).join('');
+}
+
+function lsAddCatalogo(){
+  if(!_lsEditData) return;
+  _lsEditData.cataloghi.push({nome:'',url:'',tipo:'pdf'});
+  lsRenderCatalogoList();
+}
+
+function lsRemoveCatalogo(i){
+  if(!_lsEditData) return;
+  _lsEditData.cataloghi.splice(i, 1);
+  lsRenderCatalogoList();
+}
+
+async function lsUploadFile(file, path){
+  if(file.size > 10*1024*1024) throw new Error('File troppo grande (max 10MB)');
+  const { error } = await _sb.storage.from('portfolio-media').upload(path, file, { cacheControl:'3600', upsert:true });
+  if(error) throw error;
+  const { data } = _sb.storage.from('portfolio-media').getPublicUrl(path);
+  return data.publicUrl;
+}
+
+async function lsUploadHero(file){
+  if(!file || !_lsEditData) return;
+  const msg = document.getElementById('ls-msg');
+  msg.textContent = '> upload hero in corso...';
+  try {
+    const ext = file.name.split('.').pop().toLowerCase();
+    const url = await lsUploadFile(file, `lo-aziende/${_lsCurrentSlug}_hero.${ext}`);
+    document.getElementById('ls-hero-url').value = url;
+    const prev = document.getElementById('ls-hero-preview');
+    prev.src = url; prev.style.display = 'block';
+    msg.textContent = '✓ hero caricato';
+  } catch(e){ msg.textContent = '⚠ Errore upload: ' + e.message; }
+}
+
+async function lsUploadLogo(file){
+  if(!file || !_lsEditData) return;
+  const msg = document.getElementById('ls-msg');
+  msg.textContent = '> upload logo in corso...';
+  try {
+    const ext = file.name.split('.').pop().toLowerCase();
+    const url = await lsUploadFile(file, `lo-aziende/${_lsCurrentSlug}_logo.${ext}`);
+    document.getElementById('ls-logo-url').value = url;
+    const prev = document.getElementById('ls-logo-preview');
+    prev.src = url; prev.style.display = 'block';
+    msg.textContent = '✓ logo caricato';
+  } catch(e){ msg.textContent = '⚠ Errore upload: ' + e.message; }
+}
+
+async function lsUploadCatFoto(file, idx){
+  if(!file || !_lsEditData) return;
+  const msg = document.getElementById('ls-msg');
+  msg.textContent = `> upload foto cat${idx+1} in corso...`;
+  try {
+    const ext = file.name.split('.').pop().toLowerCase();
+    const url = await lsUploadFile(file, `lo-aziende/${_lsCurrentSlug}_cat${idx}.${ext}`);
+    _lsEditData.categorie[idx].foto_url = url;
+    lsRenderCategorie();
+    msg.textContent = `✓ foto categoria ${idx+1} caricata`;
+  } catch(e){ msg.textContent = '⚠ Errore upload: ' + e.message; }
+}
+
+async function lsSaveAzienda(){
+  if(!_lsCurrentSlug || !_lsEditData) return;
+  const msg = document.getElementById('ls-msg');
+  msg.textContent = '> salvataggio...';
+
+  const payload = {
+    nome:          document.getElementById('ls-nome').value.trim(),
+    tag_line:      document.getElementById('ls-tagline').value.trim(),
+    lettera:       document.getElementById('ls-lettera').value.trim(),
+    sort_order:    parseInt(document.getElementById('ls-sort').value) || 0,
+    colore_accento:document.getElementById('ls-color-text').value.trim() || '#4a90d9',
+    descrizione:   document.getElementById('ls-descrizione').value.trim(),
+    attiva:        document.getElementById('ls-attiva').checked,
+    foto_hero_url: document.getElementById('ls-hero-url').value.trim() || null,
+    logo_url:      document.getElementById('ls-logo-url').value.trim() || null,
+    categorie:     _lsEditData.categorie,
+    cataloghi:     _lsEditData.cataloghi,
+    updated_at:    new Date().toISOString()
+  };
+
+  if(!payload.nome){ msg.textContent = '⚠ Il nome è obbligatorio'; return; }
+
+  const { error } = await _sb
+    .from('lo_aziende')
+    .update(payload)
+    .eq('slug', _lsCurrentSlug);
+
+  if(error){ msg.textContent = '⚠ Errore: ' + error.message; return; }
+
+  msg.textContent = '✓ Salvato!';
+  const idx = _lsAziende.findIndex(a => a.slug === _lsCurrentSlug);
+  if(idx >= 0) _lsAziende[idx] = { ..._lsAziende[idx], ...payload };
+  buildLoSiteList(_lsAziende);
+  setTimeout(() => { msg.textContent = ''; }, 2500);
+}
+
+function _escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 // ===== BOOT =====
 init();

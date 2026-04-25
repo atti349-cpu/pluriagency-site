@@ -1621,6 +1621,15 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
                 </div>
                 <img class="ls-img-preview" id="ls-logo-preview">
               </div>
+              <div class="field">
+                <label class="field-label">FOTO CARD HOMEPAGE (quadrata, ~1:1)</label>
+                <div style="font-size:.6rem;color:var(--muted);margin-bottom:.4rem;letter-spacing:.05em">Appare nella griglia aziende in homepage. Diversa dal banner hero della pagina.</div>
+                <div class="ls-upload-row">
+                  <input class="field-input" id="ls-card-url" type="url" placeholder="https://..." style="flex:1">
+                  <label class="ls-edit-btn" style="cursor:pointer">↑ CARICA<input type="file" accept="image/*" style="display:none" onchange="lsUploadCardImage(this.files[0])"></label>
+                </div>
+                <img class="ls-img-preview" id="ls-card-preview">
+              </div>
             </div>
 
             <!-- Categorie -->
@@ -6516,6 +6525,11 @@ function openLoSiteEdit(slug){
   const logoPrev = document.getElementById('ls-logo-preview');
   logoPrev.src = logoUrl; logoPrev.style.display = logoUrl ? 'block' : 'none';
 
+  const cardUrl = az.card_image_url || '';
+  document.getElementById('ls-card-url').value = cardUrl;
+  const cardPrev = document.getElementById('ls-card-preview');
+  cardPrev.src = cardUrl; cardPrev.style.display = cardUrl ? 'block' : 'none';
+
   if(!Array.isArray(_lsEditData.categorie) || !_lsEditData.categorie.length){
     _lsEditData.categorie = Array.from({length:6}, () => ({icona:'📦',titolo:'',descrizione:'',foto_url:''}));
   }
@@ -6637,6 +6651,20 @@ async function lsUploadLogo(file){
   } catch(e){ msg.textContent = '⚠ Errore upload: ' + e.message; }
 }
 
+async function lsUploadCardImage(file){
+  if(!file || !_lsEditData) return;
+  const msg = document.getElementById('ls-msg');
+  msg.textContent = '> upload foto card in corso...';
+  try {
+    const ext = file.name.split('.').pop().toLowerCase();
+    const url = await lsUploadFile(file, `lo-aziende/${_lsCurrentSlug}_card.${ext}`);
+    document.getElementById('ls-card-url').value = url;
+    const prev = document.getElementById('ls-card-preview');
+    prev.src = url; prev.style.display = 'block';
+    msg.textContent = '✓ foto card caricata';
+  } catch(e){ msg.textContent = '⚠ Errore upload: ' + e.message; }
+}
+
 async function lsUploadCatFoto(file, idx){
   if(!file || !_lsEditData) return;
   const msg = document.getElementById('ls-msg');
@@ -6663,8 +6691,9 @@ async function lsSaveAzienda(){
     colore_accento:document.getElementById('ls-color-text').value.trim() || '#4a90d9',
     descrizione:   document.getElementById('ls-descrizione').value.trim(),
     attiva:        document.getElementById('ls-attiva').checked,
-    foto_hero_url: document.getElementById('ls-hero-url').value.trim() || null,
-    logo_url:      document.getElementById('ls-logo-url').value.trim() || null,
+    foto_hero_url:   document.getElementById('ls-hero-url').value.trim() || null,
+    logo_url:        document.getElementById('ls-logo-url').value.trim() || null,
+    card_image_url:  document.getElementById('ls-card-url').value.trim() || null,
     categorie:     _lsEditData.categorie,
     cataloghi:     _lsEditData.cataloghi,
     updated_at:    new Date().toISOString()

@@ -2710,12 +2710,18 @@ function openPvModal(id){
   const itemRows  = (pv.items||[]).map(it => {
     const inOrdine = isOrdine && ordineIds.size && ordineIds.has(it.id);
     const rowStyle = inOrdine ? ' style="background:rgba(0,207,255,.04)"' : (isOrdine && ordineIds.size && !ordineIds.has(it.id) ? ' style="opacity:.35"' : '');
+    const recLabel = it.monthly
+      ? `<span style="margin-left:5px;font-size:.47rem;border:1px solid rgba(0,207,255,.4);color:#00cfff;padding:1px 4px;vertical-align:middle">↻ MENSILE</span>`
+      : it.yearly
+      ? `<span style="margin-left:5px;font-size:.47rem;border:1px solid rgba(155,92,255,.4);color:var(--v2);padding:1px 4px;vertical-align:middle">↻ ANNUALE</span>` : '';
+    const priceSuffix = it.monthly ? ' <span style="font-size:.6rem;color:var(--muted)">/mese</span>' : it.yearly ? ' <span style="font-size:.6rem;color:var(--muted)">/anno</span>' : '';
+    const descRow = it.description ? `<tr><td colspan="4" style="padding:.1rem .6rem .5rem 1.5rem;font-size:.68rem;color:var(--muted);font-style:italic;border-bottom:none">Costo Orario — ${escHtml(it.description)}</td></tr>` : '';
     return `<tr${rowStyle}>
-      <td>${it.name}${inOrdine ? ' <span style="font-size:.48rem;color:#00cfff;border:1px solid rgba(0,207,255,.4);padding:1px 4px;letter-spacing:.05em">ORDINE</span>' : ''}</td>
+      <td>${it.name}${recLabel}${inOrdine ? ' <span style="font-size:.48rem;color:#00cfff;border:1px solid rgba(0,207,255,.4);padding:1px 4px;letter-spacing:.05em">ORDINE</span>' : ''}</td>
       <td style="text-align:center">${it.qty||1}</td>
-      <td>${(it.unit_price||0).toLocaleString('it-IT')} €</td>
+      <td>${(it.unit_price||0).toLocaleString('it-IT')} €${priceSuffix}</td>
       <td>${(it.total||0).toLocaleString('it-IT')} €</td>
-    </tr>`;
+    </tr>${descRow}`;
   }).join('');
 
   // Cerca se esiste già un progetto collegato a questo preventivo
@@ -2872,7 +2878,16 @@ function renderPvEditList(){
                    : it.yearly  ? `<span style="margin-left:4px;font-size:.5rem;border:1px solid rgba(155,92,255,.5);color:var(--v2);padding:1px 4px">ANNUALE</span>` : '';
     const unitPrice = it.unit_price || it.total || 0;
     const discPct = it.discount_pct || 0;
-    return `<div class="pv-edit-item-row" data-idx="${i}">
+    const isOrario = /orari[oa]/i.test(it.name) || /sviluppo/i.test(it.name);
+    const descField = isOrario ? `
+      <div style="grid-column:1/-1;margin-top:.2rem;display:flex;align-items:flex-start;gap:.4rem" onclick="event.stopPropagation()">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.52rem;color:var(--muted);white-space:nowrap;padding-top:.3rem">Costo Orario —</span>
+        <textarea placeholder="Descrivi le attività svolte, ore, tecnologie..." rows="2"
+          style="flex:1;font-family:'Share Tech Mono',monospace;font-size:.58rem;background:var(--panel2);border:1px solid var(--border2);color:var(--text);padding:.3rem .45rem;resize:vertical;border-radius:3px;letter-spacing:.03em;line-height:1.5"
+          oninput="pvUpdateItemDesc(${i},this.value)"
+        >${escHtml(it.description||'')}</textarea>
+      </div>` : '';
+    return `<div class="pv-edit-item-row" data-idx="${i}" style="flex-wrap:wrap">
       <span style="color:var(--text)">${it.name}${newBadge}${recBadge}</span>
       <span style="color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:.62rem">×${it.qty||1}</span>
       <input type="number" min="0" value="${unitPrice}" style="width:68px;background:var(--panel2);border:1px solid var(--border2);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:2px 6px;text-align:right" onclick="event.stopPropagation()" oninput="pvUpdateItemPrice(${i},this.value)" onchange="pvUpdateItemPrice(${i},this.value)" title="Prezzo unitario">
@@ -2883,6 +2898,7 @@ function renderPvEditList(){
         <span style="font-family:'Share Tech Mono',monospace;font-size:.52rem;color:var(--muted)">%</span>
       </div>
       <button class="pv-edit-item-rm" onclick="pvRemoveItem(${i})">✕</button>
+      ${descField}
     </div>`;
   }).join('');
 }
@@ -2901,6 +2917,11 @@ function pvUpdateItemDiscount(idx, val){
   _pvEditItems[idx].discount_pct = disc;
   const price = _pvEditItems[idx].unit_price || 0;
   _pvEditItems[idx].total = Math.round(price * (_pvEditItems[idx].qty || 1) * (1 - disc/100));
+}
+
+function pvUpdateItemDesc(idx, val){
+  _pvDirty = true;
+  _pvEditItems[idx].description = val;
 }
 
 function pvRemoveItem(idx){
@@ -5738,15 +5759,26 @@ function preventivoGeneraPDF(pvId){
 
   doc.setFont('helvetica','normal'); doc.setTextColor(20,20,20);
   (pv.items||[]).forEach((it,idx)=>{
-    if(y>262){ doc.addPage(); y=20; }
+    if(y>255){ doc.addPage(); y=20; }
     if(idx%2===0){ doc.setFillColor(252,252,252); doc.rect(15,y-4,pageW-30,7,'F'); }
     doc.setFontSize(9);
-    const nm=it.name.length>46?it.name.slice(0,44)+'…':it.name;
+    const recTag = it.monthly ? ' (mensile)' : it.yearly ? ' (annuale)' : '';
+    const fullName = it.name + recTag;
+    const nm = fullName.length>52 ? fullName.slice(0,50)+'…' : fullName;
     doc.text(nm,18,y);
     doc.text(String(it.qty||1),pageW-58,y,{align:'center'});
-    doc.text(`${(it.unit_price||0).toLocaleString('it-IT')} €`,pageW-40,y,{align:'right'});
+    const priceStr = `${(it.unit_price||0).toLocaleString('it-IT')} €${it.monthly?'/mese':it.yearly?'/anno':''}`;
+    doc.text(priceStr,pageW-40,y,{align:'right'});
     doc.text(`${(it.total||0).toLocaleString('it-IT')} €`,pageW-15,y,{align:'right'});
     y+=7;
+    if(it.description){
+      if(y>262){ doc.addPage(); y=20; }
+      doc.setFontSize(7.5); doc.setFont('helvetica','italic'); doc.setTextColor(120,120,120);
+      const descLines = doc.splitTextToSize(`Costo Orario — ${it.description}`, pageW-48);
+      descLines.forEach(line => { if(y>268){ doc.addPage(); y=20; } doc.text(line,22,y); y+=4; });
+      y+=2;
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(20,20,20);
+    }
   });
 
   y+=4; doc.setDrawColor(220,220,220); doc.line(15,y,pageW-15,y); y+=8;

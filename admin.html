@@ -6638,20 +6638,21 @@ function openLoSiteEdit(slug){
   document.getElementById('ls-descrizione').value = az.descrizione || '';
   document.getElementById('ls-attiva').checked = az.attiva !== false;
 
+  const _cb = u => u ? u + '?v=' + Date.now() : '';
   const heroUrl = az.foto_hero_url || '';
   document.getElementById('ls-hero-url').value = heroUrl;
   const heroPrev = document.getElementById('ls-hero-preview');
-  heroPrev.src = heroUrl; heroPrev.style.display = heroUrl ? 'block' : 'none';
+  if(heroUrl){ heroPrev.src = _cb(heroUrl); heroPrev.style.display = 'block'; } else heroPrev.style.display = 'none';
 
   const logoUrl = az.logo_url || '';
   document.getElementById('ls-logo-url').value = logoUrl;
   const logoPrev = document.getElementById('ls-logo-preview');
-  logoPrev.src = logoUrl; logoPrev.style.display = logoUrl ? 'block' : 'none';
+  if(logoUrl){ logoPrev.src = _cb(logoUrl); logoPrev.style.display = 'block'; } else logoPrev.style.display = 'none';
 
   const cardUrl = az.card_image_url || '';
   document.getElementById('ls-card-url').value = cardUrl;
   const cardPrev = document.getElementById('ls-card-preview');
-  cardPrev.src = cardUrl; cardPrev.style.display = cardUrl ? 'block' : 'none';
+  if(cardUrl){ cardPrev.src = _cb(cardUrl); cardPrev.style.display = 'block'; } else cardPrev.style.display = 'none';
 
   if(!Array.isArray(_lsEditData.categorie) || !_lsEditData.categorie.length){
     _lsEditData.categorie = Array.from({length:6}, () => ({icona:'📦',titolo:'',descrizione:'',foto_url:''}));
@@ -6755,7 +6756,7 @@ async function lsUploadHero(file){
     const url = await lsUploadFile(file, `lo-aziende/${_lsCurrentSlug}_hero.${ext}`);
     document.getElementById('ls-hero-url').value = url;
     const prev = document.getElementById('ls-hero-preview');
-    prev.src = url; prev.style.display = 'block';
+    prev.src = url + '?v=' + Date.now(); prev.style.display = 'block';
     msg.textContent = '✓ hero caricato';
   } catch(e){ msg.textContent = '⚠ Errore upload: ' + e.message; }
 }
@@ -6769,7 +6770,7 @@ async function lsUploadLogo(file){
     const url = await lsUploadFile(file, `lo-aziende/${_lsCurrentSlug}_logo.${ext}`);
     document.getElementById('ls-logo-url').value = url;
     const prev = document.getElementById('ls-logo-preview');
-    prev.src = url; prev.style.display = 'block';
+    prev.src = url + '?v=' + Date.now(); prev.style.display = 'block';
     msg.textContent = '✓ logo caricato';
   } catch(e){ msg.textContent = '⚠ Errore upload: ' + e.message; }
 }
@@ -6783,7 +6784,7 @@ async function lsUploadCardImage(file){
     const url = await lsUploadFile(file, `lo-aziende/${_lsCurrentSlug}_card.${ext}`);
     document.getElementById('ls-card-url').value = url;
     const prev = document.getElementById('ls-card-preview');
-    prev.src = url; prev.style.display = 'block';
+    prev.src = url + '?v=' + Date.now(); prev.style.display = 'block';
     msg.textContent = '✓ foto card caricata';
   } catch(e){ msg.textContent = '⚠ Errore upload: ' + e.message; }
 }

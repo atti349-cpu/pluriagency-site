@@ -1609,7 +1609,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
                 <label class="field-label">FOTO HERO (URL o upload)</label>
                 <div class="ls-upload-row">
                   <input class="field-input" id="ls-hero-url" type="url" placeholder="https://..." style="flex:1">
-                  <label class="ls-edit-btn" style="cursor:pointer">↑ CARICA<input type="file" accept="image/*" style="display:none" onchange="lsUploadHero(this.files[0])"></label>
+                  <label class="ls-edit-btn" style="cursor:pointer">↑ CARICA<input type="file" accept="image/*" style="display:none" onchange="lsUploadHero(this.files[0]);this.value=''"></label>
                 </div>
                 <img class="ls-img-preview" id="ls-hero-preview">
               </div>
@@ -1617,7 +1617,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
                 <label class="field-label">LOGO (URL o upload)</label>
                 <div class="ls-upload-row">
                   <input class="field-input" id="ls-logo-url" type="url" placeholder="https://..." style="flex:1">
-                  <label class="ls-edit-btn" style="cursor:pointer">↑ CARICA<input type="file" accept="image/*" style="display:none" onchange="lsUploadLogo(this.files[0])"></label>
+                  <label class="ls-edit-btn" style="cursor:pointer">↑ CARICA<input type="file" accept="image/*" style="display:none" onchange="lsUploadLogo(this.files[0]);this.value=''"></label>
                 </div>
                 <img class="ls-img-preview" id="ls-logo-preview">
               </div>
@@ -1626,7 +1626,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
                 <div style="font-size:.6rem;color:var(--muted);margin-bottom:.4rem;letter-spacing:.05em">Appare nella griglia aziende in homepage. Diversa dal banner hero della pagina.</div>
                 <div class="ls-upload-row">
                   <input class="field-input" id="ls-card-url" type="url" placeholder="https://..." style="flex:1">
-                  <label class="ls-edit-btn" style="cursor:pointer">↑ CARICA<input type="file" accept="image/*" style="display:none" onchange="lsUploadCardImage(this.files[0])"></label>
+                  <label class="ls-edit-btn" style="cursor:pointer">↑ CARICA<input type="file" accept="image/*" style="display:none" onchange="lsUploadCardImage(this.files[0]);this.value=''"></label>
                 </div>
                 <img class="ls-img-preview" id="ls-card-preview">
               </div>
@@ -6700,7 +6700,7 @@ function lsRenderCategorie(){
         <div class="ls-cat-foto-row">
           <input class="ls-cat-foto-input" value="${_escHtml(cat.foto_url||'')}"
             oninput="_lsEditData.categorie[${i}].foto_url=this.value" placeholder="https://... (opzionale)">
-          <label class="ls-cat-upload-btn" title="Carica foto categoria" style="cursor:pointer">↑<input type="file" accept="image/*" style="display:none" onchange="lsUploadCatFoto(this.files[0],${i})"></label>
+          <label class="ls-cat-upload-btn" title="Carica foto categoria" style="cursor:pointer">↑<input type="file" accept="image/*" style="display:none" onchange="lsUploadCatFoto(this.files[0],${i});this.value=''"></label>
         </div>
       </div>
     </div>`).join('');

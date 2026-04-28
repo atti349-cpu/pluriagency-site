@@ -6807,6 +6807,10 @@ async function lsSaveAzienda(){
   const msg = document.getElementById('ls-msg');
   msg.textContent = '> salvataggio...';
 
+  // Aggiunge ?v=timestamp agli URL immagine — bypassa CDN cache su Supabase Storage
+  // dopo ogni salvataggio il sito pubblico vede subito la foto aggiornata
+  const _vUrl = u => { const s = (u||'').trim(); if(!s) return null; return s.split('?')[0] + '?v=' + Date.now(); };
+
   const payload = {
     nome:          document.getElementById('ls-nome').value.trim(),
     tag_line:      document.getElementById('ls-tagline').value.trim(),
@@ -6815,10 +6819,10 @@ async function lsSaveAzienda(){
     colore_accento:document.getElementById('ls-color-text').value.trim() || '#4a90d9',
     descrizione:   document.getElementById('ls-descrizione').value.trim(),
     attiva:        document.getElementById('ls-attiva').checked,
-    foto_hero_url:   document.getElementById('ls-hero-url').value.trim() || null,
-    logo_url:        document.getElementById('ls-logo-url').value.trim() || null,
-    card_image_url:  document.getElementById('ls-card-url').value.trim() || null,
-    categorie:     _lsEditData.categorie,
+    foto_hero_url:   _vUrl(document.getElementById('ls-hero-url').value),
+    logo_url:        _vUrl(document.getElementById('ls-logo-url').value),
+    card_image_url:  _vUrl(document.getElementById('ls-card-url').value),
+    categorie:     _lsEditData.categorie.map(c => ({...c, foto_url: _vUrl(c.foto_url) || c.foto_url || null})),
     cataloghi:     _lsEditData.cataloghi,
     updated_at:    new Date().toISOString()
   };

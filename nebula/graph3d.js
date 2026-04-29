@@ -314,6 +314,9 @@
     const controls = {
       target,
       _isDragging: false,
+      // Permette al codice esterno (es. left-drag su spazio vuoto) di avviare una rotazione
+      startRotate(x, y) { isDragging = true; dragButton = 1; lastX = x; lastY = y; this._isDragging = true; },
+      stopRotate()       { isDragging = false; this._isDragging = false; },
       update() {
         offset.copy(camera.position).sub(target);
         spherical.setFromVector3(offset);
@@ -641,7 +644,6 @@
     renderer.domElement.addEventListener("pointerdown", (e) => {
       mouseDownPos = { x: e.clientX, y: e.clientY, button: e.button };
       if (e.button === 0) {
-        // se è su un nodo, inizia drag; altrimenti niente (la scena non gira con left)
         const rect = renderer.domElement.getBoundingClientRect();
         pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
         pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -662,6 +664,11 @@
             renderer.domElement.style.cursor = "grabbing";
             try { renderer.domElement.setPointerCapture(e.pointerId); } catch(_){}
           }
+        } else {
+          // spazio vuoto + tasto sinistro → ruota la visuale (come tasto centrale)
+          controls.startRotate(e.clientX, e.clientY);
+          renderer.domElement.style.cursor = "grabbing";
+          try { renderer.domElement.setPointerCapture(e.pointerId); } catch(_){}
         }
       }
     });

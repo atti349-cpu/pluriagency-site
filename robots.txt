@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /api/
+Disallow: /nebula
 
 Sitemap: https://pluriagency.com/sitemap.xml

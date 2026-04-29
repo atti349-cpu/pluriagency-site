@@ -270,11 +270,33 @@
     };
     const onWheel = (e) => {
       e.preventDefault();
-      // zoom lineare: clamp deltaY per evitare scatti enormi da trackpad o pinch
       let dy = e.deltaY;
-      if (e.deltaMode === 1) dy *= 16; // line mode → pixel
+      if (e.deltaMode === 1) dy *= 16;
       const clamped = Math.max(-100, Math.min(100, dy));
-      radiusDelta += (clamped / 100) * zoomStep;
+      const zoomAmount = (clamped / 100) * zoomStep;
+
+      // Zoom verso cursore (stile Figma/Blender):
+      // calcola il punto 3D sotto il mouse e sposta il target in quella direzione
+      // proporzionalmente allo zoom — così il punto sotto il cursore rimane fisso.
+      const rect = dom.getBoundingClientRect();
+      const mx = ((e.clientX - rect.left) / rect.width)  * 2 - 1;
+      const my = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
+
+      // Raggio camera → cursore in world-space
+      const ndc = new THREE.Vector3(mx, my, 0.5);
+      ndc.unproject(camera);
+      const rayDir = ndc.sub(camera.position).normalize();
+
+      // Punto 3D alla distanza attuale dalla camera
+      const dist = camera.position.distanceTo(target);
+      const worldPoint = camera.position.clone().addScaledVector(rayDir, dist);
+
+      // Pan del target verso worldPoint proporzionale alla frazione di zoom
+      // (quando il cursore è al centro worldPoint ≈ target → nessun pan extra)
+      const fraction = (zoomAmount / dist) * 0.42;
+      panOffset.addScaledVector(worldPoint.clone().sub(target), -fraction);
+
+      radiusDelta += zoomAmount;
     };
     const onContext = (e) => e.preventDefault();
     const onAuxClick = (e) => { if (e.button === 1) e.preventDefault(); };

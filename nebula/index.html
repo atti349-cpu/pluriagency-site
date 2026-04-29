@@ -607,7 +607,7 @@ function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, on
   );
 }
 
-function EditorPanel({ data, onClose, onSave, editingNode, defaultConnect }) {
+function EditorPanel({ data, onClose, onSave, editingNode, defaultConnect, defaultCluster }) {
   const isEdit = !!editingNode;
   const [tab, setTab] = useState("node");
   const slugify = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,40);
@@ -617,7 +617,7 @@ function EditorPanel({ data, onClose, onSave, editingNode, defaultConnect }) {
   const [size, setSize] = useState(editingNode?.size || 1.6);
   const [url, setUrl] = useState(editingNode?.url || "");
   const [description, setDescription] = useState(editingNode?.description || "");
-  const [cluster, setCluster] = useState(editingNode?.cluster || "");
+  const [cluster, setCluster] = useState(editingNode?.cluster || defaultCluster || "");
   const [connectIds, setConnectIds] = useState(new Set(defaultConnect ? [defaultConnect] : ["hub"]));
   const [linkType, setLinkType] = useState("custom");
   const existingLinks = useMemo(() => {
@@ -1015,6 +1015,7 @@ function App() {
           data={data}
           editingNode={editingNode}
           defaultConnect={selectedId}
+          defaultCluster={editingNode ? undefined : selectedId}
           onClose={() => { setEditorOpen(false); setEditingNode(null); }}
           onSave={handleSave}
         />

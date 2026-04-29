@@ -300,15 +300,25 @@
   }
   .hint-card .hk { color: var(--fg); }
   .hint-card.hidden { display: none; }
-  /* Detail backdrop mobile */
-  .detail-backdrop { display:none; }
   /* Drag handle */
-  .detail-handle { display:none; width:36px; height:4px; border-radius:2px; background:rgba(255,255,255,0.18); margin:0 auto -6px; flex-shrink:0; }
+  .detail-handle { display:none; width:40px; height:5px; border-radius:3px; background:rgba(255,255,255,0.22); margin:0 auto 2px; flex-shrink:0; }
+  /* Mobile close button — nascosto su desktop */
+  .detail-close-mobile { display:none; }
 
   @media (max-width:700px) {
-    .detail-backdrop { display:block; position:fixed; inset:0; z-index:4; }
     .detail-handle { display:block; }
-    .detail { z-index:5; }
+    .detail { z-index:10; }
+    /* Pulsante CHIUDI visibile e tappabile su mobile */
+    .detail-close-mobile {
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      width:100%; padding:13px 16px; margin-bottom:4px; flex-shrink:0;
+      background:rgba(255,255,255,0.05); border:1px solid var(--line);
+      border-radius:10px; color:var(--fg); font-family:"JetBrains Mono",monospace;
+      font-size:12px; letter-spacing:.1em; cursor:pointer; transition:background .15s;
+    }
+    .detail-close-mobile:active { background:rgba(255,255,255,0.1); }
+    /* X button più grande su mobile */
+    .detail .x-btn { width:44px; height:44px; font-size:17px; }
   }
 
   /* Vignette */
@@ -594,9 +604,11 @@ function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, on
   const cluster = node.cluster && node.cluster !== node.id ? data.nodes.find(n => n.id === node.cluster) : null;
   return (
     <>
-    <div className="detail-backdrop" onClick={onClose}/>
     <div className="panel detail">
       <div className="detail-handle"/>
+      <button className="detail-close-mobile" onClick={onClose}>
+        ✕ &nbsp; CHIUDI
+      </button>
       <div className="detail-head">
         <div className="detail-cat" style={{borderColor: cat.color, color: cat.color, boxShadow:`inset 0 0 12px ${cat.color}33`}}>
           {cat.label.toUpperCase()}
@@ -655,7 +667,6 @@ function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, on
         <button className="danger-btn" onClick={() => onDelete(node)}>Elimina nodo</button>
       )}
     </div>
-    </>
   );
 }
 

@@ -146,8 +146,20 @@
   .detail-id { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--dim); }
   .detail-id span { color: var(--fg); }
   .detail-desc { margin: 0; font-size: 13px; line-height: 1.55; color: rgba(230,235,245,0.82); }
-  .detail-url { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-radius: 9px; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); color: #C4B5FD; text-decoration: none; font-family: "JetBrains Mono", monospace; font-size: 12px; transition: all 0.15s; }
+  .detail-url { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-radius: 9px; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); color: #C4B5FD; text-decoration: none; font-family: "JetBrains Mono", monospace; font-size: 12px; transition: all 0.15s; flex: 1; min-width: 0; }
   .detail-url:hover { background: rgba(139,92,246,0.18); border-color: rgba(139,92,246,0.5); }
+  .detail-url span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .url-row { display: flex; align-items: center; gap: 6px; }
+  .url-edit-btn { flex-shrink: 0; width: 28px; height: 28px; border-radius: 7px; background: rgba(255,255,255,0.04); border: 1px solid var(--line); color: var(--dim); cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .url-edit-btn:hover { background: rgba(139,92,246,0.15); border-color: rgba(139,92,246,0.4); color: #C4B5FD; }
+  .url-input-row { display: flex; gap: 6px; align-items: center; }
+  .url-input { flex: 1; background: rgba(0,0,0,0.35); border: 1px solid rgba(139,92,246,0.4); border-radius: 9px; color: #C4B5FD; padding: 9px 12px; font-family: "JetBrains Mono", monospace; font-size: 12px; outline: none; transition: border-color 0.15s; }
+  .url-input:focus { border-color: rgba(139,92,246,0.7); box-shadow: 0 0 0 2px rgba(139,92,246,0.15); }
+  .url-input::placeholder { color: var(--dim-2); }
+  .url-confirm-btn { flex-shrink: 0; padding: 8px 12px; border-radius: 8px; background: rgba(139,92,246,0.2); border: 1px solid rgba(139,92,246,0.4); color: #C4B5FD; cursor: pointer; font-size: 13px; transition: all 0.15s; }
+  .url-confirm-btn:hover { background: rgba(139,92,246,0.35); }
+  .url-cancel-btn { flex-shrink: 0; padding: 8px 10px; border-radius: 8px; background: transparent; border: 1px solid var(--line); color: var(--dim); cursor: pointer; font-size: 12px; transition: all 0.15s; }
+  .url-cancel-btn:hover { border-color: rgba(255,80,80,0.4); color: #f87171; }
   .detail-actions { display: flex; gap: 8px; }
   .act-btn { flex: 1; padding: 9px; border-radius: 9px; background: rgba(255,255,255,0.04); border: 1px solid var(--line); color: var(--fg); cursor: pointer; font-family: inherit; font-size: 12px; transition: all 0.15s; }
   .act-btn:hover { background: rgba(255,255,255,0.08); }
@@ -459,9 +471,14 @@ function TopBar({ totals, focusMode, setFocusMode, selectedId, onResetData }) {
   );
 }
 
-function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, onEdit, onDelete }) {
+function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, onEdit, onDelete, onSaveUrl }) {
   if (!node) return null;
   const cat = data.categories[node.category];
+  const [urlEdit, setUrlEdit] = React.useState(false);
+  const [urlValue, setUrlValue] = React.useState(node.url || "");
+  React.useEffect(() => { setUrlValue(node.url || ""); setUrlEdit(false); }, [node.id]);
+  const confirmUrl = () => { onSaveUrl(node.id, urlValue); setUrlEdit(false); };
+  const cancelUrl  = () => { setUrlEdit(false); setUrlValue(node.url || ""); };
   const conns = data.links
     .filter(l => l.source === node.id || l.target === node.id)
     .map((l, i) => {
@@ -486,11 +503,22 @@ function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, on
       <div className="detail-id">id: <span>{node.id}</span> · type: <span>{node.type}</span> · size: <span>{node.size}</span></div>
       {cluster && <div className="detail-id">cluster: <span>{cluster.label}</span></div>}
       {node.description && <p className="detail-desc">{node.description}</p>}
-      {node.url && (
-        <a className="detail-url" href={node.url} target="_blank" rel="noopener noreferrer">
-          <span>{node.url.replace(/^https?:\/\//,"")}</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
-        </a>
+      {urlEdit || !node.url ? (
+        <div className="url-input-row">
+          <input className="url-input" value={urlValue} onChange={e => setUrlValue(e.target.value)}
+            placeholder="https://..." autoFocus
+            onKeyDown={e => { if(e.key==='Enter') confirmUrl(); if(e.key==='Escape') cancelUrl(); }}/>
+          <button className="url-confirm-btn" onClick={confirmUrl}>✓</button>
+          {urlEdit && <button className="url-cancel-btn" onClick={cancelUrl}>✕</button>}
+        </div>
+      ) : (
+        <div className="url-row">
+          <a className="detail-url" href={node.url} target="_blank" rel="noopener noreferrer">
+            <span>{node.url.replace(/^https?:\/\//,"")}</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+          </a>
+          <button className="url-edit-btn" onClick={() => setUrlEdit(true)} title="Modifica URL">✎</button>
+        </div>
       )}
       <div className="detail-actions">
         <button className="act-btn primary" onClick={() => setFocusMode(true)}>{focusMode ? "Focus attivo" : "Focus su questo nodo"}</button>
@@ -853,6 +881,14 @@ function App() {
     setEditingNode(null);
   };
 
+  const handleSaveUrl = (nodeId, newUrl) => {
+    setData(prev => {
+      const updated = { ...prev, nodes: prev.nodes.map(n => n.id === nodeId ? { ...n, url: newUrl.trim() || undefined } : n) };
+      window.saveNeuralData(updated);
+      return updated;
+    });
+  };
+
   const handleDelete = (node) => {
     if (node.id === "hub") return;
     if (!confirm(`Eliminare il nodo "${node.label}" e tutte le sue connessioni?`)) return;
@@ -905,6 +941,7 @@ function App() {
           focusMode={focusMode}
           onEdit={(node) => { setEditingNode(node); setEditorOpen(true); }}
           onDelete={handleDelete}
+          onSaveUrl={handleSaveUrl}
         />
       )}
 

@@ -160,6 +160,51 @@
   .url-confirm-btn:hover { background: rgba(139,92,246,0.35); }
   .url-cancel-btn { flex-shrink: 0; padding: 8px 10px; border-radius: 8px; background: transparent; border: 1px solid var(--line); color: var(--dim); cursor: pointer; font-size: 12px; transition: all 0.15s; }
   .url-cancel-btn:hover { border-color: rgba(255,80,80,0.4); color: #f87171; }
+  .new-planet-btn { display:flex; align-items:center; gap:5px; background:rgba(52,211,153,0.1); border-color:rgba(52,211,153,0.35); color:#6EE7B7; }
+  .new-planet-btn:hover { background:rgba(52,211,153,0.2); border-color:rgba(52,211,153,0.6); }
+  .tb-menu-btn { display:none; background:transparent; border:1px solid var(--line); color:var(--dim); padding:6px 8px; border-radius:8px; cursor:pointer; transition:all .15s; align-items:center; }
+  .tb-menu-btn:hover { background:rgba(255,255,255,0.07); color:var(--fg); }
+  .sidebar-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:15; }
+
+  @media (max-width: 700px) {
+    /* Sidebar: drawer da sinistra */
+    .sidebar {
+      top:0; left:0; bottom:0; width:82vw; max-width:300px; border-radius:0;
+      transform:translateX(-105%); transition:transform .28s cubic-bezier(.4,0,.2,1);
+      z-index:20; padding-top:68px;
+    }
+    .sidebar.open { transform:translateX(0); }
+    .sidebar-backdrop { display:block; }
+    /* Topbar: barra piena in alto */
+    .topbar {
+      left:0; right:0; top:0; width:100%; transform:none;
+      border-radius:0; padding:10px 14px;
+      justify-content:space-between;
+    }
+    .tb-menu-btn { display:flex; }
+    .tb-hide-sm { display:none !important; }
+    /* Detail panel: bottom sheet */
+    .detail {
+      right:0; left:0; top:auto; bottom:0; width:100%;
+      max-height:78vh; border-radius:16px 16px 0 0;
+      animation:slideUp .22s ease-out;
+    }
+    @keyframes slideUp { from{transform:translateY(28px);opacity:0} to{transform:none;opacity:1} }
+    /* Editor / Cluster: full screen overlay */
+    .editor {
+      right:0; left:0; top:0; bottom:0; width:100%;
+      max-height:100dvh; border-radius:0; z-index:10;
+    }
+    /* Hint card: in alto a destra */
+    .hint-card { bottom:auto; top:68px; right:10px; font-size:10.5px; padding:10px 12px; }
+    /* Status: sopra la bottom bar */
+    .status { bottom:12px; }
+    /* Topbar title */
+    .tb-left .kbd-mono { font-size:12px; letter-spacing:.12em; }
+    /* Action buttons più alti per touch */
+    .act-btn { padding:11px 8px; }
+    .big-btn { padding:12px 8px; }
+  }
   .quick-link-form { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--line-2); margin-top: 2px; }
   .quick-link-label { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: .14em; color: var(--dim); text-transform: uppercase; }
   .quick-link-selects { display: flex; gap: 6px; }
@@ -377,7 +422,7 @@ window.resetNeuralData = function() {
 // Editor supporta: creazione/modifica nodi (con cluster), aggiunta/rimozione link, modifica link esistenti.
 const { useState, useMemo, useEffect, useRef } = React;
 
-function Sidebar({ data, activeCats, setActiveCats, searchQuery, setSearchQuery, totals, focusNode, openEditor, openClusterEditor }) {
+function Sidebar({ data, activeCats, setActiveCats, searchQuery, setSearchQuery, totals, focusNode, openEditor, openClusterEditor, isOpen }) {
   const cats = Object.entries(data.categories);
   const toggle = (key) => {
     const next = new Set(activeCats);
@@ -396,7 +441,7 @@ function Sidebar({ data, activeCats, setActiveCats, searchQuery, setSearchQuery,
   }, [data]);
 
   return (
-    <div className="panel sidebar">
+    <div className={`panel sidebar${isOpen ? " open" : ""}`}>
       <div className="brand">
         <div className="brand-mark"><span/></div>
         <div>
@@ -456,15 +501,18 @@ function Sidebar({ data, activeCats, setActiveCats, searchQuery, setSearchQuery,
   );
 }
 
-function TopBar({ totals, focusMode, setFocusMode, selectedId, onCenter }) {
+function TopBar({ totals, focusMode, setFocusMode, selectedId, onCenter, onToggleSidebar }) {
   return (
     <div className="topbar">
+      <button className="tb-menu-btn" onClick={onToggleSidebar} title="Menu">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
       <div className="tb-left">
         <span className="kbd-mono">NEURAL OS</span>
-        <span className="dim">/</span>
-        <span className="dim">3D ecosistema</span>
+        <span className="dim tb-hide-sm">/</span>
+        <span className="dim tb-hide-sm">3D ecosistema</span>
       </div>
-      <div className="tb-mid">
+      <div className="tb-mid tb-hide-sm">
         <span className="pulse-dot"/>
         {totals.nodes} nodi · {totals.links} sinapsi · live
       </div>
@@ -473,30 +521,20 @@ function TopBar({ totals, focusMode, setFocusMode, selectedId, onCenter }) {
           Focus {focusMode ? "ON" : ""}
         </button>
         <button className="tb-btn" onClick={onCenter} title="Centra la vista sull'hub">Centra</button>
-        <span className="hint">L-drag pianeti · R-drag pan · M-drag rotazione</span>
+        <span className="hint tb-hide-sm">L-drag pianeti · R-drag pan · M-drag rotazione</span>
       </div>
     </div>
   );
 }
 
-function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, onEdit, onDelete, onSaveUrl, onAddLink }) {
+function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, onEdit, onDelete, onSaveUrl, onCreateConnected }) {
   if (!node) return null;
   const cat = data.categories[node.category];
   const [urlEdit, setUrlEdit] = React.useState(false);
   const [urlValue, setUrlValue] = React.useState(node.url || "");
-  const [quickLink, setQuickLink] = React.useState(false);
-  const [qlTarget, setQlTarget] = React.useState("");
-  const [qlType, setQlType] = React.useState("uses");
-  React.useEffect(() => { setUrlValue(node.url || ""); setUrlEdit(false); setQuickLink(false); }, [node.id]);
+  React.useEffect(() => { setUrlValue(node.url || ""); setUrlEdit(false); }, [node.id]);
   const confirmUrl = () => { onSaveUrl(node.id, urlValue); setUrlEdit(false); };
   const cancelUrl  = () => { setUrlEdit(false); setUrlValue(node.url || ""); };
-  const connectedIds = new Set(data.links.filter(l => l.source === node.id || l.target === node.id).map(l => l.source === node.id ? l.target : l.source));
-  const linkableNodes = data.nodes.filter(n => n.id !== node.id && !connectedIds.has(n.id));
-  const confirmQuickLink = () => {
-    if (!qlTarget) return;
-    onAddLink({ source: node.id, target: qlTarget, type: qlType });
-    setQuickLink(false); setQlTarget("");
-  };
   const conns = data.links
     .filter(l => l.source === node.id || l.target === node.id)
     .map((l, i) => {
@@ -539,28 +577,13 @@ function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, on
         </div>
       )}
       <div className="detail-actions">
-        <button className="act-btn primary" onClick={() => setFocusMode(true)}>{focusMode ? "Focus attivo" : "Focus su questo nodo"}</button>
+        <button className="act-btn primary" onClick={() => setFocusMode(true)}>{focusMode ? "Focus attivo" : "Focus"}</button>
         <button className="act-btn" onClick={() => onEdit(node)}>Modifica</button>
-        <button className="act-btn" onClick={() => { setQuickLink(v => !v); setQlTarget(""); }} title="Crea collegamento da questo nodo">⇄</button>
+        <button className="act-btn new-planet-btn" onClick={onCreateConnected} title="Crea nuovo pianeta collegato a questo">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="17"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
+          Pianeta
+        </button>
       </div>
-      {quickLink && (
-        <div className="quick-link-form">
-          <div className="quick-link-label">Collega a</div>
-          <div className="quick-link-selects">
-            <select value={qlTarget} onChange={e => setQlTarget(e.target.value)}>
-              <option value="">— scegli nodo —</option>
-              {linkableNodes.map(n => <option key={n.id} value={n.id}>{n.label}</option>)}
-            </select>
-            <select value={qlType} onChange={e => setQlType(e.target.value)}>
-              {Object.keys(data.linkTypes).map(k => <option key={k} value={k}>{k}</option>)}
-            </select>
-          </div>
-          <div className="quick-link-actions">
-            <button className="url-confirm-btn" onClick={confirmQuickLink}>✓ Crea collegamento</button>
-            <button className="url-cancel-btn" onClick={() => setQuickLink(false)}>✕</button>
-          </div>
-        </div>
-      )}
       <div className="detail-section">
         <div className="section-title">Connessioni · {conns.length}</div>
         <div className="conn-list">
@@ -813,6 +836,7 @@ function App() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingNode, setEditingNode] = useState(null);
   const [clusterCreatorOpen, setClusterCreatorOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const containerRef = useRef(null);
   const graphRef = useRef(null);
@@ -948,6 +972,7 @@ function App() {
       <div id="three-container" ref={containerRef}/>
       <div className="vignette"/>
 
+      {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)}/>}
       <Sidebar
         data={data}
         activeCats={activeCats}
@@ -955,9 +980,10 @@ function App() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         totals={totals}
-        focusNode={focusNode}
-        openEditor={() => { setEditingNode(null); setEditorOpen(true); setClusterCreatorOpen(false); }}
-        openClusterEditor={() => { setClusterCreatorOpen(true); setEditorOpen(false); setEditingNode(null); }}
+        focusNode={(id) => { focusNode(id); setSidebarOpen(false); }}
+        openEditor={() => { setEditingNode(null); setEditorOpen(true); setClusterCreatorOpen(false); setSidebarOpen(false); }}
+        openClusterEditor={() => { setClusterCreatorOpen(true); setEditorOpen(false); setEditingNode(null); setSidebarOpen(false); }}
+        isOpen={sidebarOpen}
       />
 
       <TopBar
@@ -966,6 +992,7 @@ function App() {
         setFocusMode={setFocusMode}
         selectedId={selectedId}
         onCenter={() => graphRef.current?.focusNode("hub")}
+        onToggleSidebar={() => setSidebarOpen(v => !v)}
       />
 
       {!editorOpen && !clusterCreatorOpen && selectedNode && (
@@ -979,7 +1006,7 @@ function App() {
           onEdit={(node) => { setEditingNode(node); setEditorOpen(true); }}
           onDelete={handleDelete}
           onSaveUrl={handleSaveUrl}
-          onAddLink={link => handleSave({ kind: "link", link })}
+          onCreateConnected={() => { setEditingNode(null); setEditorOpen(true); }}
         />
       )}
 

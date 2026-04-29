@@ -448,7 +448,7 @@ function Sidebar({ data, activeCats, setActiveCats, searchQuery, setSearchQuery,
   );
 }
 
-function TopBar({ totals, focusMode, setFocusMode, selectedId, onResetData }) {
+function TopBar({ totals, focusMode, setFocusMode, selectedId, onCenter }) {
   return (
     <div className="topbar">
       <div className="tb-left">
@@ -464,7 +464,7 @@ function TopBar({ totals, focusMode, setFocusMode, selectedId, onResetData }) {
         <button className={`tb-btn ${focusMode ? "on" : ""}`} disabled={!selectedId} onClick={() => setFocusMode(v => !v)}>
           Focus {focusMode ? "ON" : ""}
         </button>
-        <button className="tb-btn" onClick={onResetData} title="Ripristina i dati di default">Reset</button>
+        <button className="tb-btn" onClick={onCenter} title="Centra la vista sull'hub">Centra</button>
         <span className="hint">L-drag pianeti · R-drag pan · M-drag rotazione</span>
       </div>
     </div>
@@ -928,7 +928,7 @@ function App() {
         focusMode={focusMode}
         setFocusMode={setFocusMode}
         selectedId={selectedId}
-        onResetData={onResetData}
+        onCenter={() => graphRef.current?.focusNode("hub")}
       />
 
       {!editorOpen && !clusterCreatorOpen && selectedNode && (

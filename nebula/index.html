@@ -160,6 +160,14 @@
   .url-confirm-btn:hover { background: rgba(139,92,246,0.35); }
   .url-cancel-btn { flex-shrink: 0; padding: 8px 10px; border-radius: 8px; background: transparent; border: 1px solid var(--line); color: var(--dim); cursor: pointer; font-size: 12px; transition: all 0.15s; }
   .url-cancel-btn:hover { border-color: rgba(255,80,80,0.4); color: #f87171; }
+  .quick-link-form { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--line-2); margin-top: 2px; }
+  .quick-link-label { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: .14em; color: var(--dim); text-transform: uppercase; }
+  .quick-link-selects { display: flex; gap: 6px; }
+  .quick-link-selects select { flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--line); color: var(--fg); padding: 7px 8px; border-radius: 7px; font-size: 11px; font-family: "JetBrains Mono", monospace; outline: none; cursor: pointer; }
+  .quick-link-selects select:focus { border-color: rgba(139,92,246,0.5); }
+  .quick-link-actions { display: flex; gap: 6px; }
+  .quick-link-actions .url-confirm-btn { flex: 1; font-size: 12px; }
+  .quick-link-actions .url-cancel-btn { font-size: 12px; }
   .detail-actions { display: flex; gap: 8px; }
   .act-btn { flex: 1; padding: 9px; border-radius: 9px; background: rgba(255,255,255,0.04); border: 1px solid var(--line); color: var(--fg); cursor: pointer; font-family: inherit; font-size: 12px; transition: all 0.15s; }
   .act-btn:hover { background: rgba(255,255,255,0.08); }
@@ -471,14 +479,24 @@ function TopBar({ totals, focusMode, setFocusMode, selectedId, onCenter }) {
   );
 }
 
-function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, onEdit, onDelete, onSaveUrl }) {
+function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, onEdit, onDelete, onSaveUrl, onAddLink }) {
   if (!node) return null;
   const cat = data.categories[node.category];
   const [urlEdit, setUrlEdit] = React.useState(false);
   const [urlValue, setUrlValue] = React.useState(node.url || "");
-  React.useEffect(() => { setUrlValue(node.url || ""); setUrlEdit(false); }, [node.id]);
+  const [quickLink, setQuickLink] = React.useState(false);
+  const [qlTarget, setQlTarget] = React.useState("");
+  const [qlType, setQlType] = React.useState("uses");
+  React.useEffect(() => { setUrlValue(node.url || ""); setUrlEdit(false); setQuickLink(false); }, [node.id]);
   const confirmUrl = () => { onSaveUrl(node.id, urlValue); setUrlEdit(false); };
   const cancelUrl  = () => { setUrlEdit(false); setUrlValue(node.url || ""); };
+  const connectedIds = new Set(data.links.filter(l => l.source === node.id || l.target === node.id).map(l => l.source === node.id ? l.target : l.source));
+  const linkableNodes = data.nodes.filter(n => n.id !== node.id && !connectedIds.has(n.id));
+  const confirmQuickLink = () => {
+    if (!qlTarget) return;
+    onAddLink({ source: node.id, target: qlTarget, type: qlType });
+    setQuickLink(false); setQlTarget("");
+  };
   const conns = data.links
     .filter(l => l.source === node.id || l.target === node.id)
     .map((l, i) => {
@@ -523,7 +541,26 @@ function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, on
       <div className="detail-actions">
         <button className="act-btn primary" onClick={() => setFocusMode(true)}>{focusMode ? "Focus attivo" : "Focus su questo nodo"}</button>
         <button className="act-btn" onClick={() => onEdit(node)}>Modifica</button>
+        <button className="act-btn" onClick={() => { setQuickLink(v => !v); setQlTarget(""); }} title="Crea collegamento da questo nodo">⇄</button>
       </div>
+      {quickLink && (
+        <div className="quick-link-form">
+          <div className="quick-link-label">Collega a</div>
+          <div className="quick-link-selects">
+            <select value={qlTarget} onChange={e => setQlTarget(e.target.value)}>
+              <option value="">— scegli nodo —</option>
+              {linkableNodes.map(n => <option key={n.id} value={n.id}>{n.label}</option>)}
+            </select>
+            <select value={qlType} onChange={e => setQlType(e.target.value)}>
+              {Object.keys(data.linkTypes).map(k => <option key={k} value={k}>{k}</option>)}
+            </select>
+          </div>
+          <div className="quick-link-actions">
+            <button className="url-confirm-btn" onClick={confirmQuickLink}>✓ Crea collegamento</button>
+            <button className="url-cancel-btn" onClick={() => setQuickLink(false)}>✕</button>
+          </div>
+        </div>
+      )}
       <div className="detail-section">
         <div className="section-title">Connessioni · {conns.length}</div>
         <div className="conn-list">
@@ -942,6 +979,7 @@ function App() {
           onEdit={(node) => { setEditingNode(node); setEditorOpen(true); }}
           onDelete={handleDelete}
           onSaveUrl={handleSaveUrl}
+          onAddLink={link => handleSave({ kind: "link", link })}
         />
       )}
 

@@ -291,6 +291,11 @@
   }
 
   /* Hint card (right under topbar) */
+  .hint-card-close { display:none; }
+  @media (max-width:700px) {
+    .hint-card { pointer-events:auto !important; cursor:pointer; }
+    .hint-card-close { display:flex; align-items:center; justify-content:center; gap:6px; width:100%; margin-top:8px; padding:8px; background:rgba(255,255,255,0.06); border-radius:7px; font-size:11px; color:var(--fg); border:1px solid var(--line); }
+  }
   .hint-card {
     position: absolute; right: 18px; bottom: 18px; z-index: 5;
     padding: 12px 14px; border-radius: 10px;
@@ -974,11 +979,13 @@ function App() {
   }, [editorOpen, clusterCreatorOpen]);
 
   const handleSave = (payload) => {
+    let createdId = null;
     setData(prev => {
       const next = { ...prev, nodes: [...prev.nodes], links: [...prev.links] };
       if (payload.kind === "create_node") {
         next.nodes.push(payload.node);
         for (const l of payload.newLinks) next.links.push(l);
+        createdId = payload.node.id;
       } else if (payload.kind === "edit_node") {
         // sostituisci nodo
         next.nodes = next.nodes.map(n => n.id === payload.originalId ? { ...n, ...payload.node } : n);
@@ -1014,11 +1021,20 @@ function App() {
           const exists = next.links.some(x => (x.source===payload.head.id && x.target===mid) || (x.source===mid && x.target===payload.head.id));
           if (!exists) next.links.push({ source: payload.head.id, target: mid, type: "uses" });
         }
+        createdId = payload.head.id;
       }
       return next;
     });
+    // Chiude tutti i pannelli di creazione
     setEditorOpen(false);
     setEditingNode(null);
+    setClusterCreatorOpen(false);
+    // Seleziona e centra il nodo appena creato
+    if (createdId) {
+      setSelectedId(createdId);
+      setHintVisible(false);
+      setTimeout(() => graphRef.current?.focusNode(createdId), 150);
+    }
   };
 
   const handleSaveUrl = (nodeId, newUrl) => {
@@ -1109,12 +1125,13 @@ function App() {
       )}
 
       {!selectedNode && !editorOpen && !clusterCreatorOpen && (
-        <div className={`hint-card ${hintVisible ? "" : "hidden"}`}>
+        <div className={`hint-card ${hintVisible ? "" : "hidden"}`} onClick={() => setHintVisible(false)}>
           <div><span className="hk">L-click + drag</span> sposta i pianeti</div>
           <div><span className="hk">Rotella premuta + drag</span> ruota la visuale</div>
           <div><span className="hk">R-click + drag</span> pan libero</div>
-          <div><span className="hk">Scroll</span> zoom lineare</div>
+          <div><span className="hk">Scroll</span> zoom verso cursore</div>
           <div><span className="hk">Click</span> nodo per dettagli · <span className="hk">Doppio click</span> per URL</div>
+          <div className="hint-card-close">✕ Tocca per chiudere</div>
         </div>
       )}
 

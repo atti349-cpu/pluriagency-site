@@ -350,7 +350,7 @@ window.NEURAL_DATA_DEFAULT = {
     creative: { label: "Creative", color: "#EC4899" },
     startup:  { label: "Startup",  color: "#8B5CF6" },
     infra:    { label: "Infra",    color: "#10B981" },
-    social:   { label: "Social",   color: "#F87171" },
+    social:   { label: "Social",   color: "#E879F9" },
     ops:      { label: "Ops",      color: "#F59E0B" },
     ai:       { label: "AI",       color: "#FDE047" },
     future:   { label: "Future",   color: "#06B6D4" },
@@ -691,7 +691,9 @@ function EditorPanel({ data, onClose, onSave, editingNode, defaultConnect, defau
   const [linkType, setLinkType] = useState("custom");
   const existingLinks = useMemo(() => {
     if (!isEdit) return [];
-    return data.links.map((l, i) => ({ ...l, _idx: i })).filter(l => l.source === editingNode.id || l.target === editingNode.id);
+    return data.links
+      .map(l => ({ ...l, _key: `${l.source}__${l.target}` }))
+      .filter(l => l.source === editingNode.id || l.target === editingNode.id);
   }, [data, editingNode, isEdit]);
   const [linkPatches, setLinkPatches] = useState({});
   const [pendingLinks, setPendingLinks] = useState([]);
@@ -717,9 +719,9 @@ function EditorPanel({ data, onClose, onSave, editingNode, defaultConnect, defau
     if (!linkSource || !linkTarget || linkSource === linkTarget) return alert("Seleziona due nodi diversi.");
     onSave({ kind: "link", link: { source: linkSource, target: linkTarget, type: linkTypeOnly } });
   };
-  const patchLink = (idx, patch) => setLinkPatches(prev => ({ ...prev, [idx]: { ...(prev[idx] === "removed" ? {} : prev[idx] || {}), ...patch } }));
-  const removeLink = (idx) => setLinkPatches(prev => ({ ...prev, [idx]: "removed" }));
-  const restoreLink = (idx) => setLinkPatches(prev => { const n = {...prev}; delete n[idx]; return n; });
+  const patchLink = (key, patch) => setLinkPatches(prev => ({ ...prev, [key]: { ...(prev[key] === "removed" ? {} : prev[key] || {}), ...patch } }));
+  const removeLink = (key) => setLinkPatches(prev => ({ ...prev, [key]: "removed" }));
+  const restoreLink = (key) => setLinkPatches(prev => { const n = {...prev}; delete n[key]; return n; });
   const addPending = () => {
     if (!newLinkTarget) return;
     if (newLinkTarget === editingNode.id) return alert("Non puoi collegare un nodo a sé stesso.");
@@ -732,8 +734,8 @@ function EditorPanel({ data, onClose, onSave, editingNode, defaultConnect, defau
   const getLinkUI = (l) => {
     const otherId = l.source === editingNode.id ? l.target : l.source;
     const other = data.nodes.find(n => n.id === otherId);
-    const removed = linkPatches[l._idx] === "removed";
-    const currentType = (linkPatches[l._idx] && linkPatches[l._idx] !== "removed" && linkPatches[l._idx].type) || l.type;
+    const removed = linkPatches[l._key] === "removed";
+    const currentType = (linkPatches[l._key] && linkPatches[l._key] !== "removed" && linkPatches[l._key].type) || l.type;
     return { other, removed, currentType };
   };
   return (
@@ -780,11 +782,11 @@ function EditorPanel({ data, onClose, onSave, editingNode, defaultConnect, defau
             if (!other) return null;
             const oc = data.categories[other.category];
             return (
-              <div key={l._idx} className="link-edit-row" style={{opacity: removed ? 0.4 : 1}}>
+              <div key={l._key} className="link-edit-row" style={{opacity: removed ? 0.4 : 1}}>
                 <span className="dot" style={{background: oc.color, boxShadow:`0 0 8px ${oc.color}`}}/>
                 <span className="cn-label" style={{textDecoration: removed ? "line-through" : "none"}}>{other.label}</span>
-                <select disabled={removed} value={currentType} onChange={e => patchLink(l._idx, { type: e.target.value })}>{Object.keys(data.linkTypes).map(k => <option key={k} value={k}>{k}</option>)}</select>
-                {removed ? <button className="mini-btn" onClick={() => restoreLink(l._idx)}>↶</button> : <button className="mini-btn danger" onClick={() => removeLink(l._idx)}>✕</button>}
+                <select disabled={removed} value={currentType} onChange={e => patchLink(l._key, { type: e.target.value })}>{Object.keys(data.linkTypes).map(k => <option key={k} value={k}>{k}</option>)}</select>
+                {removed ? <button className="mini-btn" onClick={() => restoreLink(l._key)}>↶</button> : <button className="mini-btn danger" onClick={() => removeLink(l._key)}>✕</button>}
               </div>
             );
           })}
@@ -984,25 +986,29 @@ function App() {
   }, [editorOpen, clusterCreatorOpen]);
 
   const handleSave = (payload) => {
-    let createdId = null;
+    // createdId calcolato FUORI dall'updater per evitare problemi di batching React
+    const createdId = payload.kind === "create_node" ? payload.node.id
+                    : payload.kind === "create_cluster" ? payload.head.id
+                    : null;
     setData(prev => {
       const next = { ...prev, nodes: [...prev.nodes], links: [...prev.links] };
       if (payload.kind === "create_node") {
         next.nodes.push(payload.node);
         for (const l of payload.newLinks) next.links.push(l);
-        createdId = payload.node.id;
       } else if (payload.kind === "edit_node") {
         // sostituisci nodo
         next.nodes = next.nodes.map(n => n.id === payload.originalId ? { ...n, ...payload.node } : n);
-        // link patches
+        // link patches — usa source__target come chiave stabile (non più indice numerico)
         next.links = next.links
-          .map((l, i) => {
-            const p = payload.linkPatches[i];
-            if (p === "removed") return null;
-            if (p && p.type) return { ...l, type: p.type };
-            return l;
+          .filter(l => {
+            const k1 = `${l.source}__${l.target}`, k2 = `${l.target}__${l.source}`;
+            return payload.linkPatches[k1] !== "removed" && payload.linkPatches[k2] !== "removed";
           })
-          .filter(Boolean);
+          .map(l => {
+            const k1 = `${l.source}__${l.target}`, k2 = `${l.target}__${l.source}`;
+            const patch = payload.linkPatches[k1] || payload.linkPatches[k2];
+            return (patch && patch.type) ? { ...l, type: patch.type } : l;
+          });
         // aggiungi nuovi
         for (const l of (payload.addLinks || [])) {
           const exists = next.links.some(x => (x.source===l.source && x.target===l.target) || (x.source===l.target && x.target===l.source));
@@ -1026,7 +1032,6 @@ function App() {
           const exists = next.links.some(x => (x.source===payload.head.id && x.target===mid) || (x.source===mid && x.target===payload.head.id));
           if (!exists) next.links.push({ source: payload.head.id, target: mid, type: "uses" });
         }
-        createdId = payload.head.id;
       }
       return next;
     });

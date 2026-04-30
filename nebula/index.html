@@ -62,6 +62,11 @@
   .count-row.off { opacity: 0.4; }
   .hide-all-btn { flex-shrink:0; width:22px; height:22px; border-radius:6px; background:transparent; border:1px solid var(--line); color:var(--dim); cursor:pointer; font-size:11px; display:flex; align-items:center; justify-content:center; transition:all .15s; margin-left:4px; }
   .hide-all-btn:hover { background:rgba(255,80,80,0.12); border-color:rgba(255,80,80,0.4); color:#f87171; }
+  .nebula-filters { display:flex; flex-direction:column; gap:2px; padding-top:10px; border-top:1px solid var(--line); }
+  .nebula-row { display:grid; grid-template-columns:14px 1fr auto; align-items:center; gap:10px; padding:5px 8px; border-radius:8px; cursor:pointer; font-size:12px; transition:background .15s,opacity .15s; }
+  .nebula-row:hover { background:rgba(255,255,255,0.04); }
+  .nebula-row.off { opacity:0.35; }
+  .nebula-title { font-family:"JetBrains Mono",monospace; font-size:10px; color:var(--dim); letter-spacing:.18em; padding:6px 8px 2px; text-transform:uppercase; }
   .count-row.main { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); }
   .count-row .num { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--dim); }
   .dot { width: 10px; height: 10px; border-radius: 50%; display:inline-block; }
@@ -487,7 +492,7 @@ window.saveToCloud = function(data) {
 // Editor supporta: creazione/modifica nodi (con cluster), aggiunta/rimozione link, modifica link esistenti.
 const { useState, useMemo, useEffect, useRef } = React;
 
-function Sidebar({ data, activeCats, setActiveCats, searchQuery, setSearchQuery, totals, focusNode, openEditor, openClusterEditor, isOpen }) {
+function Sidebar({ data, activeCats, setActiveCats, activeClusters, setActiveClusters, searchQuery, setSearchQuery, totals, focusNode, openEditor, openClusterEditor, isOpen }) {
   const cats = Object.entries(data.categories);
   const toggle = (key) => {
     const next = new Set(activeCats);
@@ -498,6 +503,14 @@ function Sidebar({ data, activeCats, setActiveCats, searchQuery, setSearchQuery,
     setActiveCats(next);
   };
   const isActive = (k) => activeCats.has("all") || activeCats.has(k);
+  const toggleCluster = (id) => {
+    const next = new Set(activeClusters);
+    next.delete("all");
+    if (next.has(id)) next.delete(id); else next.add(id);
+    if (next.size === 0) next.add("all");
+    setActiveClusters(next);
+  };
+  const isClusterActive = (id) => activeClusters.has("all") || activeClusters.has(id);
 
   const clusterHeads = useMemo(() => {
     const ids = new Set();
@@ -529,6 +542,20 @@ function Sidebar({ data, activeCats, setActiveCats, searchQuery, setSearchQuery,
           </div>
         ))}
       </div>
+      {clusterHeads.length > 0 && (
+        <div className="nebula-filters">
+          <div className="nebula-title">Nebulose</div>
+          {clusterHeads.map(n => {
+            const col = data.categories[n.category]?.color || "#fff";
+            return (
+              <div key={n.id} className={`nebula-row ${isClusterActive(n.id) ? "on" : "off"}`} onClick={() => toggleCluster(n.id)}>
+                <span className="dot" style={{background: col, boxShadow: isClusterActive(n.id) ? `0 0 8px ${col}` : "none"}}/>
+                <span>{n.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
       <div className="search">
         <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Cerca nel grafo…" spellCheck={false}/>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
@@ -904,6 +931,7 @@ function App() {
   const [selectedId, setSelectedId] = useState(null);
   const [hoveredId, setHoveredId] = useState(null);
   const [activeCats, setActiveCats] = useState(() => new Set(["all", ...Object.keys(window.NEURAL_DATA_DEFAULT.categories)]));
+  const [activeClusters, setActiveClusters] = useState(() => new Set(["all"]));
   const [searchQuery, setSearchQuery] = useState("");
   const [focusMode, setFocusMode] = useState(false);
   const [hintVisible, setHintVisible] = useState(true);
@@ -956,8 +984,8 @@ function App() {
 
   // sync filters
   useEffect(() => {
-    graphRef.current?.setFilters(activeCats, searchQuery);
-  }, [activeCats, searchQuery]);
+    graphRef.current?.setFilters(activeCats, searchQuery, activeClusters);
+  }, [activeCats, searchQuery, activeClusters]);
   useEffect(() => { graphRef.current?.setSelected(selectedId); }, [selectedId]);
   useEffect(() => { graphRef.current?.setFocusMode(focusMode); }, [focusMode]);
 
@@ -1085,6 +1113,8 @@ function App() {
         data={data}
         activeCats={activeCats}
         setActiveCats={setActiveCats}
+        activeClusters={activeClusters}
+        setActiveClusters={setActiveClusters}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         totals={totals}

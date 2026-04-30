@@ -386,6 +386,7 @@
       selectedId: null,
       hoveredId: null,
       activeCats: null,       // Set, null = all
+      activeClusters: null,   // Set di cluster id attivi, null = tutti
       searchQuery: "",
       focusMode: false,
       time: 0,
@@ -398,6 +399,12 @@
 
     function isVisible(n) {
       if (state.activeCats && !state.activeCats.has("all") && !state.activeCats.has(n.category)) return false;
+      if (state.activeClusters && !state.activeClusters.has("all")) {
+        // Il cluster head stesso: nascosto se la sua nebulosa è disattivata
+        if (n.isClusterHead && !state.activeClusters.has(n.id)) return false;
+        // Nodo membro: nascosto se il suo cluster diretto è disattivato
+        if (n.cluster && !state.activeClusters.has(n.cluster)) return false;
+      }
       if (state.searchQuery) {
         const q = state.searchQuery.toLowerCase();
         if (!n.label.toLowerCase().includes(q) && !n.id.toLowerCase().includes(q)) return false;
@@ -553,9 +560,10 @@
 
     function refresh() { buildGraph(); }
 
-    function setFilters(activeCats, searchQuery) {
+    function setFilters(activeCats, searchQuery, activeClusters) {
       state.activeCats = activeCats;
       state.searchQuery = searchQuery;
+      state.activeClusters = activeClusters || null;
     }
     function setSelected(id) { state.selectedId = id; }
     function setFocusMode(v) { state.focusMode = v; }

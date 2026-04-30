@@ -909,6 +909,7 @@ function App() {
 
   const containerRef = useRef(null);
   const graphRef = useRef(null);
+  const cloudLoaded = useRef(false); // non salvare su cloud finché il caricamento iniziale non è completo
 
   // Init 3D scene once
   useEffect(() => {
@@ -923,25 +924,29 @@ function App() {
     return () => g.dispose();
   }, []);
 
-  // Carica dal cloud al mount (sovrascrive localStorage se il cloud è più aggiornato)
+  // Carica dal cloud al mount — PRIMA aggiorna il grafo, POI abilita il salvataggio cloud
   useEffect(() => {
     window.loadFromCloud().then(cloudData => {
-      if (!cloudData) return;
-      const merged = {
-        categories: { ...window.NEURAL_DATA_DEFAULT.categories, ...(cloudData.categories || {}) },
-        linkTypes:  { ...window.NEURAL_DATA_DEFAULT.linkTypes,  ...(cloudData.linkTypes  || {}) },
-        nodes: cloudData.nodes || window.NEURAL_DATA_DEFAULT.nodes,
-        links: cloudData.links || window.NEURAL_DATA_DEFAULT.links
-      };
-      setData(merged);
-      try { localStorage.setItem('neural_os_data_v2', JSON.stringify(merged)); } catch(e) {}
-    });
+      if (cloudData) {
+        const merged = {
+          categories: { ...window.NEURAL_DATA_DEFAULT.categories, ...(cloudData.categories || {}) },
+          linkTypes:  { ...window.NEURAL_DATA_DEFAULT.linkTypes,  ...(cloudData.linkTypes  || {}) },
+          nodes: cloudData.nodes || window.NEURAL_DATA_DEFAULT.nodes,
+          links: cloudData.links || window.NEURAL_DATA_DEFAULT.links
+        };
+        setData(merged);
+        try { localStorage.setItem('neural_os_data_v2', JSON.stringify(merged)); } catch(e) {}
+      }
+      cloudLoaded.current = true; // da qui in poi i cambiamenti vengono salvati sul cloud
+    }).catch(() => { cloudLoaded.current = true; });
   }, []);
 
-  // sync data → graph + salva (localStorage + cloud)
+  // sync data → graph + salva
+  // localStorage: sempre; cloud: solo dopo che il caricamento iniziale è completo
   useEffect(() => {
     if (graphRef.current) graphRef.current.setData(data);
-    window.saveNeuralData(data);
+    try { localStorage.setItem('neural_os_data_v2', JSON.stringify(data)); } catch(e) {}
+    if (cloudLoaded.current) window.saveToCloud(data);
   }, [data]);
 
   // sync filters

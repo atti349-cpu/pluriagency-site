@@ -60,6 +60,8 @@
   }
   .count-row:hover { background: rgba(255,255,255,0.04); }
   .count-row.off { opacity: 0.4; }
+  .hide-all-btn { flex-shrink:0; width:22px; height:22px; border-radius:6px; background:transparent; border:1px solid var(--line); color:var(--dim); cursor:pointer; font-size:11px; display:flex; align-items:center; justify-content:center; transition:all .15s; margin-left:4px; }
+  .hide-all-btn:hover { background:rgba(255,80,80,0.12); border-color:rgba(255,80,80,0.4); color:#f87171; }
   .count-row.main { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); }
   .count-row .num { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--dim); }
   .dot { width: 10px; height: 10px; border-radius: 50%; display:inline-block; }
@@ -517,6 +519,7 @@ function Sidebar({ data, activeCats, setActiveCats, searchQuery, setSearchQuery,
           <span className="dot" style={{background:"#fff"}}/>
           <span>Tutti i nodi</span>
           <span className="num">{totals.nodes}</span>
+          <button className="hide-all-btn" onClick={e => { e.stopPropagation(); setActiveCats(new Set()); }} title="Nascondi tutti">⊘</button>
         </div>
         {cats.filter(([k]) => k !== "hub").map(([k, c]) => (
           <div key={k} className={`count-row ${isActive(k) ? "on" : "off"}`} onClick={() => toggle(k)}>

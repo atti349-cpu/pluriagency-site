@@ -167,6 +167,30 @@
   .url-confirm-btn:hover { background: rgba(139,92,246,0.35); }
   .url-cancel-btn { flex-shrink: 0; padding: 8px 10px; border-radius: 8px; background: transparent; border: 1px solid var(--line); color: var(--dim); cursor: pointer; font-size: 12px; transition: all 0.15s; }
   .url-cancel-btn:hover { border-color: rgba(255,80,80,0.4); color: #f87171; }
+  /* ---- TASKS ---- */
+  .task-section { border-top:1px solid var(--line); padding-top:12px; }
+  .task-section-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .task-section-title { font-family:"JetBrains Mono",monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); }
+  .task-wip-badge { font-family:"JetBrains Mono",monospace; font-size:9px; color:#FDE047; letter-spacing:.06em; animation:badge-pulse 1.4s ease-in-out infinite; }
+  .task-input-row { display:flex; gap:6px; margin-bottom:8px; }
+  .task-input { flex:1; background:rgba(0,0,0,0.35); border:1px solid var(--line); border-radius:8px; color:var(--fg); padding:7px 10px; font-family:"JetBrains Mono",monospace; font-size:11px; outline:none; transition:border-color .15s; }
+  .task-input:focus { border-color:rgba(139,92,246,0.5); }
+  .task-input::placeholder { color:var(--dim-2); }
+  .task-add-btn { flex-shrink:0; padding:7px 12px; border-radius:8px; background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.4); color:#C4B5FD; cursor:pointer; font-size:14px; font-weight:600; transition:all .15s; }
+  .task-add-btn:hover { background:rgba(139,92,246,0.28); }
+  .task-row { display:flex; align-items:center; gap:5px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .task-text { flex:1; font-size:12px; line-height:1.4; color:var(--fg); word-break:break-word; }
+  .task-text.wip { color:#FDE047; font-weight:500; }
+  .task-wip-btn { flex-shrink:0; width:26px; height:26px; border-radius:6px; background:transparent; border:1px solid rgba(253,224,71,0.25); color:rgba(253,224,71,0.6); cursor:pointer; font-size:11px; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+  .task-wip-btn:hover, .task-wip-btn.active { background:rgba(253,224,71,0.15); border-color:rgba(253,224,71,0.6); color:#FDE047; }
+  .task-done-btn { flex-shrink:0; width:26px; height:26px; border-radius:6px; background:transparent; border:1px solid rgba(52,211,153,0.25); color:rgba(52,211,153,0.6); cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+  .task-done-btn:hover { background:rgba(52,211,153,0.15); border-color:rgba(52,211,153,0.5); color:#34D399; }
+  .task-done-toggle { cursor:pointer; font-family:"JetBrains Mono",monospace; font-size:10px; color:var(--dim); padding:4px 0; user-select:none; transition:color .15s; }
+  .task-done-toggle:hover { color:var(--fg); }
+  .task-done-row { display:flex; align-items:center; gap:5px; padding:3px 0; opacity:.45; }
+  .task-done-text { flex:1; font-size:11px; text-decoration:line-through; color:var(--dim); }
+  .task-restore-btn { background:transparent; border:none; color:var(--dim); cursor:pointer; font-size:11px; padding:2px 4px; transition:color .15s; }
+  .task-restore-btn:hover { color:var(--fg); }
   .new-planet-btn { display:flex; align-items:center; gap:5px; background:rgba(52,211,153,0.1); border-color:rgba(52,211,153,0.35); color:#6EE7B7; }
   .new-planet-btn:hover { background:rgba(52,211,153,0.2); border-color:rgba(52,211,153,0.6); }
   .tb-menu-btn { display:none; background:transparent; border:1px solid var(--line); color:var(--dim); padding:6px 8px; border-radius:8px; cursor:pointer; transition:all .15s; align-items:center; }
@@ -620,12 +644,29 @@ function TopBar({ totals, focusMode, setFocusMode, selectedId, onCenter, onToggl
   );
 }
 
-function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, onEdit, onDelete, onSaveUrl, onCreateConnected }) {
+function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, onEdit, onDelete, onSaveUrl, onCreateConnected, onSaveTask }) {
   if (!node) return null;
   const cat = data.categories[node.category];
   const [urlEdit, setUrlEdit] = React.useState(false);
   const [urlValue, setUrlValue] = React.useState(node.url || "");
-  React.useEffect(() => { setUrlValue(node.url || ""); setUrlEdit(false); }, [node.id]);
+  const [taskInput, setTaskInput] = React.useState("");
+  const [doneOpen, setDoneOpen] = React.useState(false);
+  React.useEffect(() => { setUrlValue(node.url || ""); setUrlEdit(false); setTaskInput(""); setDoneOpen(false); }, [node.id]);
+
+  const _gid = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
+  const tasks = node.tasks || [];
+  const activeTasks = tasks.filter(t => t.status !== "done");
+  const doneTasks = tasks.filter(t => t.status === "done");
+  const wipCount = activeTasks.filter(t => t.status === "wip").length;
+
+  const addTask = () => {
+    if (!taskInput.trim()) return;
+    onSaveTask(node.id, [...tasks, { id: _gid(), text: taskInput.trim(), status: "todo" }]);
+    setTaskInput("");
+  };
+  const toggleWip = (id) => onSaveTask(node.id, tasks.map(t => t.id === id ? { ...t, status: t.status === "wip" ? "todo" : "wip" } : t));
+  const markDone = (id) => onSaveTask(node.id, tasks.map(t => t.id === id ? { ...t, status: "done" } : t));
+  const restoreTask = (id) => onSaveTask(node.id, tasks.map(t => t.id === id ? { ...t, status: "todo" } : t));
   const confirmUrl = () => { onSaveUrl(node.id, urlValue); setUrlEdit(false); };
   const cancelUrl  = () => { setUrlEdit(false); setUrlValue(node.url || ""); };
   const conns = data.links
@@ -674,6 +715,38 @@ function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, on
           <button className="url-edit-btn" onClick={() => setUrlEdit(true)} title="Modifica URL">✎</button>
         </div>
       )}
+      <div className="task-section">
+        <div className="task-section-head">
+          <span className="task-section-title">Tasks</span>
+          {wipCount > 0 && <span className="task-wip-badge">▶ {wipCount} in lavorazione</span>}
+        </div>
+        <div className="task-input-row">
+          <input className="task-input" value={taskInput} onChange={e => setTaskInput(e.target.value)}
+            placeholder="Aggiungi task…"
+            onKeyDown={e => e.key === "Enter" && addTask()}/>
+          <button className="task-add-btn" onClick={addTask}>+</button>
+        </div>
+        {activeTasks.map(t => (
+          <div key={t.id} className="task-row">
+            <span className={`task-text${t.status === "wip" ? " wip" : ""}`}>{t.text}</span>
+            <button className={`task-wip-btn${t.status === "wip" ? " active" : ""}`} onClick={() => toggleWip(t.id)} title="In lavorazione">▶</button>
+            <button className="task-done-btn" onClick={() => markDone(t.id)} title="Segna come fatta">✓</button>
+          </div>
+        ))}
+        {doneTasks.length > 0 && (
+          <div>
+            <div className="task-done-toggle" onClick={() => setDoneOpen(v => !v)}>
+              {doneOpen ? "▾" : "▸"} {doneTasks.length} completat{doneTasks.length === 1 ? "a" : "e"}
+            </div>
+            {doneOpen && doneTasks.map(t => (
+              <div key={t.id} className="task-done-row">
+                <span className="task-done-text">{t.text}</span>
+                <button className="task-restore-btn" onClick={() => restoreTask(t.id)} title="Riapri">↶</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       <div className="detail-actions">
         <button className="act-btn primary" onClick={() => setFocusMode(true)}>{focusMode ? "Focus attivo" : "Focus"}</button>
         <button className="act-btn" onClick={() => onEdit(node)}>Modifica</button>
@@ -1078,6 +1151,14 @@ function App() {
     }
   };
 
+  const handleSaveTask = (nodeId, tasks) => {
+    setData(prev => {
+      const updated = { ...prev, nodes: prev.nodes.map(n => n.id === nodeId ? { ...n, tasks } : n) };
+      window.saveNeuralData(updated);
+      return updated;
+    });
+  };
+
   const handleSaveUrl = (nodeId, newUrl) => {
     setData(prev => {
       const updated = { ...prev, nodes: prev.nodes.map(n => n.id === nodeId ? { ...n, url: newUrl.trim() || undefined } : n) };
@@ -1145,6 +1226,7 @@ function App() {
           onDelete={handleDelete}
           onSaveUrl={handleSaveUrl}
           onCreateConnected={() => { setEditingNode(null); setEditorOpen(true); }}
+          onSaveTask={handleSaveTask}
         />
       )}
 

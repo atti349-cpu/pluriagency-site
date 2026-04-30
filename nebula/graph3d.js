@@ -773,10 +773,16 @@
         m.ring.material.opacity = 0.35 * alpha;
         m.label.material.opacity = alpha;
 
-        // pulse for future
+        // pulse for future category
         if (m.n.category === "future") {
           const s = 1 + 0.18 * Math.sin(state.time * 0.06);
           m.halo.scale.setScalar((4 + m.n.size*4.5) * 6 * s);
+        }
+        // pulse for nodes with WIP tasks — halo più grande e luminoso
+        if (m.n.tasks && m.n.tasks.some(t => t.status === "wip")) {
+          const p = 0.5 + 0.5 * Math.sin(state.time * 0.14);
+          m.halo.scale.setScalar((4 + m.n.size*4.5) * 6 * (1 + 0.5 * p));
+          m.halo.material.opacity = Math.min(1, m.baseHaloOp * alpha * (1.3 + 0.7 * p));
         }
         // ruota lentamente gli anelli orbitali dei cluster head
         if (m.group.userData.orbitRing) m.group.userData.orbitRing.rotation.z += 0.003;

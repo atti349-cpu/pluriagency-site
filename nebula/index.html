@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8"/>
@@ -673,7 +673,7 @@ function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, on
 function EditorPanel({ data, onClose, onSave, editingNode, defaultConnect, defaultCluster }) {
   const isEdit = !!editingNode;
   const [tab, setTab] = useState("node");
-  const slugify = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,40);
+  const slugify = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,40);
   const [label, setLabel] = useState(editingNode?.label || "");
   const [id, setId] = useState(editingNode?.id || "");
   const [category, setCategory] = useState(editingNode?.category || "custom");
@@ -833,7 +833,7 @@ window.NodePanel = NodePanel;
 window.EditorPanel = EditorPanel;
 
 function ClusterCreator({ data, onClose, onSave }) {
-  const slugify = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,40);
+  const slugify = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,40);
   const [label, setLabel] = useState("");
   const [id, setId] = useState("");
   const [category, setCategory] = useState("custom");

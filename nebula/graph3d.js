@@ -419,7 +419,7 @@
       if (state.activeCats && !state.activeCats.has("all") && !state.activeCats.has(n.category)) return false;
       if (state.activeClusters && !state.activeClusters.has("all")) {
         // Il cluster head stesso: nascosto se la sua nebulosa è disattivata
-        if (n.isClusterHead && !state.activeClusters.has(n.id)) return false;
+        if (n._isHead && !state.activeClusters.has(n.id)) return false;
         // Nodo membro: nascosto se il suo cluster diretto è disattivato
         if (n.cluster && !state.activeClusters.has(n.cluster)) return false;
       }
@@ -467,12 +467,13 @@
     function buildGraph() {
       clearGraph();
       const data = state.data;
-      // auto-flag cluster heads: ogni nodo che è 'cluster' di almeno un altro
-      const heads = new Set();
-      for (const n of data.nodes) if (n.cluster && n.cluster !== n.id) heads.add(n.cluster);
-      for (const n of data.nodes) n.isClusterHead = n.isClusterHead || heads.has(n.id);
+      // auto-flag cluster heads: non mutare data.nodes (React state) — calcolo locale
+      const headsSet = new Set();
+      for (const n of data.nodes) if (n.cluster && n.cluster !== n.id) headsSet.add(n.cluster);
 
       const { N, L } = buildSim(data.nodes, data.links);
+      // marca _isHead sui sim nodes (copie separate, non React state)
+      for (const sn of N) sn._isHead = sn.isClusterHead === true || headsSet.has(sn.id);
       state.sim = { N, L };
       // pre-warm
       for (let i = 0; i < 280; i++) stepSim(N, L, 0.6);
@@ -492,7 +493,7 @@
         const haloMat = new THREE.SpriteMaterial({ map: glowTex, color: colHex, transparent: true, opacity: 0.85, depthWrite: false, blending: THREE.AdditiveBlending });
         const halo = new THREE.Sprite(haloMat);
         const r = nodeRadius(n);
-        const haloMul = n.isClusterHead ? 11 : 6;
+        const haloMul = n._isHead ? 11 : 6;
         halo.scale.set(r*haloMul, r*haloMul, 1);
         grp.add(halo);
 
@@ -500,6 +501,7 @@
         const sphereGeo = new THREE.SphereGeometry(r, 32, 32);
         const sphereMat = new THREE.MeshBasicMaterial({ color: colHex, transparent: true, opacity: 0.32 });
         const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+        sphere.userData.nodeId = n.id;
         grp.add(sphere);
 
         // inner bright core
@@ -516,7 +518,7 @@
 
         // anello orbitale per cluster head
         let orbitRing = null;
-        if (n.isClusterHead) {
+        if (n._isHead) {
           const orbitGeo = new THREE.RingGeometry(r * 4, r * 4.2, 96);
           const orbitMat = new THREE.MeshBasicMaterial({ color: colHex, transparent: true, opacity: 0.25, side: THREE.DoubleSide, depthWrite: false });
           orbitRing = new THREE.Mesh(orbitGeo, orbitMat);
@@ -533,6 +535,16 @@
         }
         grp.userData.orbitRing = orbitRing;
 
+        // sfera hit invisibile più grande per cluster head (rende draggabile l'intera area visiva)
+        let hitSphere = null;
+        if (n._isHead) {
+          const hitGeo = new THREE.SphereGeometry(r * 4.5, 8, 8);
+          const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+          hitSphere = new THREE.Mesh(hitGeo, hitMat);
+          hitSphere.userData.nodeId = n.id;
+          grp.add(hitSphere);
+        }
+
         // label
         const label = makeLabelSprite(n.label, colHex);
         label.position.set(0, r + 14, 0);
@@ -540,7 +552,7 @@
 
         grp.position.set(n.x, n.y, n.z);
         graphGroup.add(grp);
-        state.nodeMeshes.set(n.id, { group: grp, sphere, halo, core, ring, label, n, baseHaloOp: 0.85, baseSphereOp: 0.32 });
+        state.nodeMeshes.set(n.id, { group: grp, sphere, halo, core, ring, label, hitSphere, n, baseHaloOp: 0.85, baseSphereOp: 0.32 });
       }
 
       // Links
@@ -630,15 +642,21 @@
     }
     function pickNode() {
       raycaster.setFromCamera(pointer, camera);
-      // collect all sphere meshes
+      // raccoglie sfera visibile + sfera hit grande (cluster head)
       const candidates = [];
-      for (const m of state.nodeMeshes.values()) candidates.push(m.sphere);
+      for (const m of state.nodeMeshes.values()) {
+        if (m.hitSphere) candidates.push(m.hitSphere);
+        candidates.push(m.sphere);
+      }
       const hits = raycaster.intersectObjects(candidates, false);
       if (hits.length > 0) {
-        // walk up to find group with nodeId
-        let o = hits[0].object;
-        while (o && !o.userData.nodeId) o = o.parent;
-        return o;
+        // sphere.userData.nodeId è già impostato direttamente
+        const o = hits[0].object;
+        if (o.userData.nodeId) return o;
+        // fallback: traversa il parent (per sicurezza)
+        let p = o.parent;
+        while (p && !p.userData.nodeId) p = p.parent;
+        return p;
       }
       return null;
     }

@@ -240,6 +240,8 @@
     };
     const onPointerMove = (e) => {
       if (!isDragging) return;
+      // Non ruotare mentre si fa pinch (2 dita) — gestito da onTouchMove
+      if (_pinchDist !== null) return;
       const dx = e.clientX - lastX;
       const dy = e.clientY - lastY;
       lastX = e.clientX; lastY = e.clientY;
@@ -311,17 +313,38 @@
     dom.addEventListener("auxclick", onAuxClick);
     dom.addEventListener("mousedown", onMouseDownNative);
 
-    // Pinch-to-zoom su touch (due dita)
+    // Pinch-to-zoom + pan a 2 dita
     let _pinchDist = null;
-    const onTouchStart = (e) => { if (e.touches.length === 2) _pinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); };
+    let _pinchCenter = null;
+    const onTouchStart = (e) => {
+      if (e.touches.length === 2) {
+        _pinchDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+        _pinchCenter = { x:(e.touches[0].clientX+e.touches[1].clientX)/2, y:(e.touches[0].clientY+e.touches[1].clientY)/2 };
+      }
+    };
     const onTouchMove = (e) => {
       if (e.touches.length !== 2 || _pinchDist === null) return;
       e.preventDefault();
-      const newDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      const newDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+      const newCenter = { x:(e.touches[0].clientX+e.touches[1].clientX)/2, y:(e.touches[0].clientY+e.touches[1].clientY)/2 };
+      // Zoom da distanza tra le dita
       radiusDelta += (_pinchDist - newDist) * 0.55;
+      // Pan dal movimento del centro
+      const pdx = newCenter.x - _pinchCenter.x;
+      const pdy = newCenter.y - _pinchCenter.y;
+      if (Math.abs(pdx) > 0.3 || Math.abs(pdy) > 0.3) {
+        const dist = camera.position.distanceTo(target);
+        const fov = camera.fov * Math.PI / 180;
+        const factor = (2 * dist * Math.tan(fov/2)) / dom.clientHeight;
+        const xA = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0);
+        const yA = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 1);
+        panOffset.addScaledVector(xA, -pdx * factor * panSpeed);
+        panOffset.addScaledVector(yA,  pdy * factor * panSpeed);
+      }
       _pinchDist = newDist;
+      _pinchCenter = newCenter;
     };
-    const onTouchEnd = (e) => { if (e.touches.length < 2) _pinchDist = null; };
+    const onTouchEnd = (e) => { if (e.touches.length < 2) { _pinchDist = null; _pinchCenter = null; } };
     dom.addEventListener("touchstart", onTouchStart, { passive: true });
     dom.addEventListener("touchmove", onTouchMove, { passive: false });
     dom.addEventListener("touchend", onTouchEnd);
@@ -465,6 +488,14 @@
     }
 
     function buildGraph() {
+      // Salva posizioni correnti prima del rebuild — evita che i nodi volino via
+      const savedPos = new Map();
+      if (state.sim) {
+        for (const n of state.sim.N) {
+          if (n.x !== undefined) savedPos.set(n.id, { x: n.x, y: n.y, z: n.z, fx: n.fx, fy: n.fy, fz: n.fz });
+        }
+      }
+
       clearGraph();
       const data = state.data;
       // auto-flag cluster heads: non mutare data.nodes (React state) — calcolo locale
@@ -474,9 +505,17 @@
       const { N, L } = buildSim(data.nodes, data.links);
       // marca _isHead sui sim nodes (copie separate, non React state)
       for (const sn of N) sn._isHead = sn.isClusterHead === true || headsSet.has(sn.id);
+
+      // Ripristina posizioni per i nodi già esistenti
+      let restored = 0;
+      for (const sn of N) {
+        const s = savedPos.get(sn.id);
+        if (s) { sn.x=s.x; sn.y=s.y; sn.z=s.z; sn.vx=0; sn.vy=0; sn.vz=0; sn.fx=s.fx; sn.fy=s.fy; sn.fz=s.fz; restored++; }
+      }
       state.sim = { N, L };
-      // pre-warm
-      for (let i = 0; i < 280; i++) stepSim(N, L, 0.6);
+      // Pre-warm ridotto se tutti i nodi avevano già una posizione
+      const warmSteps = restored === N.length ? 5 : 280;
+      for (let i = 0; i < warmSteps; i++) stepSim(N, L, 0.6);
 
       const glowTex = makeGlowTexture();
 
@@ -686,6 +725,8 @@
       }
     });
     renderer.domElement.addEventListener("pointerdown", (e) => {
+      // Ignora il 2° dito in un pinch touch (non-primary) — gestito da onTouchMove
+      if (e.pointerType === 'touch' && !e.isPrimary) return;
       mouseDownPos = { x: e.clientX, y: e.clientY, button: e.button };
       if (e.button === 0) {
         const rect = renderer.domElement.getBoundingClientRect();
@@ -717,8 +758,8 @@
       }
     });
     renderer.domElement.addEventListener("pointerup", (e) => {
+      if (e.pointerType === 'touch' && !e.isPrimary) return;
       if (dragNode) {
-        // rilascia il nodo: lascia "fx" se è stato spostato (ancora pinnato dove l'utente lo lascia)
         dragNode = null;
         renderer.domElement.style.cursor = "grab";
       }

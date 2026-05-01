@@ -2720,12 +2720,13 @@ function openPvModal(id){
       ? `<span style="margin-left:5px;font-size:.47rem;border:1px solid rgba(155,92,255,.4);color:var(--v2);padding:1px 4px;vertical-align:middle">↻ ANNUALE</span>` : '';
     const priceSuffix = it.monthly ? ' <span style="font-size:.6rem;color:var(--muted)">/mese</span>' : it.yearly ? ' <span style="font-size:.6rem;color:var(--muted)">/anno</span>' : '';
     const descRow = it.description ? `<tr><td colspan="4" style="padding:.1rem .6rem .5rem 1.5rem;font-size:.68rem;color:var(--muted);font-style:italic;border-bottom:none">Costo Orario — ${escHtml(it.description)}</td></tr>` : '';
+    const noteRow = it.note ? `<tr><td colspan="4" style="padding:.1rem .6rem .45rem 1.5rem;font-size:.68rem;color:var(--muted);font-style:italic;border-bottom:none">↳ ${escHtml(it.note)}</td></tr>` : '';
     return `<tr${rowStyle}>
       <td>${it.name}${recLabel}${inOrdine ? ' <span style="font-size:.48rem;color:#00cfff;border:1px solid rgba(0,207,255,.4);padding:1px 4px;letter-spacing:.05em">ORDINE</span>' : ''}</td>
       <td style="text-align:center">${it.qty||1}</td>
       <td>${(it.unit_price||0).toLocaleString('it-IT')} €${priceSuffix}</td>
       <td>${(it.total||0).toLocaleString('it-IT')} €</td>
-    </tr>${descRow}`;
+    </tr>${noteRow}${descRow}`;
   }).join('');
 
   // Cerca se esiste già un progetto collegato a questo preventivo
@@ -2933,6 +2934,14 @@ function renderPvEditList(){
         <span style="font-family:'Share Tech Mono',monospace;font-size:.52rem;color:var(--muted)">%</span>
       </div>
       <button class="pv-edit-item-rm" onclick="pvRemoveItem(${i})">✕</button>
+      <div style="grid-column:1/-1;margin-top:.1rem;padding:0 2px" onclick="event.stopPropagation()">
+        <input type="text" placeholder="✎ aggiungi dettaglio al pacchetto..." value="${escHtml(it.note||'')}"
+          style="width:100%;box-sizing:border-box;font-family:'Share Tech Mono',monospace;font-size:.56rem;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--muted);padding:3px 0;outline:none;letter-spacing:.03em;transition:border-color .15s,color .15s"
+          onfocus="this.style.borderBottomColor='var(--g1)';this.style.color='var(--text)'"
+          onblur="this.style.borderBottomColor='var(--border)';this.style.color=this.value?'var(--text)':'var(--muted)'"
+          oninput="pvUpdateItemNote(${i},this.value)"
+          onchange="pvUpdateItemNote(${i},this.value)">
+      </div>
       ${descField}
     </div>`;
   }).join('');
@@ -2957,6 +2966,11 @@ function pvUpdateItemDiscount(idx, val){
 function pvUpdateItemDesc(idx, val){
   _pvDirty = true;
   _pvEditItems[idx].description = val;
+}
+
+function pvUpdateItemNote(idx, val){
+  _pvDirty = true;
+  _pvEditItems[idx].note = val;
 }
 
 function pvRemoveItem(idx){
@@ -5806,6 +5820,14 @@ function preventivoGeneraPDF(pvId){
     doc.text(priceStr,pageW-40,y,{align:'right'});
     doc.text(`${(it.total||0).toLocaleString('it-IT')} €`,pageW-15,y,{align:'right'});
     y+=7;
+    if(it.note){
+      if(y>262){ doc.addPage(); y=20; }
+      doc.setFontSize(7.5); doc.setFont('helvetica','italic'); doc.setTextColor(100,100,100);
+      const noteLines = doc.splitTextToSize(it.note, pageW-48);
+      noteLines.forEach(line => { if(y>268){ doc.addPage(); y=20; } doc.text(line,22,y); y+=4; });
+      y+=1;
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(20,20,20);
+    }
     if(it.description){
       if(y>262){ doc.addPage(); y=20; }
       doc.setFontSize(7.5); doc.setFont('helvetica','italic'); doc.setTextColor(120,120,120);

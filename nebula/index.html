@@ -536,11 +536,9 @@ function Sidebar({ data, activeCats, setActiveCats, activeClusters, setActiveClu
   };
   const isClusterActive = (id) => activeClusters.has("all") || activeClusters.has(id);
 
-  const clusterHeads = useMemo(() => {
-    const ids = new Set();
-    for (const n of data.nodes) if (n.cluster && n.cluster !== n.id) ids.add(n.cluster);
-    return [...ids].map(id => data.nodes.find(n => n.id === id)).filter(Boolean);
-  }, [data]);
+  // Solo nodi esplicitamente creati come sotto-nebulosa (isClusterHead:true)
+  // I pianeti normali che hanno figli NON compaiono qui
+  const clusterHeads = useMemo(() => data.nodes.filter(n => n.isClusterHead === true), [data]);
 
   return (
     <div className={`panel sidebar${isOpen ? " open" : ""}`}>
@@ -555,8 +553,10 @@ function Sidebar({ data, activeCats, setActiveCats, activeClusters, setActiveClu
         <div className="count-row main" onClick={() => toggle("all")}>
           <span className="dot" style={{background:"#fff"}}/>
           <span>Tutti i nodi</span>
-          <span className="num">{totals.nodes}</span>
-          <button className="hide-all-btn" onClick={e => { e.stopPropagation(); setActiveCats(new Set()); }} title="Nascondi tutti">⊘</button>
+          <div style={{display:"flex",alignItems:"center",gap:"6px",marginLeft:"auto"}}>
+            <span className="num">{totals.nodes}</span>
+            <button className="hide-all-btn" onClick={e => { e.stopPropagation(); setActiveCats(new Set()); setActiveClusters(new Set()); }} title="Nascondi tutti">⊘</button>
+          </div>
         </div>
         {cats.filter(([k]) => k !== "hub").map(([k, c]) => (
           <div key={k} className={`count-row ${isActive(k) ? "on" : "off"}`} onClick={() => toggle(k)}>
@@ -651,7 +651,9 @@ function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, on
   const [urlValue, setUrlValue] = React.useState(node.url || "");
   const [taskInput, setTaskInput] = React.useState("");
   const [doneOpen, setDoneOpen] = React.useState(false);
-  React.useEffect(() => { setUrlValue(node.url || ""); setUrlEdit(false); setTaskInput(""); setDoneOpen(false); }, [node.id]);
+  const [editingTaskId, setEditingTaskId] = React.useState(null);
+  const [editingTaskText, setEditingTaskText] = React.useState("");
+  React.useEffect(() => { setUrlValue(node.url || ""); setUrlEdit(false); setTaskInput(""); setDoneOpen(false); setEditingTaskId(null); }, [node.id]);
 
   const _gid = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
   const tasks = node.tasks || [];
@@ -667,6 +669,9 @@ function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, on
   const toggleWip = (id) => onSaveTask(node.id, tasks.map(t => t.id === id ? { ...t, status: t.status === "wip" ? "todo" : "wip" } : t));
   const markDone = (id) => onSaveTask(node.id, tasks.map(t => t.id === id ? { ...t, status: "done" } : t));
   const restoreTask = (id) => onSaveTask(node.id, tasks.map(t => t.id === id ? { ...t, status: "todo" } : t));
+  const startEditTask = (t) => { setEditingTaskId(t.id); setEditingTaskText(t.text); };
+  const saveEditTask = (id) => { if (editingTaskText.trim()) onSaveTask(node.id, tasks.map(t => t.id === id ? { ...t, text: editingTaskText.trim() } : t)); setEditingTaskId(null); };
+  const deleteTask = (id) => onSaveTask(node.id, tasks.filter(t => t.id !== id));
   const confirmUrl = () => { onSaveUrl(node.id, urlValue); setUrlEdit(false); };
   const cancelUrl  = () => { setUrlEdit(false); setUrlValue(node.url || ""); };
   const conns = data.links
@@ -728,9 +733,21 @@ function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, on
         </div>
         {activeTasks.map(t => (
           <div key={t.id} className="task-row">
-            <span className={`task-text${t.status === "wip" ? " wip" : ""}`}>{t.text}</span>
+            {editingTaskId === t.id ? (
+              <input className="task-input" style={{fontSize:"11px",padding:"3px 8px"}} value={editingTaskText}
+                autoFocus
+                onChange={e => setEditingTaskText(e.target.value)}
+                onKeyDown={e => { if(e.key==="Enter") saveEditTask(t.id); if(e.key==="Escape") setEditingTaskId(null); }}
+                onBlur={() => saveEditTask(t.id)}/>
+            ) : (
+              <span className={`task-text${t.status === "wip" ? " wip" : ""}`}
+                onClick={() => startEditTask(t)} title="Clicca per modificare" style={{cursor:"text"}}>
+                {t.text}
+              </span>
+            )}
             <button className={`task-wip-btn${t.status === "wip" ? " active" : ""}`} onClick={() => toggleWip(t.id)} title="In lavorazione">▶</button>
             <button className="task-done-btn" onClick={() => markDone(t.id)} title="Segna come fatta">✓</button>
+            <button className="task-restore-btn" onClick={() => deleteTask(t.id)} title="Elimina task" style={{color:"rgba(255,80,80,0.5)"}}>✕</button>
           </div>
         ))}
         {doneTasks.length > 0 && (
@@ -1235,7 +1252,7 @@ function App() {
           data={data}
           editingNode={editingNode}
           defaultConnect={selectedId}
-          defaultCluster={editingNode ? undefined : selectedId}
+          defaultCluster={editingNode ? undefined : (selectedNode?.isClusterHead ? selectedNode.id : selectedNode?.cluster || undefined)}
           onClose={() => { setEditorOpen(false); setEditingNode(null); }}
           onSave={handleSave}
         />

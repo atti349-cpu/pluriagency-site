@@ -311,6 +311,21 @@
     dom.addEventListener("auxclick", onAuxClick);
     dom.addEventListener("mousedown", onMouseDownNative);
 
+    // Pinch-to-zoom su touch (due dita)
+    let _pinchDist = null;
+    const onTouchStart = (e) => { if (e.touches.length === 2) _pinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); };
+    const onTouchMove = (e) => {
+      if (e.touches.length !== 2 || _pinchDist === null) return;
+      e.preventDefault();
+      const newDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      radiusDelta += (_pinchDist - newDist) * 0.55;
+      _pinchDist = newDist;
+    };
+    const onTouchEnd = (e) => { if (e.touches.length < 2) _pinchDist = null; };
+    dom.addEventListener("touchstart", onTouchStart, { passive: true });
+    dom.addEventListener("touchmove", onTouchMove, { passive: false });
+    dom.addEventListener("touchend", onTouchEnd);
+
     const controls = {
       target,
       _isDragging: false,
@@ -343,6 +358,9 @@
         dom.removeEventListener("contextmenu", onContext);
         dom.removeEventListener("auxclick", onAuxClick);
         dom.removeEventListener("mousedown", onMouseDownNative);
+        dom.removeEventListener("touchstart", onTouchStart);
+        dom.removeEventListener("touchmove", onTouchMove);
+        dom.removeEventListener("touchend", onTouchEnd);
       }
     };
     return controls;
@@ -351,7 +369,7 @@
   // ---------- Main ----------
   function init({ container, onSelect, onHover }) {
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x05060f, 0.0008);
+    scene.fog = new THREE.FogExp2(0x05060f, 0.00042);
 
     const camera = new THREE.PerspectiveCamera(55, container.clientWidth / container.clientHeight, 1, 5000);
     camera.position.set(0, 80, 700);
@@ -781,8 +799,8 @@
         // pulse for nodes with WIP tasks — halo più grande e luminoso
         if (m.n.tasks && m.n.tasks.some(t => t.status === "wip")) {
           const p = 0.5 + 0.5 * Math.sin(state.time * 0.14);
-          m.halo.scale.setScalar((4 + m.n.size*4.5) * 6 * (1 + 0.5 * p));
-          m.halo.material.opacity = Math.min(1, m.baseHaloOp * alpha * (1.3 + 0.7 * p));
+          m.halo.scale.setScalar((4 + m.n.size*4.5) * 6 * (1 + 0.9 * p));
+          m.halo.material.opacity = Math.min(1, m.baseHaloOp * alpha * (1.6 + 1.0 * p));
         }
         // ruota lentamente gli anelli orbitali dei cluster head
         if (m.group.userData.orbitRing) m.group.userData.orbitRing.rotation.z += 0.003;

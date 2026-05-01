@@ -536,9 +536,12 @@ function Sidebar({ data, activeCats, setActiveCats, activeClusters, setActiveClu
   };
   const isClusterActive = (id) => activeClusters.has("all") || activeClusters.has(id);
 
-  // Solo nodi esplicitamente creati come sotto-nebulosa (isClusterHead:true)
-  // I pianeti normali che hanno figli NON compaiono qui
-  const clusterHeads = useMemo(() => data.nodes.filter(n => n.isClusterHead === true), [data]);
+  // Solo nebulose top-level: isClusterHead:true E senza un cluster padre
+  // GIT (cluster:pluriagency), THINKR (cluster:startup), LORENZO_C/PLURI_C (cluster:clienti)
+  // vengono esclusi — compaiono quando si filtra la loro galassia madre
+  const clusterHeads = useMemo(() =>
+    data.nodes.filter(n => n.isClusterHead === true && (!n.cluster || n.cluster === n.id)),
+  [data]);
 
   return (
     <div className={`panel sidebar${isOpen ? " open" : ""}`}>

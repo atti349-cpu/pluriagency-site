@@ -441,10 +441,9 @@
     function isVisible(n) {
       if (state.activeCats && !state.activeCats.has("all") && !state.activeCats.has(n.category)) return false;
       if (state.activeClusters && !state.activeClusters.has("all")) {
-        // Il cluster head stesso: nascosto se la sua nebulosa è disattivata
-        if (n._isHead && !state.activeClusters.has(n.id)) return false;
-        // Nodo membro: nascosto se il suo cluster diretto è disattivato
-        if (n.cluster && !state.activeClusters.has(n.cluster)) return false;
+        // Controlla l'antenato top-level: se STARTUP è attivo, mostra anche THINKR e ADMIN_T
+        const topCluster = state.ancestorMap?.get(n.id) || n.id;
+        if (!state.activeClusters.has(topCluster)) return false;
       }
       if (state.searchQuery) {
         const q = state.searchQuery.toLowerCase();
@@ -513,6 +512,21 @@
         if (s) { sn.x=s.x; sn.y=s.y; sn.z=s.z; sn.vx=0; sn.vy=0; sn.vz=0; sn.fx=s.fx; sn.fy=s.fy; sn.fz=s.fz; restored++; }
       }
       state.sim = { N, L };
+
+      // Mappa antenato: ogni nodo → id del cluster top-level (radice senza padre)
+      // es. admin_t → startup, thinkr → startup, git → pluriagency
+      const nodeById = new Map(data.nodes.map(n => [n.id, n]));
+      const getTopAncestor = (id, visited = new Set()) => {
+        if (visited.has(id)) return id;
+        visited.add(id);
+        const nd = nodeById.get(id);
+        if (!nd || !nd.cluster || nd.cluster === id) return id;
+        return getTopAncestor(nd.cluster, visited);
+      };
+      const ancestorMap = new Map();
+      for (const sn of N) ancestorMap.set(sn.id, getTopAncestor(sn.id));
+      state.ancestorMap = ancestorMap;
+
       // Pre-warm ridotto se tutti i nodi avevano già una posizione
       const warmSteps = restored === N.length ? 5 : 280;
       for (let i = 0; i < warmSteps; i++) stepSim(N, L, 0.6);

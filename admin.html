@@ -2768,7 +2768,17 @@ function openPvModal(id){
 
   // Cliente cell: unified (assign inline if not yet linked)
   const clientCell = pv.client_id
-    ? `<div class="pv-info-val">${pv.client_name}${pv.client_email ? `<br><span style="font-size:.72rem;color:var(--muted)">${pv.client_email}</span>` : ''}<br><span style="font-size:.62rem;color:var(--g1)">✓ collegato</span></div>`
+    ? `<div class="pv-info-val">
+        <span style="font-size:.82rem">${pv.client_name}</span>
+        <div style="display:flex;gap:.3rem;align-items:center;margin-top:.35rem">
+          <input id="pv-client-email-input" class="field-input" type="email"
+            value="${escHtml(pv.client_email||'')}" placeholder="email referente"
+            style="font-size:.6rem;padding:.28rem .5rem;flex:1;min-width:0"
+            onkeydown="if(event.key==='Enter') pvUpdateClientEmail('${id}')">
+          <button class="btn-ghost" style="font-size:.5rem;padding:.3rem .55rem;white-space:nowrap" onclick="pvUpdateClientEmail('${id}')">✓</button>
+        </div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:.52rem;color:var(--g1);margin-top:.25rem">✓ collegato</div>
+      </div>`
     : `<div class="pv-info-val" style="padding-top:.2rem">
         <div style="display:flex;gap:.35rem;align-items:center">
           <input id="pv-assign-client-input" class="field-input" type="email" placeholder="email@cliente.it" style="font-size:.6rem;padding:.35rem .5rem;flex:1;min-width:0">
@@ -3889,6 +3899,20 @@ async function saveNuovoPv(status){
   }
   if(msgEl) msgEl.textContent = `✓ Preventivo salvato (ID: ${json.id})`;
   setTimeout(() => { toggleNewPvForm(); loadPreventivi(); }, 1200);
+}
+
+// Aggiorna email referente direttamente sul preventivo (senza cambiare cliente collegato)
+async function pvUpdateClientEmail(pvId){
+  const input = document.getElementById('pv-client-email-input');
+  if(!input) return;
+  const email = input.value.trim();
+  const { error } = await _sb.from('preventivi')
+    .update({ client_email: email || null, updated_at: new Date().toISOString() })
+    .eq('id', pvId);
+  if(error){ alert('Errore: ' + error.message); return; }
+  _preventiviMap[pvId].client_email = email || null;
+  input.style.borderColor = 'var(--g1)';
+  setTimeout(() => { if(input) input.style.borderColor = ''; }, 1400);
 }
 
 // ===== ASSEGNA CLIENTE + COLLABORATORI (modal preventivo) =====

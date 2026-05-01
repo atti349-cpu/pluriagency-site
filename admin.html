@@ -2708,6 +2708,8 @@ function openPvModal(id){
     if(!(it.discount_pct>0)) return s;
     return s + (Math.round((it.unit_price||0)*(it.qty||1)) - (it.total||0));
   }, 0);
+  const imponibile_val = (pv.total||0) - (pv.iva_amount||0);
+  const imponibile_fmt = imponibile_val.toLocaleString('it-IT',{style:'currency',currency:'EUR'});
   const date      = new Date(pv.created_at).toLocaleDateString('it-IT');
   const isLocked  = pv.status === 'venduto';
   const isOrdine  = pv.status === 'ordine';
@@ -2822,9 +2824,12 @@ function openPvModal(id){
         <div><div class="pv-total-label">Sconto ${pv.discount_pct}%</div><div style="font-family:'Share Tech Mono',monospace;font-size:.85rem;color:var(--red)">-${(pv.discount_amount||0).toLocaleString('it-IT')} EUR</div></div>
       ` : ''}
       ${pv.iva_pct > 0 ? `
+        <div><div class="pv-total-label">Imponibile</div><div style="font-family:'Share Tech Mono',monospace;font-size:.85rem;color:var(--text)">${imponibile_fmt}</div></div>
         <div><div class="pv-total-label">IVA ${pv.iva_pct}%</div><div style="font-family:'Share Tech Mono',monospace;font-size:.85rem;color:var(--g3)">+${(pv.iva_amount||0).toLocaleString('it-IT')} EUR</div></div>
-      ` : ''}
-      <div><div class="pv-total-label">${pv.iva_pct > 0 ? 'TOTALE IVA INCLUSA' : 'TOTALE'}</div><div class="pv-total-val">${total}</div></div>
+        <div><div class="pv-total-label">TOTALE IVA INCLUSA</div><div class="pv-total-val">${total}</div></div>
+      ` : `
+        <div><div class="pv-total-label">TOTALE</div><div class="pv-total-val">${total}</div></div>
+      `}
     </div>
 
     ${pv.notes ? `<div class="pv-info-key" style="margin-bottom:.4rem;margin-top:1rem">Note preventivo</div><div class="pv-notes-box">${pv.notes.replace(/</g,'&lt;')}</div>` : ''}
@@ -2949,7 +2954,10 @@ function renderPvEditList(){
       ondragend="pvDragEnd()">
       <span class="pv-drag-handle" title="Trascina per riordinare">⠿</span>
       <span style="color:var(--text)">${it.name}${newBadge}${recBadge}</span>
-      <span style="color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:.62rem">×${it.qty||1}</span>
+      <div style="display:flex;align-items:center;gap:2px" onclick="event.stopPropagation()">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:.52rem;color:var(--muted)">×</span>
+        <input type="number" min="1" value="${it.qty||1}" style="width:38px;background:var(--panel2);border:1px solid var(--border2);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:2px 4px;text-align:center" oninput="pvUpdateItemQty(${i},this.value)" onchange="pvUpdateItemQty(${i},this.value)" title="Quantità">
+      </div>
       <input type="number" min="0" value="${unitPrice}" style="width:68px;background:var(--panel2);border:1px solid var(--border2);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:2px 6px;text-align:right" onclick="event.stopPropagation()" oninput="pvUpdateItemPrice(${i},this.value)" onchange="pvUpdateItemPrice(${i},this.value)" title="Prezzo unitario">
       <span style="font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--muted)">€</span>
       <div style="display:flex;align-items:center;gap:2px" onclick="event.stopPropagation()">
@@ -2970,6 +2978,15 @@ function renderPvEditList(){
       ${descField}
     </div>`;
   }).join('');
+}
+
+function pvUpdateItemQty(idx, val){
+  _pvDirty = true;
+  const qty = Math.max(1, parseInt(val)||1);
+  _pvEditItems[idx].qty = qty;
+  const price = _pvEditItems[idx].unit_price || 0;
+  const disc = _pvEditItems[idx].discount_pct || 0;
+  _pvEditItems[idx].total = Math.round(price * qty * (1 - disc/100));
 }
 
 function pvUpdateItemPrice(idx, val){
@@ -5851,7 +5868,7 @@ function preventivoGeneraPDF(pvId){
     const nm = fullName.length>52 ? fullName.slice(0,50)+'…' : fullName;
     doc.text(nm,18,y);
     doc.text(String(it.qty||1),pageW-58,y,{align:'center'});
-    const priceStr = `${(it.unit_price||0).toLocaleString('it-IT')} €${it.monthly?'/mese':it.yearly?'/anno':''}`;
+    const priceStr = `${(it.unit_price||0).toLocaleString('it-IT')} €`;
     doc.text(priceStr,pageW-40,y,{align:'right'});
     doc.text(`${(it.total||0).toLocaleString('it-IT')} €`,pageW-15,y,{align:'right'});
     y+=7;
@@ -5899,6 +5916,9 @@ function preventivoGeneraPDF(pvId){
   }
   if(pv.iva_pct>0){
     totalFont();
+    const imp = (pv.total||0) - (pv.iva_amount||0);
+    doc.text('Imponibile:',pageW-72,y);
+    doc.text(`${imp.toLocaleString('it-IT')} €`,tx,y,{align:'right'}); y+=6;
     doc.text(`IVA ${pv.iva_pct}%:`,pageW-72,y);
     doc.text(`+${(pv.iva_amount||0).toLocaleString('it-IT')} €`,tx,y,{align:'right'}); y+=6;
   }

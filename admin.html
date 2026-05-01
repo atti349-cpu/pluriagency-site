@@ -2704,6 +2704,10 @@ function openPvModal(id){
 
   const total     = (pv.total||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
   const subtotal  = (pv.subtotal||0).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
+  const itemDiscSavings = (pv.items||[]).reduce((s,it) => {
+    if(!(it.discount_pct>0)) return s;
+    return s + (Math.round((it.unit_price||0)*(it.qty||1)) - (it.total||0));
+  }, 0);
   const date      = new Date(pv.created_at).toLocaleDateString('it-IT');
   const isLocked  = pv.status === 'venduto';
   const isOrdine  = pv.status === 'ordine';
@@ -2719,13 +2723,19 @@ function openPvModal(id){
       : it.yearly
       ? `<span style="margin-left:5px;font-size:.47rem;border:1px solid rgba(155,92,255,.4);color:var(--v2);padding:1px 4px;vertical-align:middle">↻ ANNUALE</span>` : '';
     const priceSuffix = it.monthly ? ' <span style="font-size:.6rem;color:var(--muted)">/mese</span>' : it.yearly ? ' <span style="font-size:.6rem;color:var(--muted)">/anno</span>' : '';
+    const discBadge = (it.discount_pct||0)>0
+      ? `<span style="margin-left:5px;font-size:.47rem;border:1px solid rgba(255,70,70,.4);color:var(--red);padding:1px 4px;vertical-align:middle">-${it.discount_pct}%</span>` : '';
+    const origTotal = Math.round((it.unit_price||0)*(it.qty||1));
+    const totalCell = (it.discount_pct||0)>0
+      ? `<del style="font-size:.65rem;color:var(--muted);opacity:.65;display:block;line-height:1.3">${origTotal.toLocaleString('it-IT')} €</del>${(it.total||0).toLocaleString('it-IT')} €`
+      : `${(it.total||0).toLocaleString('it-IT')} €`;
     const descRow = it.description ? `<tr><td colspan="4" style="padding:.1rem .6rem .5rem 1.5rem;font-size:.68rem;color:var(--muted);font-style:italic;border-bottom:none">Costo Orario — ${escHtml(it.description)}</td></tr>` : '';
     const noteRow = it.note ? `<tr><td colspan="4" style="padding:.1rem .6rem .45rem 1.5rem;font-size:.68rem;color:var(--muted);font-style:italic;border-bottom:none">↳ ${escHtml(it.note)}</td></tr>` : '';
     return `<tr${rowStyle}>
-      <td>${it.name}${recLabel}${inOrdine ? ' <span style="font-size:.48rem;color:#00cfff;border:1px solid rgba(0,207,255,.4);padding:1px 4px;letter-spacing:.05em">ORDINE</span>' : ''}</td>
+      <td>${it.name}${recLabel}${discBadge}${inOrdine ? ' <span style="font-size:.48rem;color:#00cfff;border:1px solid rgba(0,207,255,.4);padding:1px 4px;letter-spacing:.05em">ORDINE</span>' : ''}</td>
       <td style="text-align:center">${it.qty||1}</td>
       <td>${(it.unit_price||0).toLocaleString('it-IT')} €${priceSuffix}</td>
-      <td>${(it.total||0).toLocaleString('it-IT')} €</td>
+      <td>${totalCell}</td>
     </tr>${noteRow}${descRow}`;
   }).join('');
 
@@ -2802,8 +2812,13 @@ function openPvModal(id){
     </table>
 
     <div class="pv-total-row">
-      ${pv.discount_pct > 0 ? `
+      ${(itemDiscSavings > 0 || pv.discount_pct > 0) ? `
         <div><div class="pv-total-label">Subtotale</div><div style="font-family:'Orbitron',monospace;font-size:.85rem;color:var(--text)">${subtotal}</div></div>
+      ` : ''}
+      ${itemDiscSavings > 0 ? `
+        <div><div class="pv-total-label">Sconti articoli</div><div style="font-family:'Share Tech Mono',monospace;font-size:.85rem;color:var(--red)">-${itemDiscSavings.toLocaleString('it-IT')} EUR</div></div>
+      ` : ''}
+      ${pv.discount_pct > 0 ? `
         <div><div class="pv-total-label">Sconto ${pv.discount_pct}%</div><div style="font-family:'Share Tech Mono',monospace;font-size:.85rem;color:var(--red)">-${(pv.discount_amount||0).toLocaleString('it-IT')} EUR</div></div>
       ` : ''}
       ${pv.iva_pct > 0 ? `
@@ -2907,6 +2922,15 @@ function renderPvEditList(){
                    : it.yearly  ? `<span style="margin-left:4px;font-size:.5rem;border:1px solid rgba(155,92,255,.5);color:var(--v2);padding:1px 4px">ANNUALE</span>` : '';
     const unitPrice = it.unit_price || it.total || 0;
     const discPct = it.discount_pct || 0;
+    const lineFull = Math.round(unitPrice * (it.qty||1));
+    const lineNet  = Math.round(lineFull * (1 - discPct/100));
+    const discSummary = discPct > 0 ? `
+      <div style="grid-column:1/-1;display:flex;justify-content:flex-end;align-items:center;gap:5px;padding:1px 6px 3px;font-family:'Share Tech Mono',monospace;font-size:.55rem">
+        <del style="color:var(--muted);opacity:.7">${lineFull.toLocaleString('it-IT')} €</del>
+        <span style="color:var(--muted)">→</span>
+        <span style="color:var(--g1);font-weight:bold">${lineNet.toLocaleString('it-IT')} €</span>
+        <span style="color:var(--red);font-size:.5rem">(-${discPct}% = −${(lineFull-lineNet).toLocaleString('it-IT')} €)</span>
+      </div>` : '';
     const isOrario = /orari[oa]/i.test(it.name) || /sviluppo/i.test(it.name);
     const descField = isOrario ? `
       <div style="grid-column:1/-1;margin-top:.2rem;display:flex;align-items:flex-start;gap:.4rem" onclick="event.stopPropagation()">
@@ -2942,6 +2966,7 @@ function renderPvEditList(){
           oninput="pvUpdateItemNote(${i},this.value)"
           onchange="pvUpdateItemNote(${i},this.value)">
       </div>
+      ${discSummary}
       ${descField}
     </div>`;
   }).join('');
@@ -3028,7 +3053,9 @@ async function pvSaveItems(pvId){
   if(!pv) return;
   const subtotal = _pvEditItems.reduce((s,it)=>s+(it.total||0),0);
   const disc = pv.discount_pct||0;
-  const discAmt = parseFloat((subtotal * disc / 100).toFixed(2));
+  // sconto globale applicato SOLO agli articoli senza sconto individuale
+  const globalBase = _pvEditItems.filter(it=>!(it.discount_pct>0)).reduce((s,it)=>s+(it.total||0),0);
+  const discAmt = parseFloat((globalBase * disc / 100).toFixed(2));
   const imponibile = subtotal - discAmt;
   // legge toggle IVA dal modal; fallback al valore salvato
   const ivaToggle = document.getElementById('pv-iva-toggle');
@@ -3764,11 +3791,16 @@ function npvSetDiscount(id, val){
 }
 
 function npvRecalc(){
-  let sub = 0;
-  Object.values(_npvSelected).forEach(s => { sub += Math.round(s.price * s.qty * (1 - (s.discount_pct||0)/100)); });
+  let sub = 0, globalBase = 0;
+  Object.values(_npvSelected).forEach(s => {
+    const lineTotal = Math.round(s.price * s.qty * (1 - (s.discount_pct||0)/100));
+    sub += lineTotal;
+    if(!(s.discount_pct>0)) globalBase += lineTotal;
+  });
   const disc = Math.min(25, Math.max(0, parseFloat(document.getElementById('npv-discount')?.value)||0));
   const ivaActive = document.getElementById('npv-iva')?.checked || false;
-  const saved = Math.round(sub * disc / 100);
+  // sconto globale solo su articoli senza sconto individuale
+  const saved = Math.round(globalBase * disc / 100);
   const imponibile = sub - saved;
   const ivaAmount = ivaActive ? Math.round(imponibile * 0.22) : 0;
   const total = imponibile + ivaAmount;
@@ -3817,7 +3849,9 @@ async function saveNuovoPv(status){
     sub += lineTotal;
     items.push({id: item.id, name: item.name, qty, unit_price: price, discount_pct: disc, total: lineTotal, monthly: !!item.monthly, yearly: !!item.yearly});
   });
-  const disc_amount = Math.round(sub * disc / 100);
+  // sconto globale solo su articoli senza sconto individuale
+  const globalEligible = items.filter(it=>!(it.discount_pct>0)).reduce((s,it)=>s+(it.total||0),0);
+  const disc_amount = Math.round(globalEligible * disc / 100);
   const imponibile = sub - disc_amount;
   const iva_pct = ivaActive ? 22 : 0;
   const iva_amount = ivaActive ? Math.round(imponibile * 0.22) : 0;
@@ -5812,7 +5846,8 @@ function preventivoGeneraPDF(pvId){
     if(idx%2===0){ doc.setFillColor(252,252,252); doc.rect(15,y-4,pageW-30,7,'F'); }
     doc.setFontSize(9);
     const recTag = it.monthly ? ' (mensile)' : it.yearly ? ' (annuale)' : '';
-    const fullName = it.name + recTag;
+    const discTag = (it.discount_pct||0)>0 ? ` [-${it.discount_pct}%]` : '';
+    const fullName = it.name + recTag + discTag;
     const nm = fullName.length>52 ? fullName.slice(0,50)+'…' : fullName;
     doc.text(nm,18,y);
     doc.text(String(it.qty||1),pageW-58,y,{align:'center'});
@@ -5843,11 +5878,22 @@ function preventivoGeneraPDF(pvId){
   // Totals
   const tx=pageW-15;
   const totalFont=()=>{ doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80); };
-  if(pv.discount_pct>0){
+  const pdfItemDisc = (pv.items||[]).reduce((s,it)=>{
+    if(!(it.discount_pct>0)) return s;
+    return s + (Math.round((it.unit_price||0)*(it.qty||1)) - (it.total||0));
+  }, 0);
+  if(pdfItemDisc > 0 || pv.discount_pct>0){
     totalFont();
     doc.text('Subtotale:',pageW-72,y);
     doc.text(`${(pv.subtotal||0).toLocaleString('it-IT')} €`,tx,y,{align:'right'}); y+=6;
-    doc.setTextColor(190,50,50);
+  }
+  if(pdfItemDisc > 0){
+    doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(190,50,50);
+    doc.text('Sconti articoli:',pageW-72,y);
+    doc.text(`-${pdfItemDisc.toLocaleString('it-IT')} €`,tx,y,{align:'right'}); y+=6;
+  }
+  if(pv.discount_pct>0){
+    doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(190,50,50);
     doc.text(`Sconto ${pv.discount_pct}%:`,pageW-72,y);
     doc.text(`-${(pv.discount_amount||0).toLocaleString('it-IT')} €`,tx,y,{align:'right'}); y+=6;
   }

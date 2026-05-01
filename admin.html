@@ -297,11 +297,15 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 
 /* PV EDIT ITEMS */
 .pv-edit-section{margin-top:1.25rem;border-top:1px solid var(--border);padding-top:1rem;}
-.pv-edit-item-row{display:grid;grid-template-columns:1fr auto auto auto auto auto;align-items:center;gap:.5rem;
-  padding:.4rem .5rem;border-bottom:1px solid var(--border);font-size:.75rem;}
+.pv-edit-item-row{display:grid;grid-template-columns:auto 1fr auto auto auto auto auto;align-items:center;gap:.5rem;
+  padding:.4rem .5rem;border-bottom:1px solid var(--border);font-size:.75rem;transition:background .1s;}
 .pv-edit-item-row .new-badge{font-family:'Share Tech Mono',monospace;font-size:.5rem;letter-spacing:.1em;
   background:rgba(0,255,136,.15);border:1px solid rgba(0,255,136,.4);color:var(--g1);padding:1px 5px;}
 .pv-edit-item-rm{background:none;border:none;color:var(--red);cursor:pointer;font-size:.9rem;padding:0 4px;}
+.pv-drag-handle{cursor:grab;color:var(--muted);opacity:.45;font-size:1rem;line-height:1;padding:0 3px;user-select:none;touch-action:none;}
+.pv-drag-handle:hover{opacity:1;color:var(--g1);}
+.pv-drag-handle:active{cursor:grabbing;}
+.pv-edit-item-row.drag-over{border-top:2px solid var(--g1);background:rgba(0,255,136,.06);}
 .pv-add-product-row{display:flex;gap:.4rem;margin-top:.75rem;flex-wrap:wrap;align-items:flex-end;}
 .pv-prod-search{flex:1;min-width:160px;background:var(--panel2);border:1px solid var(--border);
   color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:.45rem .7rem;outline:none;}
@@ -2864,6 +2868,30 @@ document.getElementById('pv-modal').addEventListener('click', e => {
 
 // Copia locale degli items del preventivo in editing
 let _pvEditItems = [];
+let _pvDragIdx = null;
+
+function pvDragStart(idx){ _pvDragIdx = idx; }
+function pvDragOver(e, idx){
+  e.preventDefault();
+  if(_pvDragIdx === null || _pvDragIdx === idx) return;
+  document.querySelectorAll('#pv-edit-items-list .pv-edit-item-row').forEach(r => r.classList.remove('drag-over'));
+  const el = document.querySelector(`#pv-edit-items-list .pv-edit-item-row[data-idx="${idx}"]`);
+  if(el) el.classList.add('drag-over');
+}
+function pvDragLeave(el){ el.classList.remove('drag-over'); }
+function pvDrop(targetIdx){
+  if(_pvDragIdx === null || _pvDragIdx === targetIdx){ pvDragEnd(); return; }
+  const item = _pvEditItems.splice(_pvDragIdx, 1)[0];
+  _pvEditItems.splice(targetIdx, 0, item);
+  _pvDirty = true;
+  const el = document.getElementById('pv-edit-items-list');
+  if(el) el.innerHTML = renderPvEditList();
+  pvDragEnd();
+}
+function pvDragEnd(){
+  _pvDragIdx = null;
+  document.querySelectorAll('#pv-edit-items-list .pv-edit-item-row').forEach(r => r.classList.remove('drag-over'));
+}
 
 function buildPvEditItems(pv){
   _pvEditItems = JSON.parse(JSON.stringify(pv.items || []));
@@ -2887,7 +2915,14 @@ function renderPvEditList(){
           oninput="pvUpdateItemDesc(${i},this.value)"
         >${escHtml(it.description||'')}</textarea>
       </div>` : '';
-    return `<div class="pv-edit-item-row" data-idx="${i}" style="flex-wrap:wrap">
+    return `<div class="pv-edit-item-row" data-idx="${i}" style="flex-wrap:wrap"
+      draggable="true"
+      ondragstart="pvDragStart(${i})"
+      ondragover="pvDragOver(event,${i})"
+      ondragleave="pvDragLeave(this)"
+      ondrop="pvDrop(${i})"
+      ondragend="pvDragEnd()">
+      <span class="pv-drag-handle" title="Trascina per riordinare">⠿</span>
       <span style="color:var(--text)">${it.name}${newBadge}${recBadge}</span>
       <span style="color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:.62rem">×${it.qty||1}</span>
       <input type="number" min="0" value="${unitPrice}" style="width:68px;background:var(--panel2);border:1px solid var(--border2);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:2px 6px;text-align:right" onclick="event.stopPropagation()" oninput="pvUpdateItemPrice(${i},this.value)" onchange="pvUpdateItemPrice(${i},this.value)" title="Prezzo unitario">

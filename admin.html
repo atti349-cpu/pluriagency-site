@@ -5811,9 +5811,15 @@ function preventivoGeneraPDF(pvId){
   doc.setTextColor(255,255,255);
   doc.setFontSize(9); doc.setFont('helvetica','bold');
   doc.text('PLURIAGENCY',15,8);
-  doc.text('hello@pluriagency.com  |  www.pluriagency.com',pageW-15,8,{align:'right'});
+  doc.text('www.pluriagency.com',pageW-15,8,{align:'right'});
 
-  y=22;
+  // Sub-header: dati fornitore
+  doc.setFillColor(248,245,255);
+  doc.rect(0,12,pageW,8,'F');
+  doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(110,75,170);
+  doc.text('Lorenzo Attinà  ·  P.IVA 04129241206  ·  atti349@gmail.com  ·  hello@pluriagency.com',pageW/2,17,{align:'center'});
+
+  y=26;
   doc.setTextColor(30,30,30);
   doc.setFontSize(17); doc.setFont('helvetica','bold');
   doc.text('PREVENTIVO',15,y); y+=7;
@@ -5961,7 +5967,7 @@ function preventivoGeneraPDF(pvId){
   const fY=doc.internal.pageSize.getHeight()-14;
   doc.setDrawColor(220,220,220); doc.line(15,fY-4,pageW-15,fY-4);
   doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(160,160,160);
-  doc.text('PLURIAGENCY — Bologna, Italy — hello@pluriagency.com — www.pluriagency.com',pageW/2,fY,{align:'center'});
+  doc.text('Lorenzo Attinà — P.IVA 04129241206 — atti349@gmail.com — hello@pluriagency.com — www.pluriagency.com',pageW/2,fY,{align:'center'});
   doc.text('Preventivo valido 30 giorni dalla data di emissione. Prezzi IVA esclusa salvo diversa indicazione.',pageW/2,fY+5,{align:'center'});
 
   const slug=(pv.client_name||'cliente').toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');

@@ -297,7 +297,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 
 /* PV EDIT ITEMS */
 .pv-edit-section{margin-top:1.25rem;border-top:1px solid var(--border);padding-top:1rem;}
-.pv-edit-item-row{display:grid;grid-template-columns:auto 1fr auto auto auto auto auto;align-items:center;gap:.5rem;
+.pv-edit-item-row{display:grid;grid-template-columns:auto 1fr auto auto auto auto auto auto;align-items:center;gap:.5rem;
   padding:.4rem .5rem;border-bottom:1px solid var(--border);font-size:.75rem;transition:background .1s;}
 .pv-edit-item-row .new-badge{font-family:'Share Tech Mono',monospace;font-size:.5rem;letter-spacing:.1em;
   background:rgba(0,255,136,.15);border:1px solid rgba(0,255,136,.4);color:var(--g1);padding:1px 5px;}
@@ -2965,6 +2965,7 @@ function renderPvEditList(){
         <input type="number" min="0" max="100" value="${discPct}" style="width:42px;background:var(--panel2);border:1px solid var(--border2);color:${discPct>0?'var(--g1)':'var(--muted)'};font-family:'Share Tech Mono',monospace;font-size:.6rem;padding:2px 4px;text-align:right" oninput="pvUpdateItemDiscount(${i},this.value)" onchange="pvUpdateItemDiscount(${i},this.value)" title="Sconto articolo %">
         <span style="font-family:'Share Tech Mono',monospace;font-size:.52rem;color:var(--muted)">%</span>
       </div>
+      <span style="font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--v);text-align:right;white-space:nowrap">${lineNet.toLocaleString('it-IT')} €</span>
       <button class="pv-edit-item-rm" onclick="pvRemoveItem(${i})">✕</button>
       <div style="grid-column:1/-1;margin-top:.1rem;padding:0 2px" onclick="event.stopPropagation()">
         <input type="text" placeholder="✎ aggiungi dettaglio al pacchetto..." value="${escHtml(it.note||'')}"

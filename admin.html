@@ -5862,12 +5862,29 @@ function preventivoGeneraPDF(pvId){
   (pv.items||[]).forEach((it,idx)=>{
     if(y>255){ doc.addPage(); y=20; }
     if(idx%2===0){ doc.setFillColor(252,252,252); doc.rect(15,y-4,pageW-30,7,'F'); }
-    doc.setFontSize(9);
-    const recTag = it.monthly ? ' (mensile)' : it.yearly ? ' (annuale)' : '';
-    const discTag = (it.discount_pct||0)>0 ? ` [-${it.discount_pct}%]` : '';
-    const fullName = it.name + recTag + discTag;
-    const nm = fullName.length>52 ? fullName.slice(0,50)+'…' : fullName;
+    doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(20,20,20);
+    // nome base — troncato in base alla presenza di tag
+    const _hasRec = it.monthly || it.yearly;
+    const _maxNm = _hasRec ? 30 : ((it.discount_pct||0)>0 ? 40 : 50);
+    const nm = it.name.length > _maxNm ? it.name.slice(0,_maxNm-1)+'…' : it.name;
     doc.text(nm,18,y);
+    // tag mensile/annuale in colore
+    let cx = 18 + doc.getTextWidth(nm) + 1.5;
+    if(it.monthly){
+      doc.setFont('helvetica','bolditalic'); doc.setTextColor(0,140,200);
+      doc.text(' (mensile)',cx,y); cx += doc.getTextWidth(' (mensile)');
+      doc.setFont('helvetica','normal'); doc.setTextColor(20,20,20);
+    } else if(it.yearly){
+      doc.setFont('helvetica','bolditalic'); doc.setTextColor(130,60,210);
+      doc.text(' (annuale)',cx,y); cx += doc.getTextWidth(' (annuale)');
+      doc.setFont('helvetica','normal'); doc.setTextColor(20,20,20);
+    }
+    // tag sconto articolo in rosso
+    if((it.discount_pct||0)>0){
+      doc.setTextColor(190,50,50);
+      doc.text(' [-'+it.discount_pct+'%]',cx,y);
+      doc.setTextColor(20,20,20);
+    }
     doc.text(String(it.qty||1),pageW-58,y,{align:'center'});
     const priceStr = `${(it.unit_price||0).toLocaleString('it-IT')} €`;
     doc.text(priceStr,pageW-40,y,{align:'right'});
@@ -5900,21 +5917,19 @@ function preventivoGeneraPDF(pvId){
     if(!(it.discount_pct>0)) return s;
     return s + (Math.round((it.unit_price||0)*(it.qty||1)) - (it.total||0));
   }, 0);
-  if(pdfItemDisc > 0 || pv.discount_pct>0){
-    totalFont();
-    doc.text('Subtotale:',pageW-72,y);
-    doc.text(`${(pv.subtotal||0).toLocaleString('it-IT')} €`,tx,y,{align:'right'}); y+=6;
-  }
+  // Sconti articoli
   if(pdfItemDisc > 0){
     doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(190,50,50);
     doc.text('Sconti articoli:',pageW-72,y);
     doc.text(`-${pdfItemDisc.toLocaleString('it-IT')} €`,tx,y,{align:'right'}); y+=6;
   }
+  // Sconto globale
   if(pv.discount_pct>0){
     doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(190,50,50);
     doc.text(`Sconto ${pv.discount_pct}%:`,pageW-72,y);
     doc.text(`-${(pv.discount_amount||0).toLocaleString('it-IT')} €`,tx,y,{align:'right'}); y+=6;
   }
+  // Imponibile + IVA (solo se IVA attiva)
   if(pv.iva_pct>0){
     totalFont();
     const imp = (pv.total||0) - (pv.iva_amount||0);

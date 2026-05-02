@@ -538,7 +538,7 @@ window.resetNeuralData = function() {
 // Editor supporta: creazione/modifica nodi (con cluster), aggiunta/rimozione link, modifica link esistenti.
 const { useState, useMemo, useEffect, useRef } = React;
 
-function Sidebar({ data, activeCats, setActiveCats, activeClusters, setActiveClusters, searchQuery, setSearchQuery, totals, focusNode, openEditor, openClusterEditor, isOpen }) {
+function Sidebar({ data, activeCats, setActiveCats, activeClusters, setActiveClusters, searchQuery, setSearchQuery, totals, focusNode, openEditor, openClusterEditor, isOpen, readOnly }) {
   const cats = Object.entries(data.categories);
   const toggle = (key) => {
     const next = new Set(activeCats);
@@ -609,16 +609,23 @@ function Sidebar({ data, activeCats, setActiveCats, activeClusters, setActiveClu
         <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Cerca nel grafo…" spellCheck={false}/>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       </div>
-      <div className="dual-btns">
-        <button className="big-btn" onClick={openEditor}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
-          Aggiungi nodo / link
-        </button>
-        <button className="big-btn cluster" onClick={openClusterEditor} title="Crea una nuova sotto-nebulosa">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9" strokeDasharray="2 3"/></svg>
-          Sotto-nebulosa
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="dual-btns">
+          <button className="big-btn" onClick={openEditor}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+            Aggiungi nodo / link
+          </button>
+          <button className="big-btn cluster" onClick={openClusterEditor} title="Crea una nuova sotto-nebulosa">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9" strokeDasharray="2 3"/></svg>
+            Sotto-nebulosa
+          </button>
+        </div>
+      )}
+      {readOnly && (
+        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'.6rem',color:'var(--dim)',textAlign:'center',padding:'.5rem 0',letterSpacing:'.06em',opacity:.7}}>
+          👁 sola lettura
+        </div>
+      )}
       <div className="quick-list">
         <div className="quick-title">CORE</div>
         {data.nodes.filter(n => ["hub","pluriagency","disfatti","thinkr","selekt","lorenzo_industrie","ai_local"].includes(n.id)).map(n => (
@@ -643,7 +650,7 @@ function Sidebar({ data, activeCats, setActiveCats, activeClusters, setActiveClu
   );
 }
 
-function TopBar({ totals, focusMode, setFocusMode, selectedId, onCenter, onToggleSidebar, userEmail, isAdminView, teamMembers, viewingAs, onSwitchView, onLogout }) {
+function TopBar({ totals, focusMode, setFocusMode, selectedId, onCenter, onToggleSidebar, userEmail, isReadOnly, teamMembers, viewingAs, onSwitchView, onLogout }) {
   return (
     <div className="topbar">
       <button className="tb-menu-btn" onClick={onToggleSidebar} title="Menu">
@@ -652,36 +659,36 @@ function TopBar({ totals, focusMode, setFocusMode, selectedId, onCenter, onToggl
       <div className="tb-left">
         <span className="kbd-mono">NEURAL OS</span>
         <span className="dim tb-hide-sm">/</span>
-        <span className="dim tb-hide-sm">3D ecosistema</span>
+        <span className="dim tb-hide-sm">3D</span>
       </div>
       <div className="tb-mid tb-hide-sm">
         <span className="pulse-dot"/>
-        {totals.nodes} nodi · {totals.links} sinapsi · live
+        {totals.nodes} nodi · {totals.links} sinapsi
       </div>
       <div className="tb-right">
         {teamMembers.length > 0 && (
           <select
             value={viewingAs || userEmail}
             onChange={e => onSwitchView(e.target.value)}
-            style={{background:'rgba(139,92,246,.12)',border:'1px solid rgba(139,92,246,.28)',color:isAdminView?'#f59e0b':'var(--accent)',fontFamily:"'JetBrains Mono',monospace",fontSize:'.6rem',padding:'.22rem .45rem',cursor:'pointer',outline:'none',maxWidth:'160px'}}>
+            title={isReadOnly ? `Sola lettura — nebula di ${viewingAs}` : 'La tua nebula'}
+            style={{background:'rgba(139,92,246,.12)',border:'1px solid rgba(139,92,246,.28)',color:isReadOnly?'#f59e0b':'var(--accent)',fontFamily:"'JetBrains Mono',monospace",fontSize:'.6rem',padding:'.22rem .45rem',cursor:'pointer',outline:'none',maxWidth:'150px'}}>
             <option value={userEmail}>● La mia</option>
             {teamMembers.filter(m => m.email !== userEmail).map(m => (
               <option key={m.email} value={m.email}>{m.name}</option>
             ))}
           </select>
         )}
-        <button className={`tb-btn ${focusMode ? "on" : ""}`} disabled={!selectedId} onClick={() => setFocusMode(v => !v)}>
-          Focus {focusMode ? "ON" : ""}
+        <button className={`tb-btn ${focusMode ? "on" : ""}`} disabled={!selectedId} onClick={() => setFocusMode(v => !v)} title="Modalità focus sul nodo selezionato">
+          Focus
         </button>
         <button className="tb-btn" onClick={onCenter} title="Centra la vista sull'hub">Centra</button>
-        <span className="hint tb-hide-sm">L-drag pianeti · R-drag pan · M-drag rotazione</span>
-        {userEmail && <button className="topbar-logout" onClick={onLogout} title={`Esci da ${userEmail}`}>↩</button>}
+        {userEmail && <button className="topbar-logout" onClick={onLogout} title={`Esci (${userEmail})`}>↩</button>}
       </div>
     </div>
   );
 }
 
-function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, onEdit, onDelete, onSaveUrl, onCreateConnected, onSaveTask }) {
+function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, onEdit, onDelete, onSaveUrl, onCreateConnected, onSaveTask, readOnly }) {
   if (!node) return null;
   const cat = data.categories[node.category];
   const [urlEdit, setUrlEdit] = React.useState(false);
@@ -740,7 +747,7 @@ function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, on
       <div className="detail-id">id: <span>{node.id}</span> · type: <span>{node.type}</span> · size: <span>{node.size}</span></div>
       {cluster && <div className="detail-id">cluster: <span>{cluster.label}</span></div>}
       {node.description && <p className="detail-desc">{node.description}</p>}
-      {urlEdit || !node.url ? (
+      {!readOnly && (urlEdit || !node.url) ? (
         <div className="url-input-row">
           <input className="url-input" value={urlValue} onChange={e => setUrlValue(e.target.value)}
             placeholder="https://..." autoFocus
@@ -748,29 +755,31 @@ function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, on
           <button className="url-confirm-btn" onClick={confirmUrl}>✓</button>
           {urlEdit && <button className="url-cancel-btn" onClick={cancelUrl}>✕</button>}
         </div>
-      ) : (
+      ) : node.url ? (
         <div className="url-row">
           <a className="detail-url" href={node.url} target="_blank" rel="noopener noreferrer">
             <span>{node.url.replace(/^https?:\/\//,"")}</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
           </a>
-          <button className="url-edit-btn" onClick={() => setUrlEdit(true)} title="Modifica URL">✎</button>
+          {!readOnly && <button className="url-edit-btn" onClick={() => setUrlEdit(true)} title="Modifica URL">✎</button>}
         </div>
-      )}
+      ) : null}
       <div className="task-section">
         <div className="task-section-head">
           <span className="task-section-title">Tasks</span>
           {wipCount > 0 && <span className="task-wip-badge">▶ {wipCount} in lavorazione</span>}
         </div>
-        <div className="task-input-row">
-          <input className="task-input" value={taskInput} onChange={e => setTaskInput(e.target.value)}
-            placeholder="Aggiungi task…"
-            onKeyDown={e => e.key === "Enter" && addTask()}/>
-          <button className="task-add-btn" onClick={addTask}>+</button>
-        </div>
+        {!readOnly && (
+          <div className="task-input-row">
+            <input className="task-input" value={taskInput} onChange={e => setTaskInput(e.target.value)}
+              placeholder="Aggiungi task…"
+              onKeyDown={e => e.key === "Enter" && addTask()}/>
+            <button className="task-add-btn" onClick={addTask}>+</button>
+          </div>
+        )}
         {activeTasks.map(t => (
           <div key={t.id} className="task-row">
-            {editingTaskId === t.id ? (
+            {!readOnly && editingTaskId === t.id ? (
               <input className="task-input" style={{fontSize:"11px",padding:"3px 8px"}} value={editingTaskText}
                 autoFocus
                 onChange={e => setEditingTaskText(e.target.value)}
@@ -778,13 +787,16 @@ function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, on
                 onBlur={() => saveEditTask(t.id)}/>
             ) : (
               <span className={`task-text${t.status === "wip" ? " wip" : ""}`}
-                onClick={() => startEditTask(t)} title="Clicca per modificare" style={{cursor:"text"}}>
+                onClick={() => !readOnly && startEditTask(t)}
+                style={{cursor: readOnly ? "default" : "text"}}>
                 {t.text}
               </span>
             )}
-            <button className={`task-wip-btn${t.status === "wip" ? " active" : ""}`} onClick={() => toggleWip(t.id)} title="In lavorazione">▶</button>
-            <button className="task-done-btn" onClick={() => markDone(t.id)} title="Segna come fatta">✓</button>
-            <button className="task-restore-btn" onClick={() => deleteTask(t.id)} title="Elimina task" style={{color:"rgba(255,80,80,0.5)"}}>✕</button>
+            {!readOnly && <>
+              <button className={`task-wip-btn${t.status === "wip" ? " active" : ""}`} onClick={() => toggleWip(t.id)} title="In lavorazione">▶</button>
+              <button className="task-done-btn" onClick={() => markDone(t.id)} title="Segna come fatta">✓</button>
+              <button className="task-restore-btn" onClick={() => deleteTask(t.id)} title="Elimina task" style={{color:"rgba(255,80,80,0.5)"}}>✕</button>
+            </>}
           </div>
         ))}
         {doneTasks.length > 0 && (
@@ -803,11 +815,13 @@ function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, on
       </div>
       <div className="detail-actions">
         <button className="act-btn primary" onClick={() => setFocusMode(true)}>{focusMode ? "Focus attivo" : "Focus"}</button>
-        <button className="act-btn" onClick={() => onEdit(node)}>Modifica</button>
-        <button className="act-btn new-planet-btn" onClick={onCreateConnected} title="Crea nuovo pianeta collegato a questo">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="17"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
-          Pianeta
-        </button>
+        {!readOnly && <button className="act-btn" onClick={() => onEdit(node)}>Modifica</button>}
+        {!readOnly && (
+          <button className="act-btn new-planet-btn" onClick={onCreateConnected} title="Crea nuovo pianeta collegato a questo">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="17"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
+            Pianeta
+          </button>
+        )}
       </div>
       <div className="detail-section">
         <div className="section-title">Connessioni · {conns.length}</div>
@@ -825,7 +839,7 @@ function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, on
           {conns.length === 0 && <div className="empty">Nessuna connessione.</div>}
         </div>
       </div>
-      {node.id !== "hub" && (
+      {!readOnly && node.id !== "hub" && (
         <button className="danger-btn" onClick={() => onDelete(node)}>Elimina nodo</button>
       )}
     </div>
@@ -1210,9 +1224,9 @@ function App() {
         const merged = { categories:{...window.NEURAL_DATA_DEFAULT.categories,...(cloudData.categories||{})}, linkTypes:{...window.NEURAL_DATA_DEFAULT.linkTypes,...(cloudData.linkTypes||{})}, nodes:cloudData.nodes||window.NEURAL_DATA_DEFAULT.nodes, links:cloudData.links||window.NEURAL_DATA_DEFAULT.links };
         setData(merged);
         if (!readOnly.current) try { localStorage.setItem(STORAGE_PREFIX + viewingAs, JSON.stringify(merged)); } catch(e) {}
-      } else if (!readOnly.current) {
-        // Primo accesso: mostra starter nebula
-        setData(JSON.parse(JSON.stringify(STARTER_NEBULA)));
+      } else {
+        // Nessun dato cloud: starter per utente proprio, default per admin che vede altro
+        setData(JSON.parse(JSON.stringify(readOnly.current ? window.NEURAL_DATA_DEFAULT : STARTER_NEBULA)));
       }
       cloudLoaded.current = true;
     }).catch(() => { cloudLoaded.current = true; });
@@ -1376,6 +1390,9 @@ function App() {
   );
   if (!user) return <LoginScreen error={authError} />;
 
+  // Sola lettura quando admin visualizza nebula di un altro utente
+  const isReadOnly = !!(viewingAs && viewingAs !== user.email);
+
   const isAdminView = viewingAs && viewingAs !== user.email;
 
   return (
@@ -1397,6 +1414,7 @@ function App() {
         openEditor={() => { setEditingNode(null); setEditorOpen(true); setClusterCreatorOpen(false); setSidebarOpen(false); }}
         openClusterEditor={() => { setClusterCreatorOpen(true); setEditorOpen(false); setEditingNode(null); setSidebarOpen(false); }}
         isOpen={sidebarOpen}
+        readOnly={isReadOnly}
       />
 
       <TopBar
@@ -1407,7 +1425,7 @@ function App() {
         onCenter={() => graphRef.current?.focusNode("hub")}
         onToggleSidebar={() => setSidebarOpen(v => !v)}
         userEmail={user.email}
-        isAdminView={isAdminView}
+        isReadOnly={isReadOnly}
         teamMembers={user.email === ADMIN_EMAIL ? teamMembers : []}
         viewingAs={viewingAs}
         onSwitchView={email => { cloudLoaded.current = false; readOnly.current = email !== user.email; setViewingAs(email); }}
@@ -1427,6 +1445,7 @@ function App() {
           onSaveUrl={handleSaveUrl}
           onCreateConnected={() => { setEditingNode(null); setEditorOpen(true); }}
           onSaveTask={handleSaveTask}
+          readOnly={isReadOnly}
         />
       )}
 

@@ -643,7 +643,7 @@ function Sidebar({ data, activeCats, setActiveCats, activeClusters, setActiveClu
   );
 }
 
-function TopBar({ totals, focusMode, setFocusMode, selectedId, onCenter, onToggleSidebar, userEmail, onLogout }) {
+function TopBar({ totals, focusMode, setFocusMode, selectedId, onCenter, onToggleSidebar, userEmail, isAdminView, teamMembers, viewingAs, onSwitchView, onLogout }) {
   return (
     <div className="topbar">
       <button className="tb-menu-btn" onClick={onToggleSidebar} title="Menu">
@@ -659,12 +659,23 @@ function TopBar({ totals, focusMode, setFocusMode, selectedId, onCenter, onToggl
         {totals.nodes} nodi · {totals.links} sinapsi · live
       </div>
       <div className="tb-right">
+        {teamMembers.length > 0 && (
+          <select
+            value={viewingAs || userEmail}
+            onChange={e => onSwitchView(e.target.value)}
+            style={{background:'rgba(139,92,246,.12)',border:'1px solid rgba(139,92,246,.28)',color:isAdminView?'#f59e0b':'var(--accent)',fontFamily:"'JetBrains Mono',monospace",fontSize:'.6rem',padding:'.22rem .45rem',cursor:'pointer',outline:'none',maxWidth:'160px'}}>
+            <option value={userEmail}>● La mia</option>
+            {teamMembers.filter(m => m.email !== userEmail).map(m => (
+              <option key={m.email} value={m.email}>{m.name}</option>
+            ))}
+          </select>
+        )}
         <button className={`tb-btn ${focusMode ? "on" : ""}`} disabled={!selectedId} onClick={() => setFocusMode(v => !v)}>
           Focus {focusMode ? "ON" : ""}
         </button>
         <button className="tb-btn" onClick={onCenter} title="Centra la vista sull'hub">Centra</button>
         <span className="hint tb-hide-sm">L-drag pianeti · R-drag pan · M-drag rotazione</span>
-        {userEmail && <button className="topbar-logout" onClick={onLogout} title={`Connesso come ${userEmail}`}>↩ esci</button>}
+        {userEmail && <button className="topbar-logout" onClick={onLogout} title={`Esci da ${userEmail}`}>↩</button>}
       </div>
     </div>
   );
@@ -1196,18 +1207,17 @@ function App() {
     }).catch(() => { cloudLoaded.current = true; });
   }, [viewingAs]);
 
-  // Init 3D scene (una volta sola)
+  // Init 3D scene — scatta quando user diventa autenticato (container è nel DOM)
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!user || graphRef.current || !containerRef.current) return;
     const g = window.NeuralGraph3D.init({
       container: containerRef.current,
       onSelect: (id) => { setSelectedId(id); if (id) setHintVisible(false); },
       onHover: (id) => setHoveredId(id)
     });
     graphRef.current = g;
-    g.setData(data);
-    return () => g.dispose();
-  }, []);
+    return () => { g.dispose(); graphRef.current = null; };
+  }, [user]);
 
   // sync data → graph + salva (non in readOnly)
   useEffect(() => {
@@ -1359,21 +1369,7 @@ function App() {
 
   return (
     <div className="stage">
-      {/* Admin bar — visibile solo quando admin visualizza nebula altrui */}
-      {user.email === ADMIN_EMAIL && teamMembers.length > 0 && (
-        <div className="admin-bar">
-          <span>👁 Vista di:</span>
-          <select value={viewingAs || user.email} onChange={e => { cloudLoaded.current = false; setViewingAs(e.target.value); window._nebulaUserEmail = user.email; }}>
-            <option value={user.email}>🔑 La mia ({user.email})</option>
-            {teamMembers.filter(m => m.email !== user.email).map(m => (
-              <option key={m.email} value={m.email}>{m.name} ({m.email})</option>
-            ))}
-          </select>
-          {isAdminView && <span style={{color:'#f59e0b',fontSize:'.6rem'}}>• sola lettura</span>}
-        </div>
-      )}
-
-      <div id="three-container" ref={containerRef} style={user.email === ADMIN_EMAIL && teamMembers.length > 0 ? {top:'28px'} : {}}/>
+      <div id="three-container" ref={containerRef}/>
       <div className="vignette"/>
 
       {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)}/>}
@@ -1400,7 +1396,11 @@ function App() {
         onCenter={() => graphRef.current?.focusNode("hub")}
         onToggleSidebar={() => setSidebarOpen(v => !v)}
         userEmail={user.email}
-        onLogout={() => { window.nebulaSignOut(); setUser(null); setViewingAs(null); }}
+        isAdminView={isAdminView}
+        teamMembers={user.email === ADMIN_EMAIL ? teamMembers : []}
+        viewingAs={viewingAs}
+        onSwitchView={email => { cloudLoaded.current = false; readOnly.current = email !== user.email; setViewingAs(email); }}
+        onLogout={() => { window.nebulaSignOut(); setUser(null); setViewingAs(null); graphRef.current?.dispose(); graphRef.current = null; }}
       />
 
       {!editorOpen && !clusterCreatorOpen && selectedNode && (

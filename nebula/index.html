@@ -1136,47 +1136,58 @@ function App() {
 
   // ---- Auth init ----
   useEffect(() => {
-    let done = false;
-    // Timeout di sicurezza: se l'auth non risponde in 6s mostra il login
-    const fallback = setTimeout(() => { if (!done) { done = true; setUser(null); } }, 6000);
+    let cancelled = false;
+    let sessionSet = false; // evita doppia chiamata setViewingAs
+    const fallback = setTimeout(() => { if (!cancelled && !sessionSet) setUser(null); }, 8000);
 
     const applySession = async (sb, session) => {
-      if (done) return;
+      if (cancelled) return;
       const u = session?.user || null;
-      if (!u) { done = true; clearTimeout(fallback); setUser(null); return; }
-      // Whitelist check tramite tabella agenti
+      if (!u) {
+        // Non chiamare subito setUser(null): onAuthStateChange potrebbe ancora portare una sessione
+        // (getSession può rispondere null mentre la sessione viene ripristinata da localStorage)
+        // Usiamo solo il fallback per il caso veramente non autenticato
+        return;
+      }
+      clearTimeout(fallback);
+      if (sessionSet) return; // già loggato, evita doppia inizializzazione
+      // Whitelist check
       try {
         const { data: agent } = await sb.from('agenti').select('id').eq('email', u.email).eq('active', true).maybeSingle();
         if (!agent) {
           await sb.auth.signOut();
           setAuthError('Email non autorizzata per Neural OS.');
-          done = true; clearTimeout(fallback); setUser(null); return;
+          setUser(null); return;
         }
       } catch(e) { /* agenti non raggiungibile: accesso comunque */ }
-      if (done) return;
-      done = true; clearTimeout(fallback);
+      if (cancelled || sessionSet) return;
+      sessionSet = true;
       window._nebulaUserEmail = u.email;
       setUser(u);
       setViewingAs(u.email);
       if (u.email === ADMIN_EMAIL) {
         try {
           const { data: agents } = await sb.from('agenti').select('name, email').eq('active', true).order('name');
-          setTeamMembers(agents || []);
+          if (!cancelled) setTeamMembers(agents || []);
         } catch(e) {}
       }
     };
 
     window._initSupabase().then(sb => {
-      if (!sb) { done = true; clearTimeout(fallback); setUser(null); return; }
-      // onAuthStateChange gestisce anche il redirect dal magic link
-      sb.auth.onAuthStateChange((event, session) => applySession(sb, session));
-      // Controlla sessione esistente
+      if (!sb || cancelled) { clearTimeout(fallback); setUser(null); return; }
+      // onAuthStateChange: gestisce magic link redirect E ripristino sessione da localStorage
+      sb.auth.onAuthStateChange((event, session) => {
+        if (cancelled) return;
+        if (event === 'SIGNED_OUT') { sessionSet = false; setUser(null); return; }
+        applySession(sb, session);
+      });
+      // getSession: controlla sessione in memoria (potrebbe arrivare prima o dopo onAuthStateChange)
       sb.auth.getSession()
         .then(({ data: { session } }) => applySession(sb, session))
-        .catch(() => { if (!done) { done = true; clearTimeout(fallback); setUser(null); } });
-    }).catch(() => { done = true; clearTimeout(fallback); setUser(null); });
+        .catch(() => { if (!cancelled && !sessionSet) { clearTimeout(fallback); setUser(null); } });
+    }).catch(() => { clearTimeout(fallback); if (!cancelled) setUser(null); });
 
-    return () => { done = true; clearTimeout(fallback); };
+    return () => { cancelled = true; clearTimeout(fallback); };
   }, []);
 
   // ---- Carica dati al cambio di viewingAs ----

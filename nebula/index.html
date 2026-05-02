@@ -359,6 +359,24 @@
 
   /* Vignette */
   .vignette { position: absolute; inset: 0; pointer-events: none; z-index: 4; background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.5) 100%); }
+
+  /* ---- Login Screen ---- */
+  .login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:9999;flex-direction:column;gap:0}
+  .login-box{background:rgba(20,24,40,0.92);border:1px solid var(--line-2);padding:2.8rem 2.2rem;width:100%;max-width:360px;text-align:center;box-shadow:0 0 60px rgba(139,92,246,.15)}
+  .login-title{font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:700;letter-spacing:.14em;color:#fff;margin-bottom:.3rem}
+  .login-sub{font-size:.72rem;color:var(--dim);margin-bottom:2.2rem;letter-spacing:.06em}
+  .login-input{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--line-2);color:var(--fg);font-family:'JetBrains Mono',monospace;font-size:.78rem;padding:.72rem 1rem;margin-bottom:.85rem;outline:none;transition:border-color .15s;box-sizing:border-box}
+  .login-input:focus{border-color:var(--accent)}
+  .login-btn{width:100%;background:var(--accent);border:none;color:#fff;font-family:'JetBrains Mono',monospace;font-size:.78rem;letter-spacing:.1em;padding:.78rem 1rem;cursor:pointer;transition:opacity .18s}
+  .login-btn:hover{opacity:.82}
+  .login-btn:disabled{opacity:.4;cursor:default}
+  .login-sent{color:#34D399;font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.75;margin-top:.3rem}
+  .login-err{color:#f87171;font-family:'JetBrains Mono',monospace;font-size:.7rem;margin-top:.6rem}
+  /* Admin bar */
+  .admin-bar{position:fixed;top:0;left:0;right:0;background:rgba(139,92,246,.1);border-bottom:1px solid rgba(139,92,246,.22);padding:.3rem 1rem;font-family:'JetBrains Mono',monospace;font-size:.63rem;color:var(--accent);display:flex;align-items:center;gap:.75rem;z-index:200}
+  .admin-bar select{background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.3);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.63rem;padding:.2rem .45rem;cursor:pointer;outline:none}
+  .topbar-logout{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--dim);background:none;border:1px solid var(--line);padding:.25rem .6rem;cursor:pointer;letter-spacing:.08em;transition:color .15s,border-color .15s}
+  .topbar-logout:hover{color:var(--fg);border-color:var(--line-2)}
 </style>
 </head>
 <body data-screen-label="01 Neural OS 3D">
@@ -371,6 +389,7 @@
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
 <script>
 // Neural OS v2 — dataset + persistenza localStorage
@@ -448,66 +467,69 @@ window.NEURAL_DATA_DEFAULT = {
     { source: "ai_local", target: "chatgpt",  type: "uses" }
   ]
 };
-const STORAGE_KEY = "neural_os_data_v2";
-window.loadNeuralData = function() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return {
-        categories: { ...window.NEURAL_DATA_DEFAULT.categories, ...(parsed.categories || {}) },
-        linkTypes:  { ...window.NEURAL_DATA_DEFAULT.linkTypes,  ...(parsed.linkTypes  || {}) },
-        nodes: parsed.nodes || window.NEURAL_DATA_DEFAULT.nodes,
-        links: parsed.links || window.NEURAL_DATA_DEFAULT.links
-      };
-    }
-  } catch (e) { console.warn("loadNeuralData failed", e); }
-  return JSON.parse(JSON.stringify(window.NEURAL_DATA_DEFAULT));
+// ---- Supabase Auth + Cloud sync multi-utente ----
+const ADMIN_EMAIL = 'atti349@gmail.com';
+const STORAGE_PREFIX = 'neural_os_v2_';
+let _sb = null, _sbInitPromise = null, _saveCloudTimer = null;
+window._nebulaUserEmail = null; // impostato dopo login
+
+window._initSupabase = function() {
+  if (!_sbInitPromise) {
+    _sbInitPromise = fetch('/api/config').then(r => r.json()).then(cfg => {
+      _sb = supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+      return _sb;
+    }).catch(() => null);
+  }
+  return _sbInitPromise;
 };
-window.saveNeuralData = function(data) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) { console.warn(e); }
-  window.saveToCloud(data);
-};
-window.resetNeuralData = function() {
-  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
-  return JSON.parse(JSON.stringify(window.NEURAL_DATA_DEFAULT));
+window._initSupabase(); // avvio immediato
+
+window.signInWithMagicLink = async function(email) {
+  const sb = await window._initSupabase();
+  if (!sb) return { error: 'Configurazione non disponibile' };
+  const { error } = await sb.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: 'https://pluriagency.com/nebula' }
+  });
+  return { error: error?.message || null };
 };
 
-// ---- Cloud sync via Supabase (cross-device) ----
-let _sbUrl = null, _sbKey = null, _sbReady = false, _saveCloudTimer = null;
-async function _initCloud() {
-  if (_sbReady) return;
-  try {
-    const cfg = await fetch('/api/config').then(r => r.json());
-    _sbUrl = cfg.supabaseUrl; _sbKey = cfg.supabaseAnonKey; _sbReady = true;
-  } catch(e) {}
-}
-window.loadFromCloud = async function() {
-  await _initCloud();
-  if (!_sbUrl) return null;
-  try {
-    const r = await fetch(`${_sbUrl}/rest/v1/nebula_data?id=eq.default&select=data`, {
-      headers: { apikey: _sbKey, Authorization: `Bearer ${_sbKey}` }
-    });
-    const rows = await r.json();
-    if (rows && rows[0]?.data) return rows[0].data;
-  } catch(e) {}
-  return null;
+window.nebulaSignOut = async function() {
+  const sb = await window._initSupabase();
+  if (sb) { await sb.auth.signOut(); window._nebulaUserEmail = null; }
 };
+
+window.loadFromCloud = async function(userEmail) {
+  const sb = await window._initSupabase();
+  if (!sb || !userEmail) return null;
+  try {
+    const { data } = await sb.from('nebula_data').select('data').eq('id', userEmail).maybeSingle();
+    return data?.data || null;
+  } catch(e) { return null; }
+};
+
 window.saveToCloud = function(data) {
+  const email = window._nebulaUserEmail;
+  if (!email) return;
   clearTimeout(_saveCloudTimer);
   _saveCloudTimer = setTimeout(async () => {
-    await _initCloud();
-    if (!_sbUrl) return;
-    try {
-      await fetch(`${_sbUrl}/rest/v1/nebula_data`, {
-        method: 'POST',
-        headers: { apikey: _sbKey, Authorization: `Bearer ${_sbKey}`,
-          'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
-        body: JSON.stringify({ id: 'default', data, updated_at: new Date().toISOString() })
-      });
-    } catch(e) {}
+    const sb = await window._initSupabase();
+    if (!sb) return;
+    try { await sb.from('nebula_data').upsert({ id: email, data, updated_at: new Date().toISOString() }); } catch(e) {}
   }, 800);
+};
+
+window.saveNeuralData = function(data) {
+  const email = window._nebulaUserEmail;
+  if (!email) return;
+  try { localStorage.setItem(STORAGE_PREFIX + email, JSON.stringify(data)); } catch(e) {}
+  window.saveToCloud(data);
+};
+
+window.resetNeuralData = function() {
+  const email = window._nebulaUserEmail;
+  if (email) try { localStorage.removeItem(STORAGE_PREFIX + email); } catch(e) {}
+  return JSON.parse(JSON.stringify(window.NEURAL_DATA_DEFAULT));
 };
 </script>
 <script src="/nebula/graph3d.js"></script>
@@ -621,7 +643,7 @@ function Sidebar({ data, activeCats, setActiveCats, activeClusters, setActiveClu
   );
 }
 
-function TopBar({ totals, focusMode, setFocusMode, selectedId, onCenter, onToggleSidebar }) {
+function TopBar({ totals, focusMode, setFocusMode, selectedId, onCenter, onToggleSidebar, userEmail, onLogout }) {
   return (
     <div className="topbar">
       <button className="tb-menu-btn" onClick={onToggleSidebar} title="Menu">
@@ -642,6 +664,7 @@ function TopBar({ totals, focusMode, setFocusMode, selectedId, onCenter, onToggl
         </button>
         <button className="tb-btn" onClick={onCenter} title="Centra la vista sull'hub">Centra</button>
         <span className="hint tb-hide-sm">L-drag pianeti · R-drag pan · M-drag rotazione</span>
+        {userEmail && <button className="topbar-logout" onClick={onLogout} title={`Connesso come ${userEmail}`}>↩ esci</button>}
       </div>
     </div>
   );
@@ -1019,8 +1042,70 @@ window.ClusterCreator = ClusterCreator;
 <script type="text/babel">
 const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
+// Template starter per nuovi utenti
+const STARTER_NEBULA = {
+  categories: {...window.NEURAL_DATA_DEFAULT.categories},
+  linkTypes:  {...window.NEURAL_DATA_DEFAULT.linkTypes},
+  nodes: [
+    { id:"hub",             type:"hub",     category:"hub",      label:"HUB CENTRALE",   size:3.0, description:"Il tuo sistema operativo personale. Esplora il grafo 3D e costruisci il tuo ecosistema." },
+    { id:"come_iniziare",   type:"website", category:"future",   label:"Come iniziare",  size:1.8, description:"➊ Clicca un nodo per vedere i dettagli\n➋ '+ Aggiungi nodo' per creare un pianeta\n➌ 'Sotto-nebulosa' per creare una galassia\n➍ Trascina i nodi per riorganizzare\n➎ Doppio-click per aprire l'URL" },
+    { id:"starter_proj",    type:"website", category:"business", label:"Es. Progetto",   size:1.7, description:"Un nodo business. Aggiungici URL, descrizione e task da completare." },
+    { id:"starter_tool",    type:"tool",    category:"ops",      label:"Es. Tool",       size:1.5, description:"Un nodo per strumenti come Notion, Figma, Slack. Aggiungi l'URL dello strumento." },
+    { id:"starter_sistema", type:"website", category:"startup",  label:"Es. Sistema",    size:2.0, isClusterHead:true, description:"Un sistema raggruppa pianeti collegati. Clicca '+ Pianeta' per aggiungerne altri." }
+  ],
+  links: [
+    { source:"hub", target:"come_iniziare",   type:"core" },
+    { source:"hub", target:"starter_proj",    type:"core" },
+    { source:"hub", target:"starter_tool",    type:"uses" },
+    { source:"hub", target:"starter_sistema", type:"core" }
+  ]
+};
+
+function LoginScreen({ error }) {
+  const [email, setEmail] = React.useState('');
+  const [status, setStatus] = React.useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus('sending');
+    const { error: err } = await window.signInWithMagicLink(email.trim().toLowerCase());
+    if (err) setStatus({ error: err });
+    else setStatus('sent');
+  };
+
+  return (
+    <div className="login-screen">
+      <div className="login-box">
+        <div className="login-title">NEURAL OS</div>
+        <div className="login-sub">Sistema operativo personale · 3D</div>
+        {error && <div className="login-err" style={{marginBottom:'1rem'}}>{error}</div>}
+        {status === 'sent' ? (
+          <div className="login-sent">
+            ✉ Link inviato a <strong>{email}</strong><br/>
+            Controlla la tua email e clicca il link per accedere.
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <input className="login-input" type="email" value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="la tua email" required autoFocus/>
+            <button className="login-btn" type="submit" disabled={status === 'sending'}>
+              {status === 'sending' ? 'Invio in corso...' : '→ Accedi con Magic Link'}
+            </button>
+            {status?.error && <div className="login-err">{status.error}</div>}
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function App() {
-  const [data, setData] = useState(() => window.loadNeuralData());
+  const [user, setUser] = useState(undefined); // undefined=loading, null=unauthed, object=authed
+  const [authError, setAuthError] = useState(null);
+  const [viewingAs, setViewingAs] = useState(null); // admin: può visualizzare nebule altrui
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [data, setData] = useState(() => JSON.parse(JSON.stringify(window.NEURAL_DATA_DEFAULT)));
   const [selectedId, setSelectedId] = useState(null);
   const [hoveredId, setHoveredId] = useState(null);
   const [activeCats, setActiveCats] = useState(() => new Set(["all", ...Object.keys(window.NEURAL_DATA_DEFAULT.categories)]));
@@ -1035,9 +1120,70 @@ function App() {
 
   const containerRef = useRef(null);
   const graphRef = useRef(null);
-  const cloudLoaded = useRef(false); // non salvare su cloud finché il caricamento iniziale non è completo
+  const cloudLoaded = useRef(false);
+  const readOnly = useRef(false); // true quando admin visualizza nebula altrui
 
-  // Init 3D scene once
+  // ---- Auth init ----
+  useEffect(() => {
+    window._initSupabase().then(sb => {
+      if (!sb) { setUser(null); return; }
+      const applySession = async (session) => {
+        const u = session?.user || null;
+        if (!u) { setUser(null); return; }
+        // Verifica whitelist agenti
+        try {
+          const { data: agent } = await sb.from('agenti').select('id').eq('email', u.email).eq('active', true).maybeSingle();
+          if (!agent) {
+            await sb.auth.signOut();
+            setAuthError('Email non autorizzata per Neural OS. Contatta l\'amministratore.');
+            setUser(null);
+            return;
+          }
+        } catch(e) {} // se agenti non è raggiungibile, permetti l'accesso
+        window._nebulaUserEmail = u.email;
+        setUser(u);
+        setViewingAs(u.email);
+        if (u.email === ADMIN_EMAIL) {
+          try {
+            const { data: agents } = await sb.from('agenti').select('name, email').eq('active', true).order('name');
+            setTeamMembers(agents || []);
+          } catch(e) {}
+        }
+      };
+      sb.auth.getSession().then(({ data: { session } }) => applySession(session));
+      sb.auth.onAuthStateChange((event, session) => applySession(session));
+    });
+  }, []);
+
+  // ---- Carica dati al cambio di viewingAs ----
+  useEffect(() => {
+    if (!viewingAs) return;
+    cloudLoaded.current = false;
+    readOnly.current = viewingAs !== window._nebulaUserEmail;
+    // Prova localStorage solo per propri dati
+    if (!readOnly.current) {
+      try {
+        const raw = localStorage.getItem(STORAGE_PREFIX + viewingAs);
+        if (raw) {
+          const p = JSON.parse(raw);
+          setData({ categories:{...window.NEURAL_DATA_DEFAULT.categories,...(p.categories||{})}, linkTypes:{...window.NEURAL_DATA_DEFAULT.linkTypes,...(p.linkTypes||{})}, nodes:p.nodes||window.NEURAL_DATA_DEFAULT.nodes, links:p.links||window.NEURAL_DATA_DEFAULT.links });
+        }
+      } catch(e) {}
+    }
+    window.loadFromCloud(viewingAs).then(cloudData => {
+      if (cloudData) {
+        const merged = { categories:{...window.NEURAL_DATA_DEFAULT.categories,...(cloudData.categories||{})}, linkTypes:{...window.NEURAL_DATA_DEFAULT.linkTypes,...(cloudData.linkTypes||{})}, nodes:cloudData.nodes||window.NEURAL_DATA_DEFAULT.nodes, links:cloudData.links||window.NEURAL_DATA_DEFAULT.links };
+        setData(merged);
+        if (!readOnly.current) try { localStorage.setItem(STORAGE_PREFIX + viewingAs, JSON.stringify(merged)); } catch(e) {}
+      } else if (!readOnly.current) {
+        // Primo accesso: mostra starter nebula
+        setData(JSON.parse(JSON.stringify(STARTER_NEBULA)));
+      }
+      cloudLoaded.current = true;
+    }).catch(() => { cloudLoaded.current = true; });
+  }, [viewingAs]);
+
+  // Init 3D scene (una volta sola)
   useEffect(() => {
     if (!containerRef.current) return;
     const g = window.NeuralGraph3D.init({
@@ -1050,29 +1196,13 @@ function App() {
     return () => g.dispose();
   }, []);
 
-  // Carica dal cloud al mount — PRIMA aggiorna il grafo, POI abilita il salvataggio cloud
-  useEffect(() => {
-    window.loadFromCloud().then(cloudData => {
-      if (cloudData) {
-        const merged = {
-          categories: { ...window.NEURAL_DATA_DEFAULT.categories, ...(cloudData.categories || {}) },
-          linkTypes:  { ...window.NEURAL_DATA_DEFAULT.linkTypes,  ...(cloudData.linkTypes  || {}) },
-          nodes: cloudData.nodes || window.NEURAL_DATA_DEFAULT.nodes,
-          links: cloudData.links || window.NEURAL_DATA_DEFAULT.links
-        };
-        setData(merged);
-        try { localStorage.setItem('neural_os_data_v2', JSON.stringify(merged)); } catch(e) {}
-      }
-      cloudLoaded.current = true; // da qui in poi i cambiamenti vengono salvati sul cloud
-    }).catch(() => { cloudLoaded.current = true; });
-  }, []);
-
-  // sync data → graph + salva
-  // localStorage: sempre; cloud: solo dopo che il caricamento iniziale è completo
+  // sync data → graph + salva (non in readOnly)
   useEffect(() => {
     if (graphRef.current) graphRef.current.setData(data);
-    try { localStorage.setItem('neural_os_data_v2', JSON.stringify(data)); } catch(e) {}
-    if (cloudLoaded.current) window.saveToCloud(data);
+    if (!readOnly.current && window._nebulaUserEmail) {
+      try { localStorage.setItem(STORAGE_PREFIX + window._nebulaUserEmail, JSON.stringify(data)); } catch(e) {}
+      if (cloudLoaded.current) window.saveToCloud(data);
+    }
   }, [data]);
 
   // sync filters
@@ -1204,9 +1334,33 @@ function App() {
     setSelectedId(null);
   };
 
+  // ---- Auth guards ----
+  if (user === undefined) return (
+    <div style={{position:'fixed',inset:0,display:'flex',alignItems:'center',justifyContent:'center',background:'var(--bg)'}}>
+      <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,color:'var(--dim)',letterSpacing:'.06em'}}>NEURAL OS ·&nbsp;<span style={{animation:'pulse 1.2s infinite'}}>●</span></span>
+    </div>
+  );
+  if (!user) return <LoginScreen error={authError} />;
+
+  const isAdminView = viewingAs && viewingAs !== user.email;
+
   return (
     <div className="stage">
-      <div id="three-container" ref={containerRef}/>
+      {/* Admin bar — visibile solo quando admin visualizza nebula altrui */}
+      {user.email === ADMIN_EMAIL && teamMembers.length > 0 && (
+        <div className="admin-bar">
+          <span>👁 Vista di:</span>
+          <select value={viewingAs || user.email} onChange={e => { cloudLoaded.current = false; setViewingAs(e.target.value); window._nebulaUserEmail = user.email; }}>
+            <option value={user.email}>🔑 La mia ({user.email})</option>
+            {teamMembers.filter(m => m.email !== user.email).map(m => (
+              <option key={m.email} value={m.email}>{m.name} ({m.email})</option>
+            ))}
+          </select>
+          {isAdminView && <span style={{color:'#f59e0b',fontSize:'.6rem'}}>• sola lettura</span>}
+        </div>
+      )}
+
+      <div id="three-container" ref={containerRef} style={user.email === ADMIN_EMAIL && teamMembers.length > 0 ? {top:'28px'} : {}}/>
       <div className="vignette"/>
 
       {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)}/>}
@@ -1232,6 +1386,8 @@ function App() {
         selectedId={selectedId}
         onCenter={() => graphRef.current?.focusNode("hub")}
         onToggleSidebar={() => setSidebarOpen(v => !v)}
+        userEmail={user.email}
+        onLogout={() => { window.nebulaSignOut(); setUser(null); setViewingAs(null); }}
       />
 
       {!editorOpen && !clusterCreatorOpen && selectedNode && (

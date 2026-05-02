@@ -1225,8 +1225,8 @@ function App() {
         setData(merged);
         if (!readOnly.current) try { localStorage.setItem(STORAGE_PREFIX + viewingAs, JSON.stringify(merged)); } catch(e) {}
       } else {
-        // Nessun dato cloud: starter per utente proprio, default per admin che vede altro
-        setData(JSON.parse(JSON.stringify(readOnly.current ? window.NEURAL_DATA_DEFAULT : STARTER_NEBULA)));
+        // Nessun dato cloud: sempre STARTER_NEBULA (5 nodi guida), mai i dati di default
+        setData(JSON.parse(JSON.stringify(STARTER_NEBULA)));
       }
       cloudLoaded.current = true;
     }).catch(() => { cloudLoaded.current = true; });

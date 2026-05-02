@@ -1125,34 +1125,47 @@ function App() {
 
   // ---- Auth init ----
   useEffect(() => {
-    window._initSupabase().then(sb => {
-      if (!sb) { setUser(null); return; }
-      const applySession = async (session) => {
-        const u = session?.user || null;
-        if (!u) { setUser(null); return; }
-        // Verifica whitelist agenti
-        try {
-          const { data: agent } = await sb.from('agenti').select('id').eq('email', u.email).eq('active', true).maybeSingle();
-          if (!agent) {
-            await sb.auth.signOut();
-            setAuthError('Email non autorizzata per Neural OS. Contatta l\'amministratore.');
-            setUser(null);
-            return;
-          }
-        } catch(e) {} // se agenti non è raggiungibile, permetti l'accesso
-        window._nebulaUserEmail = u.email;
-        setUser(u);
-        setViewingAs(u.email);
-        if (u.email === ADMIN_EMAIL) {
-          try {
-            const { data: agents } = await sb.from('agenti').select('name, email').eq('active', true).order('name');
-            setTeamMembers(agents || []);
-          } catch(e) {}
+    let done = false;
+    // Timeout di sicurezza: se l'auth non risponde in 6s mostra il login
+    const fallback = setTimeout(() => { if (!done) { done = true; setUser(null); } }, 6000);
+
+    const applySession = async (sb, session) => {
+      if (done) return;
+      const u = session?.user || null;
+      if (!u) { done = true; clearTimeout(fallback); setUser(null); return; }
+      // Whitelist check tramite tabella agenti
+      try {
+        const { data: agent } = await sb.from('agenti').select('id').eq('email', u.email).eq('active', true).maybeSingle();
+        if (!agent) {
+          await sb.auth.signOut();
+          setAuthError('Email non autorizzata per Neural OS.');
+          done = true; clearTimeout(fallback); setUser(null); return;
         }
-      };
-      sb.auth.getSession().then(({ data: { session } }) => applySession(session));
-      sb.auth.onAuthStateChange((event, session) => applySession(session));
-    });
+      } catch(e) { /* agenti non raggiungibile: accesso comunque */ }
+      if (done) return;
+      done = true; clearTimeout(fallback);
+      window._nebulaUserEmail = u.email;
+      setUser(u);
+      setViewingAs(u.email);
+      if (u.email === ADMIN_EMAIL) {
+        try {
+          const { data: agents } = await sb.from('agenti').select('name, email').eq('active', true).order('name');
+          setTeamMembers(agents || []);
+        } catch(e) {}
+      }
+    };
+
+    window._initSupabase().then(sb => {
+      if (!sb) { done = true; clearTimeout(fallback); setUser(null); return; }
+      // onAuthStateChange gestisce anche il redirect dal magic link
+      sb.auth.onAuthStateChange((event, session) => applySession(sb, session));
+      // Controlla sessione esistente
+      sb.auth.getSession()
+        .then(({ data: { session } }) => applySession(sb, session))
+        .catch(() => { if (!done) { done = true; clearTimeout(fallback); setUser(null); } });
+    }).catch(() => { done = true; clearTimeout(fallback); setUser(null); });
+
+    return () => { done = true; clearTimeout(fallback); };
   }, []);
 
   // ---- Carica dati al cambio di viewingAs ----

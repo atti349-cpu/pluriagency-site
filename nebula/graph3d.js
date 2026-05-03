@@ -390,7 +390,7 @@
   }
 
   // ---------- Main ----------
-  function init({ container, onSelect, onHover }) {
+  function init({ container, onSelect, onHover, onPositionSave }) {
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x05060f, 0.00042);
 
@@ -514,14 +514,19 @@
       const newLinks = data.links || [];
       for (const sn of N) {
         const s = savedPos.get(sn.id);
-        if (!s) continue;
-        sn.x=s.x; sn.y=s.y; sn.z=s.z; sn.vx=0; sn.vy=0; sn.vz=0;
-        const clusterSame = (s.cluster || null) === (sn.cluster || null);
-        const newLinkCount = newLinks.filter(l => l.source === sn.id || l.target === sn.id).length;
-        const linksSame = s.linkCount === newLinkCount;
-        // Se il contesto strutturale è cambiato → libera il pin, il nodo si riposiziona
-        if (clusterSame && linksSame) { sn.fx=s.fx; sn.fy=s.fy; sn.fz=s.fz; }
-        restored++;
+        if (s) {
+          sn.x=s.x; sn.y=s.y; sn.z=s.z; sn.vx=0; sn.vy=0; sn.vz=0;
+          const clusterSame = (s.cluster || null) === (sn.cluster || null);
+          const newLinkCount = newLinks.filter(l => l.source === sn.id || l.target === sn.id).length;
+          const linksSame = s.linkCount === newLinkCount;
+          if (clusterSame && linksSame) { sn.fx=s.fx; sn.fy=s.fy; sn.fz=s.fz; }
+          restored++;
+        } else if (sn._px !== undefined) {
+          // Posizione persistita (da sessione precedente / dopo reload)
+          sn.x=sn._px; sn.y=sn._py; sn.z=sn._pz; sn.vx=0; sn.vy=0; sn.vz=0;
+          if (sn._pinned) { sn.fx=sn._px; sn.fy=sn._py; sn.fz=sn._pz; }
+          restored++;
+        }
       }
       state.sim = { N, L };
 
@@ -786,6 +791,10 @@
     renderer.domElement.addEventListener("pointerup", (e) => {
       if (e.pointerType === 'touch' && !e.isPrimary) return;
       if (dragNode) {
+        // Salva posizione se il nodo è rimasto pinnato dopo il drag
+        if (dragNode.fx !== null && onPositionSave) {
+          onPositionSave(dragNode.id, dragNode.x, dragNode.y, dragNode.z, true);
+        }
         dragNode = null;
         renderer.domElement.style.cursor = "grab";
       }
@@ -943,10 +952,12 @@
       if (n.fx !== null) {
         n.fx = null; n.fy = null; n.fz = null;
         state.alpha = Math.max(state.alpha, 0.6);
-        return false; // ora libero
+        onPositionSave && onPositionSave(id, n.x, n.y, n.z, false); // libero
+        return false;
       } else {
         n.fx = n.x; n.fy = n.y; n.fz = n.z;
-        return true; // ora pinnato
+        onPositionSave && onPositionSave(id, n.x, n.y, n.z, true); // pinnato
+        return true;
       }
     }
 

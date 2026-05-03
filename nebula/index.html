@@ -1246,13 +1246,26 @@ function App() {
     }).catch(() => { cloudLoaded.current = true; });
   }, [viewingAs]);
 
+  // Salva posizione e pin state di un nodo nella nebula (persiste su reload)
+  const handlePositionSave = useCallback((nodeId, x, y, z, pinned) => {
+    setData(prev => {
+      const nodes = prev.nodes.map(n => n.id === nodeId
+        ? { ...n, _px: x, _py: y, _pz: z, _pinned: pinned }
+        : n);
+      const updated = { ...prev, nodes };
+      window.saveNeuralData(updated);
+      return updated;
+    });
+  }, []);
+
   // Init 3D scene — scatta quando user diventa autenticato (container è nel DOM)
   useEffect(() => {
     if (!user || graphRef.current || !containerRef.current) return;
     const g = window.NeuralGraph3D.init({
       container: containerRef.current,
       onSelect: (id) => { setSelectedId(id); if (id) setHintVisible(false); },
-      onHover: (id) => setHoveredId(id)
+      onHover: (id) => setHoveredId(id),
+      onPositionSave: handlePositionSave
     });
     graphRef.current = g;
     return () => { g.dispose(); graphRef.current = null; };

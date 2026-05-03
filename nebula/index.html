@@ -252,6 +252,10 @@
 
   .danger-btn { padding: 9px; border-radius: 9px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; cursor: pointer; font-family: inherit; font-size: 12px; transition: all 0.15s; }
   .danger-btn:hover { background: rgba(239,68,68,0.18); }
+  .pin-btn { padding: 7px 10px; border-radius: 9px; background: rgba(255,255,255,0.04); border: 1px solid var(--line); color: var(--dim); cursor: pointer; font-family: inherit; font-size: 11px; transition: all 0.15s; display:flex; align-items:center; gap:5px; }
+  .pin-btn:hover { background: rgba(255,255,255,0.08); color: var(--fg); }
+  .pin-btn.pinned { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.4); color: #fcd34d; }
+  .pin-btn.pinned:hover { background: rgba(245,158,11,0.22); }
 
   .detail-section { border-top: 1px solid var(--line); padding-top: 14px; }
   .section-title { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.18em; color: var(--dim); margin-bottom: 8px; }
@@ -688,9 +692,12 @@ function TopBar({ totals, focusMode, setFocusMode, selectedId, onCenter, onToggl
   );
 }
 
-function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, onEdit, onDelete, onSaveUrl, onCreateConnected, onSaveTask, readOnly }) {
+function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, onEdit, onDelete, onSaveUrl, onCreateConnected, onSaveTask, readOnly, onGetPinned, onTogglePin }) {
   if (!node) return null;
   const cat = data.categories[node.category];
+  const [pinned, setPinned] = React.useState(() => onGetPinned?.() || false);
+  // Reset pin state quando cambia il nodo selezionato
+  React.useEffect(() => { setPinned(onGetPinned?.() || false); }, [node.id]);
   const [urlEdit, setUrlEdit] = React.useState(false);
   const [urlValue, setUrlValue] = React.useState(node.url || "");
   const [taskInput, setTaskInput] = React.useState("");
@@ -820,6 +827,13 @@ function NodePanel({ data, node, onClose, focusNode, setFocusMode, focusMode, on
           <button className="act-btn new-planet-btn" onClick={onCreateConnected} title="Crea nuovo pianeta collegato a questo">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="17"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
             Pianeta
+          </button>
+        )}
+        {!readOnly && (
+          <button className={`pin-btn${pinned ? " pinned" : ""}`}
+            onClick={() => { const np = onTogglePin?.(); setPinned(np || false); }}
+            title={pinned ? "Clicca per liberare il pianeta (o doppio-click sul nodo)" : "Clicca per fissare il pianeta in posizione"}>
+            {pinned ? "📍 Pinnato" : "◎ Libero"}
           </button>
         )}
       </div>
@@ -1357,6 +1371,9 @@ function App() {
     });
   };
 
+  const handleGetPinned = useCallback((nodeId) => graphRef.current?.isNodePinned(nodeId) || false, []);
+  const handleTogglePin = useCallback((nodeId) => graphRef.current?.toggleNodePinned(nodeId) || false, []);
+
   const handleSaveUrl = (nodeId, newUrl) => {
     setData(prev => {
       const updated = { ...prev, nodes: prev.nodes.map(n => n.id === nodeId ? { ...n, url: newUrl.trim() || undefined } : n) };
@@ -1446,6 +1463,8 @@ function App() {
           onCreateConnected={() => { setEditingNode(null); setEditorOpen(true); }}
           onSaveTask={handleSaveTask}
           readOnly={isReadOnly}
+          onGetPinned={() => handleGetPinned(selectedId)}
+          onTogglePin={() => handleTogglePin(selectedId)}
         />
       )}
 

@@ -930,9 +930,29 @@
       if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
     }
 
+    function getSimNode(id) { return state.sim?.N.find(n => n.id === id) || null; }
+
+    function isNodePinned(id) {
+      const n = getSimNode(id);
+      return n ? n.fx !== null : false;
+    }
+
+    function toggleNodePinned(id) {
+      const n = getSimNode(id);
+      if (!n) return false;
+      if (n.fx !== null) {
+        n.fx = null; n.fy = null; n.fz = null;
+        state.alpha = Math.max(state.alpha, 0.6);
+        return false; // ora libero
+      } else {
+        n.fx = n.x; n.fy = n.y; n.fz = n.z;
+        return true; // ora pinnato
+      }
+    }
+
     return {
       setData, refresh, setFilters, setSelected, setFocusMode,
-      focusNode, getNode, dispose,
+      focusNode, getNode, dispose, isNodePinned, toggleNodePinned,
       getSim: () => state.sim,
       _state: state
     };

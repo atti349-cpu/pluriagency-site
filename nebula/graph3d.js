@@ -82,32 +82,7 @@
     }
   }
 
-  // Flag texture — pennant triangolare dorato/ambra
-  let _flagTex = null;
-  function makeFlagTexture() {
-    if (_flagTex) return _flagTex;
-    const c = document.createElement("canvas");
-    c.width = 52; c.height = 36;
-    const ctx = c.getContext("2d");
-    ctx.clearRect(0,0,52,36);
-    // Pennant triangolare
-    ctx.beginPath();
-    ctx.moveTo(3, 3);
-    ctx.lineTo(49, 18);
-    ctx.lineTo(3, 33);
-    ctx.closePath();
-    const grad = ctx.createLinearGradient(3,18,49,18);
-    grad.addColorStop(0, "rgba(252,211,77,0.98)");
-    grad.addColorStop(1, "rgba(245,158,11,0.85)");
-    ctx.fillStyle = grad;
-    ctx.fill();
-    // Bordo luminoso
-    ctx.strokeStyle = "rgba(255,245,160,0.75)";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    _flagTex = new THREE.CanvasTexture(c);
-    return _flagTex;
-  }
+  // Nessuna texture richiesta per il gravity well (solo geometria Three.js)
 
   // Glow sprite texture (cached)
   let _glowTex = null;
@@ -647,26 +622,41 @@
         label.position.set(0, r + 14, 0);
         grp.add(label);
 
-        // pin indicator — bandierina con polo, visibile solo quando il nodo è pinnato
-        const pinGroup = new THREE.Group();
-        pinGroup.visible = false;
-        // Polo sottile argentato
-        const polePts = [new THREE.Vector3(0,0,0), new THREE.Vector3(0, r*1.7, 0)];
-        const poleGeo = new THREE.BufferGeometry().setFromPoints(polePts);
-        const poleMat = new THREE.LineBasicMaterial({ color: "#c8d6e8", transparent: true, opacity: 0.8 });
-        pinGroup.add(new THREE.Line(poleGeo, poleMat));
-        // Pennant sprite in cima al polo
-        const flagMat = new THREE.SpriteMaterial({ map: makeFlagTexture(), transparent: true, depthWrite: false });
-        const flagSprite = new THREE.Sprite(flagMat);
-        flagSprite.scale.set(r * 1.5, r * 0.75, 1);
-        flagSprite.position.set(r * 0.75, r * 1.7, 0);
-        pinGroup.add(flagSprite);
-        pinGroup.position.set(0, r, 0); // base del polo sul bordo superiore del pianeta
-        grp.add(pinGroup);
+        // pin indicator — conca gravitazionale sotto il pianeta
+        // Tre anelli che si allargano scendendo (curvatura spaziotempo)
+        const gravGroup = new THREE.Group();
+        gravGroup.visible = false;
+        const gravRings = [
+          { y: -r * 0.9,  ri: r * 1.15, ro: r * 1.15 + 0.55, op: 0.38 },
+          { y: -r * 1.9,  ri: r * 2.0,  ro: r * 2.0  + 0.55, op: 0.24 },
+          { y: -r * 3.1,  ri: r * 3.1,  ro: r * 3.1  + 0.55, op: 0.13 },
+        ];
+        gravRings.forEach(rd => {
+          const rGeo = new THREE.RingGeometry(rd.ri, rd.ro, 56);
+          const rMat = new THREE.MeshBasicMaterial({ color: colHex, transparent: true, opacity: rd.op, side: THREE.DoubleSide, depthWrite: false });
+          const rMesh = new THREE.Mesh(rGeo, rMat);
+          rMesh.rotation.x = Math.PI / 2;
+          rMesh.position.set(0, rd.y, 0);
+          rMesh.userData.baseOp = rd.op;
+          gravGroup.add(rMesh);
+        });
+        // Raggi radiali sottili (la "griglia" del campo gravitazionale)
+        const spokeCount = 8;
+        for (let i = 0; i < spokeCount; i++) {
+          const a = (i / spokeCount) * Math.PI * 2;
+          const spokePts = [
+            new THREE.Vector3(Math.cos(a)*r*1.1, -r*0.9, Math.sin(a)*r*1.1),
+            new THREE.Vector3(Math.cos(a)*r*3.1, -r*3.1, Math.sin(a)*r*3.1)
+          ];
+          const sGeo = new THREE.BufferGeometry().setFromPoints(spokePts);
+          const sMat = new THREE.LineBasicMaterial({ color: colHex, transparent: true, opacity: 0.09 });
+          gravGroup.add(new THREE.Line(sGeo, sMat));
+        }
+        grp.add(gravGroup);
 
         grp.position.set(n.x, n.y, n.z);
         graphGroup.add(grp);
-        state.nodeMeshes.set(n.id, { group: grp, sphere, halo, core, ring, label, hitSphere, pinGroup, n, baseHaloOp: 0.85, baseSphereOp: 0.32 });
+        state.nodeMeshes.set(n.id, { group: grp, sphere, halo, core, ring, label, hitSphere, gravGroup, n, baseHaloOp: 0.85, baseSphereOp: 0.32 });
       }
 
       // Links
@@ -947,13 +937,18 @@
         if (id === state.selectedId) {
           m.halo.material.opacity = Math.min(1, m.baseHaloOp * alpha * 1.6);
         }
-        // pin indicator — bandierina animata
-        if (m.pinGroup) {
+        // pin indicator — conca gravitazionale animata
+        if (m.gravGroup) {
           const isPinned = m.n.fx !== null;
-          m.pinGroup.visible = isPinned;
+          m.gravGroup.visible = isPinned;
           if (isPinned) {
-            // Ondeggiamento leggero della bandierina (solo rotazione sull'asse Z)
-            m.pinGroup.rotation.z = Math.sin(state.time * 0.055) * 0.10;
+            m.gravGroup.rotation.y += 0.005; // rotazione lenta attorno all'asse verticale
+            const pulse = 0.82 + 0.18 * Math.sin(state.time * 0.038);
+            m.gravGroup.children.forEach(c => {
+              if (c.material && c.userData.baseOp !== undefined) {
+                c.material.opacity = c.userData.baseOp * pulse;
+              }
+            });
           }
         }
       }

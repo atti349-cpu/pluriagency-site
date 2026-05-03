@@ -69,6 +69,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .nav-inizia span{position:relative;z-index:1;}
 .nav-inizia:hover::before{transform:translateX(0);}
 .nav-inizia:hover span{color:#000;}
+.nav-links{display:flex;gap:28px;list-style:none;}
+.nav-links a{font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:2px;
+  color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
+.nav-links a:hover{color:var(--g1);}
 
 /* HERO */
 .demo-hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;
@@ -239,7 +243,10 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
 @media(max-width:768px){
   nav{padding:0 16px;height:54px;}
   .nav-logo{font-size:15px;letter-spacing:3px;}
-  .nav-back{padding:7px 12px;font-size:10px;letter-spacing:1px;}
+  .nav-links{display:none;}
+  .nav-back{padding:6px 10px;font-size:9px;letter-spacing:1px;}
+  .nav-inizia{padding:6px 10px;font-size:9px;letter-spacing:1px;}
+  .demo-btn-primary,.demo-btn-secondary{padding:10px 20px;font-size:10px;letter-spacing:2px;}
   .demo-hero{padding:90px 20px 40px;}
   .demo-title{font-size:clamp(24px,7vw,44px);}
   .layouts-section{padding:60px 20px;}
@@ -254,6 +261,13 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
 
 <nav>
   <a href="/" class="nav-logo">PLURIAGENCY</a>
+  <ul class="nav-links">
+    <li><a href="/servizi">Moduli</a></li>
+    <li><a href="/#team">Team</a></li>
+    <li><a href="/#about">Chi Siamo</a></li>
+    <li><a href="/portfolio" style="color:var(--g2)">Portfolio</a></li>
+    <li><a href="/#contact">Contatti</a></li>
+  </ul>
   <div style="display:flex;gap:10px;align-items:center">
     <a href="/portfolio" class="nav-back">&#8592; Portfolio</a>
     <a href="#contact" class="nav-inizia"><span>&#9654; SCOPRI</span></a>

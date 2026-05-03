@@ -29,6 +29,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
 .nav-logo{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;letter-spacing:4px;
   color:var(--g1);text-shadow:0 0 20px rgba(0,255,136,0.5);text-decoration:none;}
+.nav-links{display:flex;gap:28px;list-style:none;}
+.nav-links a{font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:2px;
+  color:var(--muted,#6b6b80);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
+.nav-links a:hover{color:var(--g1);}
 .nav-actions{display:flex;align-items:center;gap:8px;}
 .nav-portfolio{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;
   padding:8px 18px;border:1px solid var(--g2);color:var(--g2);background:transparent;
@@ -248,6 +252,7 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
 @media(max-width:768px){
   nav{padding:0 16px;height:54px;}
   .nav-logo{font-size:15px;letter-spacing:3px;}
+  .nav-links{display:none;}
   .nav-actions{margin-left:auto;}
   .nav-portfolio{display:none;}
   .nav-cta{font-size:10px;padding:7px 12px;letter-spacing:1px;}
@@ -292,9 +297,16 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
 
 <nav>
   <a href="/" class="nav-logo">PLURIAGENCY</a>
+  <ul class="nav-links">
+    <li><a href="/servizi" style="color:var(--g1)">Moduli</a></li>
+    <li><a href="/#team">Team</a></li>
+    <li><a href="/#about">Chi Siamo</a></li>
+    <li><a href="/portfolio" style="color:var(--g2)">Portfolio</a></li>
+    <li><a href="/#contact">Contatti</a></li>
+  </ul>
   <div class="nav-actions">
     <a class="nav-portfolio" href="/portfolio"><span>&#9656; PORTFOLIO</span></a>
-    <a class="nav-cta" href="#contact" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'});return false;">Inizia</a>
+    <a class="nav-cta" href="/#contact">Inizia</a>
   </div>
 </nav>
 

@@ -57,6 +57,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   box-shadow:0 0 12px rgba(0,119,255,0.25),inset 0 0 8px rgba(0,119,255,0.06);
   cursor:pointer;text-transform:uppercase;text-decoration:none;transition:all 0.2s;}
 .nav-demo-btn:hover{background:rgba(0,119,255,0.22);box-shadow:0 0 20px rgba(0,119,255,0.4),inset 0 0 12px rgba(0,119,255,0.1);color:#3399ff;}
+.nav-links{display:flex;gap:28px;list-style:none;}
+.nav-links a{font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:2px;
+  color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
+.nav-links a:hover{color:var(--g1);}
 
 /* HERO */
 .port-hero{padding:120px 40px 48px;text-align:center;position:relative;
@@ -217,6 +221,7 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
 @media(max-width:768px){
   nav{padding:0 16px;height:54px;}
   .nav-logo{font-size:15px;letter-spacing:3px;}
+  .nav-links{display:none;}
   .nav-cta{padding:7px 12px;font-size:10px;letter-spacing:1px;}
   .port-hero{padding:100px 20px 32px;}
   .filter-bar{padding:12px 16px;gap:6px;overflow-x:auto;flex-wrap:nowrap;justify-content:flex-start;}
@@ -233,6 +238,13 @@ footer{border-top:1px solid var(--border);padding:40px;text-align:center;}
 
 <nav>
   <a href="/" class="nav-logo">PLURIAGENCY</a>
+  <ul class="nav-links">
+    <li><a href="/servizi">Moduli</a></li>
+    <li><a href="/#team">Team</a></li>
+    <li><a href="/#about">Chi Siamo</a></li>
+    <li><a href="/portfolio" style="color:var(--g2)">Portfolio</a></li>
+    <li><a href="/#contact">Contatti</a></li>
+  </ul>
   <div style="display:flex;gap:12px;align-items:center">
     <a href="/demo" class="nav-cta">DEMO</a>
   </div>

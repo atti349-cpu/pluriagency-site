@@ -82,6 +82,38 @@
     }
   }
 
+  // Pin indicator texture — stella a 4 punte dorata
+  let _pinTex = null;
+  function makePinTexture() {
+    if (_pinTex) return _pinTex;
+    const c = document.createElement("canvas");
+    c.width = c.height = 64;
+    const ctx = c.getContext("2d");
+    const cx = 32, cy = 32;
+    // Glow morbido ambra
+    const glow = ctx.createRadialGradient(cx,cy,0, cx,cy,30);
+    glow.addColorStop(0,   "rgba(252,211,77,0.95)");
+    glow.addColorStop(0.35,"rgba(245,158,11,0.55)");
+    glow.addColorStop(1,   "rgba(245,158,11,0)");
+    ctx.fillStyle = glow; ctx.fillRect(0,0,64,64);
+    // Stella a 4 punte
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.strokeStyle = "rgba(255,240,150,0.95)";
+    ctx.lineWidth = 2.2;
+    ctx.lineCap = "round";
+    for (let a = 0; a < 4; a++) {
+      ctx.rotate(Math.PI / 4);
+      ctx.beginPath(); ctx.moveTo(0, -16); ctx.lineTo(0, 16); ctx.stroke();
+    }
+    // Dot centrale brillante
+    ctx.beginPath(); ctx.arc(0,0,3.2,0,Math.PI*2);
+    ctx.fillStyle = "rgba(255,255,255,0.98)"; ctx.fill();
+    ctx.restore();
+    _pinTex = new THREE.CanvasTexture(c);
+    return _pinTex;
+  }
+
   // Glow sprite texture (cached)
   let _glowTex = null;
   function makeGlowTexture() {
@@ -620,9 +652,17 @@
         label.position.set(0, r + 14, 0);
         grp.add(label);
 
+        // pin indicator — stella dorata, visibile solo quando il nodo è pinnato
+        const pinMat = new THREE.SpriteMaterial({ map: makePinTexture(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 });
+        const pinSprite = new THREE.Sprite(pinMat);
+        pinSprite.scale.set(r * 1.6, r * 1.6, 1);
+        pinSprite.position.set(r * 0.7, r * 0.8, 0);
+        pinSprite.visible = false;
+        grp.add(pinSprite);
+
         grp.position.set(n.x, n.y, n.z);
         graphGroup.add(grp);
-        state.nodeMeshes.set(n.id, { group: grp, sphere, halo, core, ring, label, hitSphere, n, baseHaloOp: 0.85, baseSphereOp: 0.32 });
+        state.nodeMeshes.set(n.id, { group: grp, sphere, halo, core, ring, label, hitSphere, pinSprite, n, baseHaloOp: 0.85, baseSphereOp: 0.32 });
       }
 
       // Links
@@ -819,15 +859,7 @@
     renderer.domElement.addEventListener("dblclick", () => {
       const hit = pickNode();
       if (!hit) return;
-      const nodeId = hit.userData.nodeId;
-      const simNode = state.sim?.N.find(nn => nn.id === nodeId);
-      // Se il nodo è pinnato → doppio-click lo libera (priorità sul link URL)
-      if (simNode && simNode.fx !== null) {
-        simNode.fx = null; simNode.fy = null; simNode.fz = null;
-        state.alpha = Math.max(state.alpha, 0.6);
-        return;
-      }
-      const n = state.nodeMeshes.get(nodeId)?.n;
+      const n = state.nodeMeshes.get(hit.userData.nodeId)?.n;
       if (n && n.url) window.open(n.url, "_blank", "noopener");
     });
 
@@ -910,6 +942,18 @@
         // selected gets emphasized
         if (id === state.selectedId) {
           m.halo.material.opacity = Math.min(1, m.baseHaloOp * alpha * 1.6);
+        }
+        // pin indicator — stella dorata animata
+        if (m.pinSprite) {
+          const isPinned = m.n.fx !== null;
+          m.pinSprite.visible = isPinned;
+          if (isPinned) {
+            m.pinSprite.material.rotation += 0.012; // rotazione lenta
+            const pulse = 0.82 + 0.18 * Math.sin(state.time * 0.07);
+            const r = 4 + m.n.size * 4.5;
+            m.pinSprite.scale.set(r * 1.6 * pulse, r * 1.6 * pulse, 1);
+            m.pinSprite.material.opacity = 0.88 * alpha;
+          }
         }
       }
       for (const ll of state.linkLines) {

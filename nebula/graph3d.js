@@ -487,11 +487,15 @@
     }
 
     function buildGraph() {
-      // Salva posizioni correnti prima del rebuild — evita che i nodi volino via
+      // Salva posizioni + contesto strutturale — serve per decidere se mantenere il pin
       const savedPos = new Map();
       if (state.sim) {
+        const oldLinks = state.data?.links || [];
         for (const n of state.sim.N) {
-          if (n.x !== undefined) savedPos.set(n.id, { x: n.x, y: n.y, z: n.z, fx: n.fx, fy: n.fy, fz: n.fz });
+          if (n.x === undefined) continue;
+          const linkCount = oldLinks.filter(l => l.source === n.id || l.target === n.id).length;
+          savedPos.set(n.id, { x: n.x, y: n.y, z: n.z, fx: n.fx, fy: n.fy, fz: n.fz,
+            cluster: n.cluster || null, linkCount });
         }
       }
 
@@ -505,11 +509,19 @@
       // marca _isHead sui sim nodes (copie separate, non React state)
       for (const sn of N) sn._isHead = sn.isClusterHead === true || headsSet.has(sn.id);
 
-      // Ripristina posizioni per i nodi già esistenti
+      // Ripristina posizioni — mantieni il pin solo se cluster e connessioni sono invariati
       let restored = 0;
+      const newLinks = data.links || [];
       for (const sn of N) {
         const s = savedPos.get(sn.id);
-        if (s) { sn.x=s.x; sn.y=s.y; sn.z=s.z; sn.vx=0; sn.vy=0; sn.vz=0; sn.fx=s.fx; sn.fy=s.fy; sn.fz=s.fz; restored++; }
+        if (!s) continue;
+        sn.x=s.x; sn.y=s.y; sn.z=s.z; sn.vx=0; sn.vy=0; sn.vz=0;
+        const clusterSame = (s.cluster || null) === (sn.cluster || null);
+        const newLinkCount = newLinks.filter(l => l.source === sn.id || l.target === sn.id).length;
+        const linksSame = s.linkCount === newLinkCount;
+        // Se il contesto strutturale è cambiato → libera il pin, il nodo si riposiziona
+        if (clusterSame && linksSame) { sn.fx=s.fx; sn.fy=s.fy; sn.fz=s.fz; }
+        restored++;
       }
       state.sim = { N, L };
 
@@ -798,7 +810,15 @@
     renderer.domElement.addEventListener("dblclick", () => {
       const hit = pickNode();
       if (!hit) return;
-      const n = state.nodeMeshes.get(hit.userData.nodeId)?.n;
+      const nodeId = hit.userData.nodeId;
+      const simNode = state.sim?.N.find(nn => nn.id === nodeId);
+      // Se il nodo è pinnato → doppio-click lo libera (priorità sul link URL)
+      if (simNode && simNode.fx !== null) {
+        simNode.fx = null; simNode.fy = null; simNode.fz = null;
+        state.alpha = Math.max(state.alpha, 0.6);
+        return;
+      }
+      const n = state.nodeMeshes.get(nodeId)?.n;
       if (n && n.url) window.open(n.url, "_blank", "noopener");
     });
 

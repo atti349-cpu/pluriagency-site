@@ -768,6 +768,7 @@
     // ---- Left-click drag (sposta pianeti) ----
     let mouseDownPos = null;
     let dragNode = null;       // simulazione nodo che si sta trascinando
+    let dragMoved = false;     // true solo se il nodo è stato effettivamente spostato
     let dragPlane = new THREE.Plane();
     let dragOffset = new THREE.Vector3();
     let dragHitPoint = new THREE.Vector3();
@@ -787,12 +788,14 @@
         dragNode.y = dragNode.fy;
         dragNode.z = dragNode.fz;
         state.alpha = Math.max(state.alpha, 0.4);
+        dragMoved = true; // il nodo è stato davvero spostato
       }
     });
     renderer.domElement.addEventListener("pointerdown", (e) => {
       // Ignora il 2° dito in un pinch touch (non-primary) — gestito da onTouchMove
       if (e.pointerType === 'touch' && !e.isPrimary) return;
       mouseDownPos = { x: e.clientX, y: e.clientY, button: e.button };
+      dragMoved = false; // reset per ogni nuovo click
       if (e.button === 0) {
         const rect = renderer.domElement.getBoundingClientRect();
         pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -825,11 +828,12 @@
     renderer.domElement.addEventListener("pointerup", (e) => {
       if (e.pointerType === 'touch' && !e.isPrimary) return;
       if (dragNode) {
-        // Salva posizione se il nodo è rimasto pinnato dopo il drag
-        if (dragNode.fx !== null && onPositionSave) {
+        // Salva posizione SOLO se il nodo è stato davvero spostato (non su semplice click)
+        if (dragMoved && dragNode.fx !== null && onPositionSave) {
           onPositionSave(dragNode.id, dragNode.x, dragNode.y, dragNode.z, true);
         }
         dragNode = null;
+        dragMoved = false;
         renderer.domElement.style.cursor = "grab";
       }
       if (!mouseDownPos) return;

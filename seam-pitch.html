@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEAM — Pitch Deck 2026</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --black: #080808;
+    --off-black: #0f0f0f;
+    --dark: #161616;
+    --mid: #242424;
+    --border: #2a2a2a;
+    --muted: #555;
+    --text: #c8c8c4;
+    --white: #f0ede8;
+    --amber: #e8a020;
+    --amber-dim: #a06810;
+    --amber-glow: rgba(232,160,32,0.08);
+    --green: #3a7a4a;
+    --green-bright: #4aaa5a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 48px;
+    background: rgba(8,8,8,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: 0.15em;
+    color: var(--white);
+  }
+
+  .nav-logo span { color: var(--amber); }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--amber); }
+
+  .nav-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--amber);
+    border: 1px solid var(--amber-dim);
+    padding: 4px 12px;
+    text-transform: uppercase;
+  }
+
+  /* SECTIONS */
+  section {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 120px 48px 80px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+  }
+
+  section.compact {
+    min-height: auto;
+    padding: 80px 48px;
+  }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  /* HERO */
+  #hero {
+    background: var(--black);
+    overflow: hidden;
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(232,160,32,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,160,32,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  }
+
+  .hero-content { position: relative; z-index: 2; max-width: 900px; }
+
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.1s forwards;
+  }
+
+  h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: clamp(72px, 12vw, 140px);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    color: var(--white);
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.2s forwards;
+  }
+
+  h1 .accent { color: var(--amber); }
+
+  .hero-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 300;
+    font-size: clamp(18px, 3vw, 28px);
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 16px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.35s forwards;
+  }
+
+  .hero-statement {
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--text);
+    max-width: 580px;
+    margin-top: 48px;
+    line-height: 1.7;
+    border-left: 2px solid var(--amber);
+    padding-left: 24px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.5s forwards;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 48px;
+    margin-top: 64px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.65s forwards;
+  }
+
+  .hero-stat-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 36px;
+    color: var(--amber);
+    line-height: 1;
+  }
+
+  .hero-stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* HEADINGS */
+  h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: clamp(48px, 7vw, 80px);
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    color: var(--white);
+    text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+
+  h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: 0.02em;
+    color: var(--white);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  p { margin-bottom: 16px; line-height: 1.75; }
+
+  /* PROBLEM */
+  #problem { background: var(--off-black); }
+
+  .problem-text {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 300;
+    font-size: clamp(24px, 4vw, 42px);
+    line-height: 1.3;
+    color: var(--text);
+    max-width: 800px;
+    letter-spacing: 0.01em;
+  }
+
+  .problem-text strong {
+    color: var(--white);
+    font-weight: 700;
+  }
+
+  .problem-highlight {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: clamp(28px, 5vw, 52px);
+    color: var(--amber);
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    margin-top: 40px;
+    border-top: 1px solid var(--border);
+    padding-top: 40px;
+  }
+
+  /* SOLUTION */
+  #solution { background: var(--black); }
+
+  .flow-container {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-top: 48px;
+    border: 1px solid var(--border);
+  }
+
+  .flow-step {
+    flex: 1;
+    padding: 32px 24px;
+    border-right: 1px solid var(--border);
+    position: relative;
+    transition: background 0.3s;
+  }
+
+  .flow-step:last-child { border-right: none; }
+  .flow-step:hover { background: var(--amber-glow); }
+
+  .flow-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+  }
+
+  .flow-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--white);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+
+  .flow-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .solution-tagline {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: clamp(20px, 3vw, 32px);
+    color: var(--white);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 48px;
+    padding: 24px 32px;
+    border: 1px solid var(--amber-dim);
+    background: var(--amber-glow);
+  }
+
+  .solution-tagline span { color: var(--amber); }
+
+  /* MARKET */
+  #market { background: var(--off-black); }
+
+  .market-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    margin-bottom: 64px;
+    border: 1px solid var(--border);
+  }
+
+  .market-card {
+    background: var(--off-black);
+    padding: 40px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .market-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .market-card.tam::before { background: var(--amber); }
+  .market-card.sam::before { background: #888; }
+  .market-card.som::before { background: #555; }
+
+  .market-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .market-tag.tam { color: var(--amber); }
+
+  .market-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 52px;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .market-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 32px;
+  }
+
+  .chart-box {
+    background: var(--dark);
+    border: 1px solid var(--border);
+    padding: 32px;
+  }
+
+  .chart-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  canvas { max-height: 220px; }
+
+  /* COMPETITION */
+  #competition { background: var(--black); }
+
+  .table-scroll-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-top: 40px;
+  }
+
+  .comp-table {
+    width: 100%;
+    min-width: 620px;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .comp-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    text-align: left;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .comp-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+  }
+
+  .comp-table tr:hover td { background: var(--amber-glow); }
+
+  .comp-table tr.seam-row td {
+    color: var(--white);
+    background: rgba(232,160,32,0.06);
+    border-left: 2px solid var(--amber);
+  }
+
+  .comp-table tr.seam-row td:first-child {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: 0.1em;
+    color: var(--amber);
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 3px 10px;
+    text-transform: uppercase;
+  }
+
+  .badge.yes { background: rgba(74,170,90,0.15); color: var(--green-bright); border: 1px solid rgba(74,170,90,0.3); }
+  .badge.no { background: rgba(180,60,60,0.12); color: #cc5555; border: 1px solid rgba(180,60,60,0.25); }
+  .badge.partial { background: rgba(232,160,32,0.1); color: var(--amber); border: 1px solid var(--amber-dim); }
+
+  /* BUSINESS MODEL */
+  #business { background: var(--off-black); }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin: 40px 0;
+  }
+
+  .pricing-card {
+    background: var(--off-black);
+    padding: 40px 32px;
+    position: relative;
+  }
+
+  .pricing-card.featured {
+    background: var(--dark);
+    border-top: 2px solid var(--amber);
+  }
+
+  .pricing-tier {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .pricing-tier.featured { color: var(--amber); }
+
+  .pricing-price {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 52px;
+    color: var(--white);
+    line-height: 1;
+  }
+
+  .pricing-period {
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 300;
+    margin-left: 4px;
+  }
+
+  .pricing-features {
+    margin-top: 24px;
+    list-style: none;
+  }
+
+  .pricing-features li {
+    font-size: 13px;
+    color: var(--muted);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pricing-features li::before {
+    content: '—';
+    color: var(--amber);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+  }
+
+  .projections-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 48px;
+  }
+
+  .proj-card {
+    background: var(--dark);
+    padding: 32px;
+    text-align: center;
+  }
+
+  .proj-year {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .proj-rev {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 44px;
+    color: var(--amber);
+    line-height: 1;
+  }
+
+  .proj-users {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  /* ROADMAP */
+  #roadmap { background: var(--black); }
+
+  .timeline {
+    position: relative;
+    margin-top: 48px;
+    padding-left: 40px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--amber), var(--border), transparent);
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 48px;
+    opacity: 0;
+    transform: translateX(-16px);
+    transition: all 0.5s ease;
+  }
+
+  .timeline-item.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .timeline-dot {
+    position: absolute;
+    left: -44px;
+    top: 6px;
+    width: 8px;
+    height: 8px;
+    background: var(--amber);
+    border-radius: 50%;
+  }
+
+  .timeline-item.future .timeline-dot {
+    background: var(--border);
+    border: 1px solid var(--muted);
+  }
+
+  .timeline-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .timeline-item.future .timeline-date { color: var(--muted); }
+
+  .timeline-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--white);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+
+  .timeline-desc {
+    font-size: 14px;
+    color: var(--muted);
+    max-width: 600px;
+    line-height: 1.6;
+  }
+
+  /* RISKS */
+  #risks { background: var(--off-black); }
+
+  .risks-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  .risk-card {
+    background: var(--off-black);
+    padding: 32px;
+  }
+
+  .risk-level {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .risk-level.high { color: #cc5555; }
+  .risk-level.med { color: var(--amber); }
+  .risk-level.low { color: var(--green-bright); }
+
+  .risk-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--white);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+
+  .risk-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  .risk-mitigation {
+    font-size: 12px;
+    color: var(--green-bright);
+    font-style: italic;
+  }
+
+  /* TEAM */
+  #team { background: var(--black); }
+
+  .team-card {
+    border: 1px solid var(--border);
+    padding: 48px;
+    max-width: 700px;
+    margin-bottom: 32px;
+    position: relative;
+  }
+
+  .team-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--amber);
+  }
+
+  .team-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 40px;
+    color: var(--white);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+
+  .team-role {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .team-bio {
+    font-size: 15px;
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  .tech-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tech-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--amber);
+    border: 1px solid var(--amber-dim);
+    padding: 4px 12px;
+    background: var(--amber-glow);
+  }
+
+  .gap-card {
+    border: 1px solid var(--border);
+    padding: 32px 48px;
+    max-width: 700px;
+    background: var(--dark);
+  }
+
+  .gap-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+  }
+
+  .gap-items {
+    list-style: none;
+  }
+
+  .gap-items li {
+    font-size: 14px;
+    color: var(--muted);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .gap-items li::before {
+    content: '○';
+    color: var(--border);
+    font-size: 12px;
+  }
+
+  /* CLOSING */
+  #closing {
+    background: var(--off-black);
+    text-align: center;
+    align-items: center;
+  }
+
+  .closing-quote {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 300;
+    font-size: clamp(22px, 4vw, 42px);
+    color: var(--text);
+    max-width: 780px;
+    line-height: 1.4;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  .closing-quote strong {
+    color: var(--white);
+    font-weight: 900;
+    display: block;
+    font-size: 1.2em;
+  }
+
+  .closing-quote .amber { color: var(--amber); font-weight: 700; }
+
+  .closing-logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 80px;
+    letter-spacing: 0.1em;
+    color: var(--white);
+    text-transform: uppercase;
+    opacity: 0.15;
+    margin-top: 48px;
+    line-height: 1;
+  }
+
+  .closing-confidential {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 32px;
+  }
+
+  /* FEATURE VIZ */
+  .features-viz {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  .feat-cell {
+    background: var(--black);
+    padding: 28px 24px;
+    transition: background 0.3s;
+    cursor: default;
+  }
+
+  .feat-cell:hover { background: var(--amber-glow); }
+
+  .feat-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    color: var(--amber);
+    margin-bottom: 12px;
+    line-height: 1;
+  }
+
+  .feat-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--white);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .feat-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* WAVEFORM DECORATION */
+  .waveform-deco {
+    position: absolute;
+    right: 48px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    opacity: 0.12;
+  }
+
+  .waveform-deco .bar {
+    width: 3px;
+    background: var(--amber);
+    border-radius: 1px;
+    animation: wave 1.5s ease-in-out infinite;
+  }
+
+  @keyframes wave {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(0.3); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .divider {
+    width: 40px;
+    height: 1px;
+    background: var(--amber);
+    margin: 24px 0;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: start;
+  }
+
+  .margin-note {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--amber);
+    border-left: 1px solid var(--amber-dim);
+    padding-left: 16px;
+    margin-top: 32px;
+    line-height: 1.8;
+  }
+
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    nav ul { display: none; }
+    section { padding: 100px 24px 60px; }
+    .market-grid, .pricing-grid, .projections-grid, .features-viz, .charts-row { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr; gap: 32px; }
+    .risks-grid { grid-template-columns: 1fr; }
+    .waveform-deco { display: none; }
+    .flow-container { flex-direction: column; }
+    .flow-step { border-right: none; border-bottom: 1px solid var(--border); }
+    /* Fix griglie inline con style= */
+    [style*="grid-template-columns:1fr 1fr"],
+    [style*="grid-template-columns: 1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+    /* Nessun elemento esce dal viewport */
+    * { max-width: 100%; }
+    /* Tabella: scroll orizzontale */
+    .table-scroll-wrapper { margin-top: 24px; }
+    .comp-table th, .comp-table td { padding: 10px 14px; }
+    /* Hero stats: wrap */
+    .hero-stats { flex-wrap: wrap; gap: 28px; }
+    /* Team card padding */
+    .team-card { padding: 28px 24px; }
+    .gap-card { padding: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">SE<span>A</span>M</div>
+  <ul class="nav-links">
+    <li><a href="#problem">Problema</a></li>
+    <li><a href="#solution">Soluzione</a></li>
+    <li><a href="#market">Mercato</a></li>
+    <li><a href="#business">Business</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#team">Team</a></li>
+  </ul>
+  <div class="nav-badge">Pitch 2026</div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-grid"></div>
+
+  <!-- animated waveform decoration -->
+  <div class="waveform-deco" id="waveDeco"></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">DJ Library Intelligence · Maggio 2026</div>
+    <h1>SE<span class="accent">A</span>M</h1>
+    <div class="hero-sub">La prima libreria musicale che capisce la tua musica</div>
+
+    <p class="hero-statement">
+      Ogni DJ ha migliaia di tracce. Nessuno strumento le capisce davvero.
+      Seam analizza, impara, e restituisce il controllo artistico a chi lo merita.
+    </p>
+
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-num">$420M</div>
+        <div class="hero-stat-label">Mercato software DJ 2024</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">0</div>
+        <div class="hero-stat-label">Competitor diretti reali</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">>95%</div>
+        <div class="hero-stat-label">Margine lordo stimato</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEMA -->
+<section id="problem">
+  <div class="section-label">01 — Il problema</div>
+  <div class="two-col">
+    <div>
+      <p class="problem-text">
+        Ogni DJ professionista ha una chiavetta.<br>
+        Dentro quella chiavetta c'è <strong>anni di lavoro</strong> — migliaia di tracce cercate, ascoltate, comprate, selezionate.
+      </p>
+      <div class="divider"></div>
+      <p class="problem-text">
+        Quando deve preparare una serata, apre una cartella e <strong>scorre a memoria</strong>.
+      </p>
+      <div class="divider"></div>
+      <p class="problem-text">
+        rekordbox sa il BPM. Serato sa il BPM. Mixed In Key sa la tonalità.
+        <strong>Nessuno sa che quella traccia è dark e ipnotica con un'intro lunga e funziona perfettamente dopo mezzanotte.</strong>
+      </p>
+      <div class="problem-highlight">
+        Il DJ è l'unico<br>database intelligente<br>che esiste.
+      </div>
+    </div>
+    <div>
+      <div class="margin-note">
+        "Ci mettevo ore a preparare ogni serata.<br>
+        Non perché fossi lenta.<br>
+        Perché gli strumenti che esistono<br>
+        non sono mai stati costruiti<br>
+        pensando davvero a me."<br><br>
+        — Linda, DJ · Bologna
+      </div>
+
+      <div style="margin-top: 48px; border: 1px solid var(--border); padding: 32px;">
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.15em; color:var(--muted); text-transform:uppercase; margin-bottom:20px;">Workflow attuale di un DJ</div>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; align-items:center; gap:12px; padding:12px; border:1px solid var(--border);">
+            <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--amber);">01</span>
+            <span style="font-size:13px; color:var(--muted);">Apre la cartella</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; padding:12px; border:1px solid var(--border);">
+            <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--amber);">02</span>
+            <span style="font-size:13px; color:var(--muted);">Scorre 1000 nomi di file</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; padding:12px; border:1px solid var(--border);">
+            <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--amber);">03</span>
+            <span style="font-size:13px; color:var(--muted);">Cerca a memoria</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; padding:12px; border:1px solid var(--border);">
+            <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--amber);">04</span>
+            <span style="font-size:13px; color:var(--muted);">Ascolta tracce una ad una</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; padding:12px; border:1px solid #cc444422; background: rgba(204,68,68,0.04);">
+            <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#cc5555;">??</span>
+            <span style="font-size:13px; color:#cc5555;">Ore perse. Ogni volta.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUZIONE -->
+<section id="solution">
+  <div class="section-label">02 — La soluzione</div>
+  <h2>Seam capisce<br>la tua musica</h2>
+
+  <div class="flow-container">
+    <div class="flow-step">
+      <div class="flow-num">01 ——</div>
+      <div class="flow-title">Trascina la cartella</div>
+      <div class="flow-desc">Indica la tua libreria. Seam inizia in background. Non devi fare altro.</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">02 ——</div>
+      <div class="flow-title">Analisi automatica</div>
+      <div class="flow-desc">BPM reale · Key · Energia · Vocal · Struttura · Mood. Per ogni traccia. Con confidence score.</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">03 ——</div>
+      <div class="flow-title">Correggi e insegna</div>
+      <div class="flow-desc">Ogni correzione calibra il sistema sulla tua libreria. Dopo 50 correzioni, Seam ti conosce.</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">04 ——</div>
+      <div class="flow-title">Cerca in 3 secondi</div>
+      <div class="flow-desc">"dark 145 senza vocal intro lunga" — trova quello che cerchi invece di scorrere a memoria.</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">05 ——</div>
+      <div class="flow-title">Chiavetta, vai</div>
+      <div class="flow-desc">I tag sono nei file. La consolle li legge nativamente. Zero cambiamenti al workflow.</div>
+    </div>
+  </div>
+
+  <div class="solution-tagline">
+    Seam non sostituisce il DJ. <span>Elimina il lavoro noioso</span> e lascia tutto il resto a lei.
+  </div>
+
+  <div class="features-viz">
+    <div class="feat-cell">
+      <div class="feat-icon">⏱</div>
+      <div class="feat-name">BPM Analysis</div>
+      <div class="feat-desc">BPM preciso con curva nel tempo. Doppio/metà rilevato automaticamente. Confidence score visibile.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="feat-icon">♪</div>
+      <div class="feat-name">Key Detection</div>
+      <div class="feat-desc">Tonalità con score di confidenza. Tracce atonali flaggate esplicitamente invece di forzare una key sbagliata.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="feat-icon">▲</div>
+      <div class="feat-name">Energia per Sezione</div>
+      <div class="feat-desc">Intro / Main / Outro analizzati separatamente. Non solo una media globale che mente.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="feat-icon">◎</div>
+      <div class="feat-name">Vocal Intelligence</div>
+      <div class="feat-desc">Presenza, tipo (male/female/spoken/sample), quantità. Threshold calibrato sulla tua libreria.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="feat-icon">▶</div>
+      <div class="feat-name">Player + Waveform</div>
+      <div class="feat-desc">Player integrato con waveform visiva e marker automatici su intro, drop e breakdown.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="feat-icon">◈</div>
+      <div class="feat-name">Memoria Adattiva</div>
+      <div class="feat-desc">Il sistema impara dalle correzioni. Dopo 50 edit manuali, l'analisi è calibrata su di te.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="feat-icon">⌕</div>
+      <div class="feat-name">Ricerca Semantica</div>
+      <div class="feat-desc">Linguaggio naturale. "hard techno dark senza vocal intro lunga" restituisce quello che cerchi.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="feat-icon">≋</div>
+      <div class="feat-name">Similarity Engine</div>
+      <div class="feat-desc">Data una traccia, trova le più simili. Scopri tracce dimenticate. Costruisci progressioni coerenti.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="feat-icon">⊞</div>
+      <div class="feat-name">Export Universale</div>
+      <div class="feat-desc">Tag ID3 nativi nei file (funziona sempre) + export rekordbox XML + Traktor NML + CSV.</div>
+    </div>
+  </div>
+</section>
+
+<!-- MERCATO -->
+<section id="market">
+  <div class="section-label">03 — Il mercato</div>
+  <h2>Un mercato<br>fermo da anni</h2>
+
+  <div class="market-grid">
+    <div class="market-card tam">
+      <div class="market-tag tam">TAM — Globale</div>
+      <div class="market-num">$80M</div>
+      <div class="market-desc">Mercato software DJ libreria intelligente. 1-2M DJ professionisti e semi-pro nel mondo a $39/anno.</div>
+    </div>
+    <div class="market-card sam">
+      <div class="market-tag">SAM — Europa Occ.</div>
+      <div class="market-num">€8M</div>
+      <div class="market-desc">150-200K DJ con setup digitale. Mercato omogeneo, abituato ad acquistare software professionale.</div>
+    </div>
+    <div class="market-card som">
+      <div class="market-tag">SOM — Anno 1-2</div>
+      <div class="market-num">€320K</div>
+      <div class="market-desc">Italia + Europa meridionale. 5-8K utenti paganti entro anno 2. Crescita organica, zero paid acquisition.</div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-box">
+      <div class="chart-label">Proiezioni revenue (€)</div>
+      <canvas id="revenueChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <div class="chart-label">Crescita utenti paganti</div>
+      <canvas id="usersChart"></canvas>
+    </div>
+  </div>
+
+  <div style="margin-top:32px; padding:24px 32px; border:1px solid var(--border); background:var(--dark); display:flex; gap:48px; flex-wrap:wrap;">
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.15em; color:var(--muted); text-transform:uppercase; margin-bottom:6px;">Mercato software DJ globale 2024</div>
+      <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:28px; color:var(--white);">$420M</div>
+    </div>
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.15em; color:var(--muted); text-transform:uppercase; margin-bottom:6px;">CAGR software DJ 2025-2033</div>
+      <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:28px; color:var(--white);">4.8%</div>
+    </div>
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.15em; color:var(--muted); text-transform:uppercase; margin-bottom:6px;">Mercato hardware DJ globale 2024</div>
+      <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:28px; color:var(--white);">$13.7B</div>
+    </div>
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.15em; color:var(--muted); text-transform:uppercase; margin-bottom:6px;">CAGR hardware DJ 2025-2032</div>
+      <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:28px; color:var(--white);">8.25%</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONCORRENZA -->
+<section id="competition" class="compact">
+  <div class="section-label">04 — La concorrenza</div>
+  <h2>Il gap esiste.<br>Adesso.</h2>
+
+  <div class="table-scroll-wrapper">
+  <table class="comp-table">
+    <thead>
+      <tr>
+        <th>Prodotto</th>
+        <th>Libreria semantica</th>
+        <th>Ricerca intelligente</th>
+        <th>Memoria adattiva</th>
+        <th>Tag AI</th>
+        <th>Prezzo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="seam-row">
+        <td>SEAM</td>
+        <td><span class="badge yes">Sì</span></td>
+        <td><span class="badge yes">Sì</span></td>
+        <td><span class="badge yes">Sì</span></td>
+        <td><span class="badge yes">Sì</span></td>
+        <td>€39 one-time</td>
+      </tr>
+      <tr>
+        <td>rekordbox</td>
+        <td><span class="badge no">No</span></td>
+        <td><span class="badge no">No</span></td>
+        <td><span class="badge no">No</span></td>
+        <td><span class="badge no">No</span></td>
+        <td>€17/mese</td>
+      </tr>
+      <tr>
+        <td>Mixed In Key</td>
+        <td><span class="badge no">No</span></td>
+        <td><span class="badge no">No</span></td>
+        <td><span class="badge no">No</span></td>
+        <td><span class="badge no">No</span></td>
+        <td>$58 one-time</td>
+      </tr>
+      <tr>
+        <td>Serato</td>
+        <td><span class="badge no">No</span></td>
+        <td><span class="badge no">No</span></td>
+        <td><span class="badge no">No</span></td>
+        <td><span class="badge no">No</span></td>
+        <td>€9/mese</td>
+      </tr>
+      <tr>
+        <td>DJ.Studio</td>
+        <td><span class="badge partial">Parziale</span></td>
+        <td><span class="badge partial">Parziale</span></td>
+        <td><span class="badge no">No</span></td>
+        <td><span class="badge no">No</span></td>
+        <td>€9/mese</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div style="margin-top:32px; padding:24px 32px; border-left:2px solid var(--amber); background:var(--amber-glow);">
+    <p style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:20px; color:var(--white); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">Mixed In Key — il benchmark</p>
+    <p style="font-size:14px; color:var(--muted);">Fa una sola cosa (key analysis) a $58 one-time. Ha centinaia di migliaia di utenti paganti. Seam fa molto di più allo stesso prezzo. La finestra competitiva è aperta adesso — non è garantito che lo sia tra 24 mesi.</p>
+  </div>
+</section>
+
+<!-- BUSINESS MODEL -->
+<section id="business">
+  <div class="section-label">05 — Business model</div>
+  <h2>Margini alti.<br>Struttura leggera.</h2>
+
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="pricing-tier">Free</div>
+      <div class="pricing-price">€0</div>
+      <ul class="pricing-features">
+        <li>Fino a 100 tracce</li>
+        <li>Analisi BPM e key</li>
+        <li>Ricerca base</li>
+        <li>Player integrato</li>
+      </ul>
+    </div>
+    <div class="pricing-card featured">
+      <div class="pricing-tier featured">Pro — Core</div>
+      <div class="pricing-price">€39<span class="pricing-period">one-time</span></div>
+      <ul class="pricing-features">
+        <li>Libreria illimitata</li>
+        <li>Analisi completa + mood</li>
+        <li>Similarity engine</li>
+        <li>Export rekordbox / Traktor</li>
+        <li>LLM tagging</li>
+        <li>Memoria adattiva</li>
+      </ul>
+    </div>
+    <div class="pricing-card">
+      <div class="pricing-tier">Pro+ — Future</div>
+      <div class="pricing-price">€4,99<span class="pricing-period">/mese</span></div>
+      <ul class="pricing-features">
+        <li>Come Pro</li>
+        <li>Aggiornamenti continui</li>
+        <li>L2 Assistant live</li>
+        <li>Suggerimenti durante il set</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); margin-bottom:48px;">
+    <div style="background:var(--dark); padding:32px;">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.15em; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">Costo LLM per utente Pro</div>
+      <div style="font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:36px; color:var(--amber);">~€1</div>
+      <div style="font-size:13px; color:var(--muted);">Totale per l'intera libreria da 1000 tracce. €0.001/traccia. Mai ricorrente.</div>
+    </div>
+    <div style="background:var(--dark); padding:32px;">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.15em; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">Margine lordo stimato</div>
+      <div style="font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:36px; color:var(--amber);">>95%</div>
+      <div style="font-size:13px; color:var(--muted);">App desktop, database locale. Nessun server da scalare. Nessuna banda. Nessuno storage.</div>
+    </div>
+  </div>
+
+  <div style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.2em; color:var(--amber); text-transform:uppercase; margin-bottom:16px;">Proiezioni conservative (crescita organica)</div>
+  <div class="projections-grid">
+    <div class="proj-card">
+      <div class="proj-year">Anno 1</div>
+      <div class="proj-rev">€78K</div>
+      <div class="proj-users">2.000 utenti paganti</div>
+    </div>
+    <div class="proj-card">
+      <div class="proj-year">Anno 2</div>
+      <div class="proj-rev">€280K</div>
+      <div class="proj-users">7.000 utenti paganti</div>
+    </div>
+    <div class="proj-card">
+      <div class="proj-year">Anno 3</div>
+      <div class="proj-rev">€700K</div>
+      <div class="proj-users">18.000 utenti paganti</div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section id="roadmap">
+  <div class="section-label">06 — Roadmap</div>
+  <h2>Fase 0<br>è già iniziata.</h2>
+
+  <div class="timeline" id="timeline">
+    <div class="timeline-item visible">
+      <div class="timeline-dot"></div>
+      <div class="timeline-date">Ora — Fase 0</div>
+      <div class="timeline-title">Proof of Concept</div>
+      <div class="timeline-desc">Pipeline di analisi funzionante. Schema database validato. Stack tecnico definito. Beta tester reale con 1000+ tracce in uso quotidiano.</div>
+    </div>
+    <div class="timeline-item future">
+      <div class="timeline-dot"></div>
+      <div class="timeline-date">Q3 2026</div>
+      <div class="timeline-title">MVP — Core completo</div>
+      <div class="timeline-desc">App desktop installabile. Analisi completa con confidence score. Player con waveform e marker. Scrittura tag ID3. Ricerca e filtri. Backup automatico. Memoria adattiva.</div>
+    </div>
+    <div class="timeline-item future">
+      <div class="timeline-dot"></div>
+      <div class="timeline-date">Q4 2026</div>
+      <div class="timeline-title">Beta pubblica</div>
+      <div class="timeline-desc">Export rekordbox. Similarity engine. LLM tagging opzionale. 500 beta tester. Primi utenti paganti. Feedback loop e iterazione rapida.</div>
+    </div>
+    <div class="timeline-item future">
+      <div class="timeline-dot"></div>
+      <div class="timeline-date">Q1 2027</div>
+      <div class="timeline-title">Lancio pubblico Italia</div>
+      <div class="timeline-desc">Installer .exe e .dmg. Sistema di pagamento. Marketing organico nella community DJ italiana. Primi €78K revenue.</div>
+    </div>
+    <div class="timeline-item future">
+      <div class="timeline-dot"></div>
+      <div class="timeline-date">Q2-Q3 2027</div>
+      <div class="timeline-title">Espansione Europa</div>
+      <div class="timeline-desc">Traduzione EN. Distribuzione UK, Germania, Spagna, Francia. Partnership con community DJ europee. Revenue target €280K anno 2.</div>
+    </div>
+    <div class="timeline-item future">
+      <div class="timeline-dot"></div>
+      <div class="timeline-date">Q4 2027</div>
+      <div class="timeline-title">L2 Assistant Live</div>
+      <div class="timeline-desc">Assistant passivo durante il set. Suggerimenti in tempo reale basati su metadata (non audio). Trigger naturale per passaggio a subscription mensile.</div>
+    </div>
+    <div class="timeline-item future">
+      <div class="timeline-dot"></div>
+      <div class="timeline-date">2028+</div>
+      <div class="timeline-title">Platform</div>
+      <div class="timeline-desc">API per integrazioni. Possibile white label per brand hardware. Espansione verso producer e studi di registrazione.</div>
+    </div>
+  </div>
+</section>
+
+<!-- RISCHI -->
+<section id="risks" class="compact">
+  <div class="section-label">07 — I rischi</div>
+  <h2>Onestà<br>prima di tutto.</h2>
+  <p style="max-width:600px; color:var(--muted); margin-bottom:0;">Essere chiari sui rischi è parte del rispetto per chi legge questo documento. I rischi di Seam sono reali ma gestibili.</p>
+
+  <div class="risks-grid">
+    <div class="risk-card">
+      <div class="risk-level med">Rischio medio</div>
+      <div class="risk-title">Mercato di nicchia</div>
+      <div class="risk-desc">I DJ seri non sono milioni. Il TAM globale è reale ma non enorme. Seam può diventare profittevole e sostenibile — non è il prossimo Spotify.</div>
+      <div class="risk-mitigation">→ Margini >95% rendono sostenibile anche con utenti limitati.</div>
+    </div>
+    <div class="risk-card">
+      <div class="risk-level high">Rischio alto</div>
+      <div class="risk-title">Concorrenza da player esistenti</div>
+      <div class="risk-desc">Pioneer o Native Instruments potrebbero investire in questa direzione. Brand e distribuzione che Seam non avrà mai nel breve periodo.</div>
+      <div class="risk-mitigation">→ Vantaggio: velocità di esecuzione e profondità del prodotto. La finestra è aperta adesso.</div>
+    </div>
+    <div class="risk-card">
+      <div class="risk-level med">Rischio medio</div>
+      <div class="risk-title">Adozione lenta</div>
+      <div class="risk-desc">I DJ sono conservatori sul workflow. Cambiare strumenti richiede fiducia e tempo. Il word of mouth è lento.</div>
+      <div class="risk-mitigation">→ Free tier a zero barriere. Il prodotto si vende da solo dopo il primo uso.</div>
+    </div>
+    <div class="risk-card">
+      <div class="risk-level low">Rischio basso</div>
+      <div class="risk-title">Accuratezza analisi</div>
+      <div class="risk-desc">Key detection sull'hard techno è imprecisa. BPM può rilevare doppio o metà. Il sistema non è infallibile.</div>
+      <div class="risk-mitigation">→ Confidence score visibile + correzioni manuali + memoria adattiva mitigano progressivamente.</div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+  <div class="section-label">08 — Il team</div>
+  <h2>Chi costruisce<br>Seam.</h2>
+
+  <div class="team-card">
+    <div class="team-name">Lorenzo</div>
+    <div class="team-role">Founder · Developer · Bologna</div>
+    <div class="team-bio">
+      Imprenditore e sviluppatore full-stack. Opera sotto Pluriagency (partita IVA). Founder e sviluppatore unico di Thinkr (SaaS live) e Selekt (SaaS in produzione). Esperienza in commercio, marketing e sviluppo prodotto. Accesso diretto al mercato target tramite contatti nella community DJ italiana.
+    </div>
+    <div class="tech-stack">
+      <span class="tech-tag">React</span>
+      <span class="tech-tag">Python</span>
+      <span class="tech-tag">Supabase</span>
+      <span class="tech-tag">Tauri</span>
+      <span class="tech-tag">Vercel</span>
+      <span class="tech-tag">SQLite</span>
+      <span class="tech-tag">Claude API</span>
+    </div>
+  </div>
+
+  <div class="team-card">
+    <div class="team-name">Linda</div>
+    <div class="team-role">Co-founder · Beta Tester · DJ</div>
+    <div class="team-bio">
+      DJ con libreria di 1000+ tracce. Suona hard techno e sperimenta nuovi generi. Prima utente reale di Seam — ogni feature è stata progettata partendo dal suo workflow, dai suoi problemi, dal suo modo di preparare una serata. Il suo feedback è la bussola del prodotto.
+    </div>
+    <div class="tech-stack">
+      <span class="tech-tag">Hard Techno</span>
+      <span class="tech-tag">DJ Set</span>
+      <span class="tech-tag">1000+ Tracce</span>
+      <span class="tech-tag">Beta Tester #1</span>
+      <span class="tech-tag">Product Feedback</span>
+    </div>
+  </div>
+
+  <div class="gap-card">
+    <div class="gap-title">Gap nel team — e lo sappiamo</div>
+    <p style="font-size:14px; color:var(--muted); margin-bottom:20px;">L'onestà su questo gap è preferibile a fingere un team completo che non esiste.</p>
+    <ul class="gap-items">
+      <li>Sviluppatore audio / DSP (Python avanzato, Rust, librosa)</li>
+      <li>Esperienza in distribuzione software B2C</li>
+    </ul>
+  </div>
+</section>
+
+<!-- CLOSING -->
+<section id="closing">
+  <div class="section-label">09 — Perché Seam</div>
+
+  <p class="closing-quote">
+    Esiste una DJ che ha 1000 tracce sulla chiavetta<br>
+    e ci mette ore a preparare ogni serata.<br><br>
+    <strong>Non perché sia lenta.<br>Non perché sia disorganizzata.</strong><br><br>
+    Perché gli strumenti che esistono<br>
+    non sono mai stati costruiti<br>
+    <span class="amber">pensando davvero a lei.</span>
+  </p>
+
+  <div class="divider" style="margin:0 auto;"></div>
+
+  <p style="font-family:'Barlow Condensed',sans-serif; font-weight:300; font-size:22px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:32px;">
+    Seam è stato costruito pensando a lei.<br>
+    <span style="color:var(--white);">Il resto viene da lì.</span>
+  </p>
+
+  <div class="closing-logo">SEAM</div>
+  <div class="closing-confidential">Maggio 2026 · Documento confidenziale · Contatti: [da aggiungere]</div>
+</section>
+
+<script>
+// WAVEFORM DECORATION
+const waveDeco = document.getElementById('waveDeco');
+const heights = [20,35,55,80,100,85,60,40,70,95,110,90,65,45,30,50,75,105,85,60,40,25,45,70,95,80,55,35,20];
+heights.forEach((h, i) => {
+  const bar = document.createElement('div');
+  bar.className = 'bar';
+  bar.style.height = h + 'px';
+  bar.style.animationDelay = (i * 0.06) + 's';
+  waveDeco.appendChild(bar);
+});
+
+// CHARTS
+const chartDefaults = {
+  plugins: { legend: { display: false } },
+  scales: {
+    x: {
+      grid: { color: 'rgba(255,255,255,0.05)' },
+      ticks: { color: '#555', font: { family: 'JetBrains Mono', size: 10 } }
+    },
+    y: {
+      grid: { color: 'rgba(255,255,255,0.05)' },
+      ticks: { color: '#555', font: { family: 'JetBrains Mono', size: 10 } }
+    }
+  }
+};
+
+new Chart(document.getElementById('revenueChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Anno 1', 'Anno 2', 'Anno 3'],
+    datasets: [{
+      data: [78000, 280000, 700000],
+      backgroundColor: ['rgba(232,160,32,0.3)', 'rgba(232,160,32,0.5)', 'rgba(232,160,32,0.8)'],
+      borderColor: ['#e8a020', '#e8a020', '#e8a020'],
+      borderWidth: 1,
+    }]
+  },
+  options: {
+    ...chartDefaults,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => '€' + ctx.raw.toLocaleString('it-IT')
+        }
+      }
+    },
+    scales: {
+      ...chartDefaults.scales,
+      y: {
+        ...chartDefaults.scales.y,
+        ticks: {
+          ...chartDefaults.scales.y.ticks,
+          callback: v => '€' + (v/1000) + 'K'
+        }
+      }
+    }
+  }
+});
+
+new Chart(document.getElementById('usersChart'), {
+  type: 'line',
+  data: {
+    labels: ['Q3 26', 'Q4 26', 'Q1 27', 'Q2 27', 'Q3 27', 'Anno 3'],
+    datasets: [
+      {
+        label: 'Free',
+        data: [200, 1500, 5000, 12000, 20000, 60000],
+        borderColor: '#555',
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        pointRadius: 3,
+        pointBackgroundColor: '#555',
+      },
+      {
+        label: 'Paganti',
+        data: [50, 300, 2000, 4000, 7000, 18000],
+        borderColor: '#e8a020',
+        backgroundColor: 'rgba(232,160,32,0.05)',
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: '#e8a020',
+        fill: true,
+      }
+    ]
+  },
+  options: {
+    ...chartDefaults,
+    plugins: {
+      legend: {
+        display: true,
+        labels: { color: '#555', font: { family: 'JetBrains Mono', size: 10 }, boxWidth: 12 }
+      }
+    }
+  }
+});
+
+// TIMELINE SCROLL ANIMATION
+const timelineItems = document.querySelectorAll('.timeline-item.future');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 100);
+    }
+  });
+}, { threshold: 0.2 });
+
+timelineItems.forEach(item => observer.observe(item));
+</script>
+</body>
+</html>

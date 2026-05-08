@@ -3,5 +3,6 @@ Allow: /
 Disallow: /admin
 Disallow: /api/
 Disallow: /nebula
+Disallow: /seam-pitch
 
 Sitemap: https://pluriagency.com/sitemap.xml

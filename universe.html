@@ -52,6 +52,10 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 .phase-step.current .phase-lbl{color:var(--pc);font-weight:600}
 .phase-step.done .phase-lbl{color:rgba(255,255,255,.4)}
 
+/* SECTION TOGGLE BUTTONS */
+.sec-open,.sec-back{position:absolute;top:20px;right:54px;z-index:20;font-family:'Syne Mono',monospace;font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;padding:7px 14px;border-radius:30px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);cursor:pointer;transition:background .18s,color .18s,border-color .18s}
+.sec-open:hover,.sec-back:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.32)}
+
 /* TAG */
 .tag{display:inline-flex;align-items:center;gap:5px;font-family:‘Syne Mono’,monospace;font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;padding:4px 11px;border-radius:40px;margin-bottom:14px}
 .tag-ma{background:rgba(255,200,80,.08);color:#fac850;border:1px solid rgba(255,200,80,.2)}
@@ -1161,7 +1165,7 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 
 <!-- ══ INVESTOR SUMMARY · A — TABELLONE ══ -->
 
-<section class="slide" id="sinv-recap" style="background:#05060c">
+<section class="slide" id="sinv-recap" data-inv="1" style="background:#05060c">
 <div class="ma-accent"></div>
 <div class="slide-type">Investor Summary</div>
 <div class="sc">
@@ -1187,7 +1191,7 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 
 <!-- ══ INVESTOR SUMMARY · B — REVENUE ══ -->
 
-<section class="slide" id="sinv-revenue" style="background:#05060c">
+<section class="slide" id="sinv-revenue" data-inv="1" style="background:#05060c">
 <div class="ma-accent"></div>
 <div class="slide-type">Investor Summary</div>
 <div class="sc">
@@ -1214,7 +1218,7 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 
 <!-- ══ INVESTOR SUMMARY · C — NOTE DI CAMPAGNA ══ -->
 
-<section class="slide" id="sinv-invest" style="background:#070611">
+<section class="slide" id="sinv-invest" data-inv="1" style="background:#070611">
 <div class="slide-type">Investor Summary</div>
 <div class="sc">
 <div class="tag" style="background:rgba(155,110,243,.1);color:#9b6ef3;border:1px solid rgba(155,110,243,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#9b6ef3;display:inline-block"></span>Modello di investimento · Note di Campagna</div>
@@ -1242,7 +1246,7 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 
 <!-- ══ INVESTOR SUMMARY · D — PROIEZIONE 2027 ══ -->
 
-<section class="slide" id="sinv-2027" style="background:#05080c">
+<section class="slide" id="sinv-2027" data-inv="1" style="background:#05080c">
 <div class="ma-accent"></div>
 <div class="slide-type">Investor Summary</div>
 <div class="sc">
@@ -1335,17 +1339,26 @@ Creatività, commercio,<br>tecnologia. <em>Insieme.</em>
 const SL=document.querySelectorAll('.slide');
 const NV=document.getElementById('nav');
 let _cur=0;
+// slide "collassabili": Market Analysis e Investor Summary — saltate nello scroll lineare
+const isSkip=s=>!!(s.dataset.ma||s.dataset.inv);
 SL.forEach((s,i)=>{
 const d=document.createElement('div');
-d.className='dot'+(s.dataset.ma?' ma':'')+(i===0?' active':'');
-d.title=s.dataset.ma?'Market Analysis':(s.dataset.acq?'Acquisizione':'');
+d.className='dot'+(isSkip(s)?' ma':'')+(i===0?' active':'');
+d.title=s.dataset.ma?'Market Analysis':(s.dataset.inv?'Investor Summary':(s.dataset.acq?'Acquisizione':''));
 d.onclick=()=>GT(i);NV.appendChild(d);
 });
 const DT=document.querySelectorAll('.dot');
 function GT(i){i=Math.max(0,Math.min(i,SL.length-1));_cur=i;SL[i].scrollIntoView({behavior:'smooth'})}
+function jump(el){const i=Array.from(SL).indexOf(el);if(i>=0)GT(i);}
+// step: da slide normale salta le collassabili; da dentro una sezione si muove di 1
+function step(dir){
+let i=_cur+dir;
+if(!isSkip(SL[_cur])){ while(i>=0&&i<SL.length&&isSkip(SL[i])) i+=dir; }
+return Math.max(0,Math.min(i,SL.length-1));
+}
 const _io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.intersectionRatio>.5){const i=Array.from(SL).indexOf(e.target);_cur=i;DT.forEach(d=>d.classList.remove('active'));if(DT[i])DT[i].classList.add('active');}});},{threshold:.5});
 SL.forEach(s=>_io.observe(s));
-document.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key===' '){e.preventDefault();GT(_cur+1)}if(e.key==='ArrowUp'){e.preventDefault();GT(_cur-1)}});
+document.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key===' '){e.preventDefault();GT(step(1))}if(e.key==='ArrowUp'){e.preventDefault();GT(step(-1))}});
 // ── SCROLL POWERPOINT (solo desktop) ──
 let _scrollLock=false;
 window.addEventListener('wheel',e=>{
@@ -1353,9 +1366,22 @@ window.addEventListener('wheel',e=>{
   e.preventDefault();
   if(_scrollLock||Math.abs(e.deltaY)<8)return;
   _scrollLock=true;
-  GT(_cur+(e.deltaY>0?1:-1));
+  GT(step(e.deltaY>0?1:-1));
   setTimeout(()=>{_scrollLock=false;},880);
 },{passive:false});
+// ── Pulsanti apri/torna per le sezioni collassabili (auto-generati) ──
+SL.forEach((s,i)=>{
+const skip=isSkip(s), prevSkip=i>0&&isSkip(SL[i-1]), nextSkip=i<SL.length-1&&isSkip(SL[i+1]);
+if(!skip&&nextSkip){
+const b=document.createElement('button');b.className='sec-open';
+b.textContent=SL[i+1].dataset.ma?'▸ Market Analysis':'▸ Investor Summary';
+b.onclick=()=>jump(SL[i+1]);s.appendChild(b);
+}
+if(skip&&!prevSkip){
+const b=document.createElement('button');b.className='sec-back';b.textContent='← Torna alla presentazione';
+b.onclick=()=>jump(SL[i-1]);s.appendChild(b);
+}
+});
 
 // ── CANVAS ENGINE ──
 function BG(id,type,r,g,b){

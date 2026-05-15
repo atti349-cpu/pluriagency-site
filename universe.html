@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pluriagency · Universe v5</title>
+<meta name="robots" content="noindex, nofollow">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Serif+Display:ital@0;1&family=Syne+Mono&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
@@ -119,6 +120,16 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 .cover-h em{font-style:italic;color:#d4a843}
 .chip{font-family:‘Syne Mono’,monospace;font-size:8.5px;padding:5px 13px;border:1px solid rgba(255,255,255,.1);border-radius:30px;color:rgba(255,255,255,.3);letter-spacing:.05em}
 
+/* INDEX */
+.idx-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-top:22px}
+.idx-item{display:flex;align-items:center;gap:13px;padding:13px 16px;border-radius:9px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);text-decoration:none;transition:border-color .18s,background .18s,transform .18s}
+.idx-item:hover{border-color:rgba(212,168,67,.4);background:rgba(212,168,67,.05);transform:translateX(4px)}
+.idx-n{font-family:‘Syne Mono’,monospace;font-size:10px;color:rgba(212,168,67,.55);min-width:20px}
+.idx-name{font-family:‘DM Serif Display’,serif;font-size:17px;color:rgba(240,244,255,.9);line-height:1}
+.idx-name em{font-style:italic;color:#d4a843}
+.idx-cat{font-family:‘Syne Mono’,monospace;font-size:7px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.26);margin-left:auto;white-space:nowrap}
+.idx-item:hover .idx-cat{color:rgba(212,168,67,.6)}
+
 /* SCROLL HINT */
 .hint{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;opacity:.18;font-family:‘Syne Mono’,monospace;font-size:8px;letter-spacing:.2em;text-transform:uppercase;animation:bY 2.2s ease-in-out infinite;white-space:nowrap}
 @keyframes bY{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
@@ -166,6 +177,29 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 </div>
 <div class="hint"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>Scorri</div>
 <div class="slide-num">00</div>
+</section>
+
+<!-- ══ S-INDEX ══ -->
+
+<section class="slide" id="sindex">
+<div class="slide-type">Indice</div>
+<div class="sc">
+<div class="eyebrow" style="color:#d4a843">Navigazione rapida</div>
+<div class="h2" style="margin-bottom:6px">I <em>nove progetti</em></div>
+<div class="domain">Clicca un progetto per saltare direttamente alla sua sezione</div>
+<div class="idx-grid">
+<a class="idx-item" href="#s1"><span class="idx-n">01</span><span class="idx-name">lo.<em>pluriagency</em></span><span class="idx-cat">CRM B2B</span></a>
+<a class="idx-item" href="#s3"><span class="idx-n">02</span><span class="idx-name"><em>Pluriagency</em> Agency</span><span class="idx-cat">Web Agency</span></a>
+<a class="idx-item" href="#s4b"><span class="idx-n">03</span><span class="idx-name">Page <em>Builder</em></span><span class="idx-cat">Automation</span></a>
+<a class="idx-item" href="#s5"><span class="idx-n">04</span><span class="idx-name"><em>Selekt</em>Photo</span><span class="idx-cat">SaaS Foto</span></a>
+<a class="idx-item" href="#s7"><span class="idx-n">05</span><span class="idx-name"><em>Thinkr</em>.it</span><span class="idx-cat">Incubatore</span></a>
+<a class="idx-item" href="#s9"><span class="idx-n">06</span><span class="idx-name"><em>SEAM</em></span><span class="idx-cat">Musica AI</span></a>
+<a class="idx-item" href="#s11"><span class="idx-n">07</span><span class="idx-name">Neural OS — <em>Nebula</em></span><span class="idx-cat">Visual 3D</span></a>
+<a class="idx-item" href="#s13"><span class="idx-n">08</span><span class="idx-name">Disfatti <em>OS</em></span><span class="idx-cat">Lab AI</span></a>
+<a class="idx-item" href="#s13b"><span class="idx-n">09</span><span class="idx-name"><em>Disfatti</em>.it</span><span class="idx-cat">Brand Foto</span></a>
+</div>
+</div>
+<div class="slide-num">IDX</div>
 </section>
 
 <!-- ══ S1 LO.PLURIAGENCY OVERVIEW ══ -->
@@ -953,7 +987,8 @@ Creatività, commercio,<br>tecnologia. <em>Insieme.</em>
 // ── NAV + SCROLL ──
 const SL=document.querySelectorAll('.slide');
 const NV=document.getElementById('nav');
-const maSlides=[2,4,6,8,10,12];
+const maSlides=[3,5,7,9,11,13];
+let _cur=0;
 SL.forEach((_,i)=>{
 const d=document.createElement('div');
 d.className='dot'+(maSlides.includes(i)?' ma':'')+(i===0?' active':'');
@@ -961,10 +996,20 @@ d.title=d.className.includes('ma')?'Market Analysis':'';
 d.onclick=()=>GT(i);NV.appendChild(d);
 });
 const DT=document.querySelectorAll('.dot');
-function GT(i){SL[i].scrollIntoView({behavior:'smooth'})}
-const _io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.intersectionRatio>.5){const i=Array.from(SL).indexOf(e.target);DT.forEach(d=>d.classList.remove('active'));if(DT[i])DT[i].classList.add('active');}});},{threshold:.5});
+function GT(i){i=Math.max(0,Math.min(i,SL.length-1));_cur=i;SL[i].scrollIntoView({behavior:'smooth'})}
+const _io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.intersectionRatio>.5){const i=Array.from(SL).indexOf(e.target);_cur=i;DT.forEach(d=>d.classList.remove('active'));if(DT[i])DT[i].classList.add('active');}});},{threshold:.5});
 SL.forEach(s=>_io.observe(s));
-document.addEventListener('keydown',e=>{const c=Array.from(DT).findIndex(d=>d.classList.contains('active'));if(e.key==='ArrowDown'||e.key===' '){e.preventDefault();GT(Math.min(c+1,SL.length-1))}if(e.key==='ArrowUp'){e.preventDefault();GT(Math.max(c-1,0))}});
+document.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key===' '){e.preventDefault();GT(_cur+1)}if(e.key==='ArrowUp'){e.preventDefault();GT(_cur-1)}});
+// ── SCROLL POWERPOINT (solo desktop) ──
+let _scrollLock=false;
+window.addEventListener('wheel',e=>{
+  if(window.innerWidth<900)return; // mobile: scroll naturale
+  e.preventDefault();
+  if(_scrollLock||Math.abs(e.deltaY)<8)return;
+  _scrollLock=true;
+  GT(_cur+(e.deltaY>0?1:-1));
+  setTimeout(()=>{_scrollLock=false;},880);
+},{passive:false});
 
 // ── CANVAS ENGINE ──
 function BG(id,type,r,g,b){

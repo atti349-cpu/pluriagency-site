@@ -1423,7 +1423,7 @@ window.addEventListener('wheel',e=>{
 function BG(id,type,r,g,b){
 const cv=document.getElementById(id);if(!cv)return;
 const ctx=cv.getContext('2d');let W,H,t=0;
-function rsz(){W=cv.width=cv.parentElement.offsetWidth;H=cv.height=cv.parentElement.offsetHeight;}
+function rsz(){W=cv.width=cv.parentElement.offsetWidth||1;H=cv.height=cv.parentElement.offsetHeight||1;}
 rsz();new ResizeObserver(rsz).observe(cv.parentElement);
 const ST=()=>{
 if(!BG._st)BG._st={};const k=id;

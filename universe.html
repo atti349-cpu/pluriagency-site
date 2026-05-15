@@ -52,10 +52,6 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 .phase-step.current .phase-lbl{color:var(--pc);font-weight:600}
 .phase-step.done .phase-lbl{color:rgba(255,255,255,.4)}
 
-/* SECTION TOGGLE BUTTONS */
-.sec-open,.sec-back{position:absolute;top:20px;right:54px;z-index:20;font-family:'Syne Mono',monospace;font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;padding:7px 14px;border-radius:30px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);cursor:pointer;transition:background .18s,color .18s,border-color .18s}
-.sec-open:hover,.sec-back:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.32)}
-
 /* TAG */
 .tag{display:inline-flex;align-items:center;gap:5px;font-family:‘Syne Mono’,monospace;font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;padding:4px 11px;border-radius:40px;margin-bottom:14px}
 .tag-ma{background:rgba(255,200,80,.08);color:#fac850;border:1px solid rgba(255,200,80,.2)}
@@ -1309,6 +1305,33 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 <div class="slide-num" style="color:rgba(255,255,255,.1)">14</div>
 </section>
 
+<!-- ══ TEAM ══ -->
+
+<section class="slide" id="steam" style="background:#06060d">
+<div class="slide-type">Il Collettivo</div>
+<div class="sc">
+<div class="tag" style="background:rgba(212,168,67,.1);color:#d4a843;border:1px solid rgba(212,168,67,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#d4a843;display:inline-block"></span>Il team dietro l'ecosistema</div>
+<div class="h2">Un <em>collettivo</em>, non una piramide</div>
+<div class="domain">Collaboratori a partita IVA · nessun dipendente · stesso piano</div>
+<div class="slabel" style="margin-top:20px">Lead</div>
+<div class="g2" style="gap:10px">
+<div class="card" style="border-color:rgba(212,168,67,.22)"><div class="card-title" style="color:#d4a843;font-size:13px">Lorenzo · CEO</div><div class="card-body">Visione &amp; commerciale. Project manager e sviluppo — tiene insieme i fili di tutti i progetti.</div></div>
+<div class="card" style="border-color:rgba(74,144,226,.22)"><div class="card-title" style="color:#4a90e2;font-size:13px">Filippo · Co-lead</div><div class="card-body">Tech, infrastruttura &amp; commerciale. P.IVA e clienti propri, sysadmin consulente. Creatività e visione.</div></div>
+</div>
+<div class="slabel" style="margin-top:16px">Dev &amp; Commerciali — stesso piano</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+<div class="card" style="flex:1;min-width:155px"><div class="card-title">Davide</div><div class="card-body">Closer empatico, videomaker · CRM + agenzia industria</div></div>
+<div class="card" style="flex:1;min-width:155px"><div class="card-title">Matteo</div><div class="card-body">Dev AI in crescita, da Barcellona · SEAM</div></div>
+<div class="card" style="flex:1;min-width:155px"><div class="card-title">Patrick</div><div class="card-body">Supervisione tecnica, pragmatismo · codice complesso</div></div>
+<div class="card" style="flex:1;min-width:155px"><div class="card-title">Hichame</div><div class="card-body">Programmatore creativo · dev &amp; debug critico</div></div>
+<div class="card" style="flex:1;min-width:155px"><div class="card-title">Andi</div><div class="card-body">Programmatore creativo · dev &amp; debug critico</div></div>
+</div>
+<div class="div"></div>
+<p class="body">Modello operativo a regime: <strong>unità da 3</strong> — project manager + dev + marketing — replicabile per ogni linea di business. Compenso = divisione dei ricavi + eventuali quote del progetto.</p>
+</div>
+<div class="slide-num">TEAM</div>
+</section>
+
 <!-- ══ S15 VISION ══ -->
 
 <section class="slide" id="s15">
@@ -1339,7 +1362,6 @@ Creatività, commercio,<br>tecnologia. <em>Insieme.</em>
 const SL=document.querySelectorAll('.slide');
 const NV=document.getElementById('nav');
 let _cur=0;
-// slide "collassabili": Market Analysis e Investor Summary — saltate nello scroll lineare
 const isSkip=s=>!!(s.dataset.ma||s.dataset.inv);
 SL.forEach((s,i)=>{
 const d=document.createElement('div');
@@ -1349,16 +1371,9 @@ d.onclick=()=>GT(i);NV.appendChild(d);
 });
 const DT=document.querySelectorAll('.dot');
 function GT(i){i=Math.max(0,Math.min(i,SL.length-1));_cur=i;SL[i].scrollIntoView({behavior:'smooth'})}
-function jump(el){const i=Array.from(SL).indexOf(el);if(i>=0)GT(i);}
-// step: da slide normale salta le collassabili; da dentro una sezione si muove di 1
-function step(dir){
-let i=_cur+dir;
-if(!isSkip(SL[_cur])){ while(i>=0&&i<SL.length&&isSkip(SL[i])) i+=dir; }
-return Math.max(0,Math.min(i,SL.length-1));
-}
 const _io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.intersectionRatio>.5){const i=Array.from(SL).indexOf(e.target);_cur=i;DT.forEach(d=>d.classList.remove('active'));if(DT[i])DT[i].classList.add('active');}});},{threshold:.5});
 SL.forEach(s=>_io.observe(s));
-document.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key===' '){e.preventDefault();GT(step(1))}if(e.key==='ArrowUp'){e.preventDefault();GT(step(-1))}});
+document.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key===' '){e.preventDefault();GT(_cur+1)}if(e.key==='ArrowUp'){e.preventDefault();GT(_cur-1)}});
 // ── SCROLL POWERPOINT (solo desktop) ──
 let _scrollLock=false;
 window.addEventListener('wheel',e=>{
@@ -1366,22 +1381,9 @@ window.addEventListener('wheel',e=>{
   e.preventDefault();
   if(_scrollLock||Math.abs(e.deltaY)<8)return;
   _scrollLock=true;
-  GT(step(e.deltaY>0?1:-1));
+  GT(_cur+(e.deltaY>0?1:-1));
   setTimeout(()=>{_scrollLock=false;},880);
 },{passive:false});
-// ── Pulsanti apri/torna per le sezioni collassabili (auto-generati) ──
-SL.forEach((s,i)=>{
-const skip=isSkip(s), prevSkip=i>0&&isSkip(SL[i-1]), nextSkip=i<SL.length-1&&isSkip(SL[i+1]);
-if(!skip&&nextSkip){
-const b=document.createElement('button');b.className='sec-open';
-b.textContent=SL[i+1].dataset.ma?'▸ Market Analysis':'▸ Investor Summary';
-b.onclick=()=>jump(SL[i+1]);s.appendChild(b);
-}
-if(skip&&!prevSkip){
-const b=document.createElement('button');b.className='sec-back';b.textContent='← Torna alla presentazione';
-b.onclick=()=>jump(SL[i-1]);s.appendChild(b);
-}
-});
 
 // ── CANVAS ENGINE ──
 function BG(id,type,r,g,b){

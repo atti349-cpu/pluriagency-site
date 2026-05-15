@@ -1423,10 +1423,6 @@ window.addEventListener('wheel',e=>{
 function BG(id,type,r,g,b){
 const cv=document.getElementById(id);if(!cv)return;
 const ctx=cv.getContext('2d');let W,H,t=0;
-// ── gating: il loop gira solo quando la slide è in viewport ──
-let _vis=true,_run=false;
-const _RAF=window.requestAnimationFrame.bind(window);
-function requestAnimationFrame(fn){if(_vis){_run=true;_RAF(fn);}else{_run=false;}}
 function rsz(){W=cv.width=cv.parentElement.offsetWidth;H=cv.height=cv.parentElement.offsetHeight;}
 rsz();new ResizeObserver(rsz).observe(cv.parentElement);
 const ST=()=>{
@@ -1481,10 +1477,6 @@ requestAnimationFrame(draws.pyrain);
 }
 };
 (draws[type]||draws.stars)();
-new IntersectionObserver(es=>{
-_vis=es[0].isIntersecting;
-if(_vis&&!_run){_run=true;_RAF(()=>(draws[type]||draws.stars)());}
-},{threshold:0}).observe(cv.parentElement);
 }
 
 [['c0','stars',212,168,67],
@@ -1513,9 +1505,9 @@ if(_vis&&!_run){_run=true;_RAF(()=>(draws[type]||draws.stars)());}
 const mount=document.getElementById('eco3d');
 const slide=document.getElementById('s14');
 if(!mount||!slide)return;
-if(!window.THREE){mount.style.background='radial-gradient(circle at 50% 42%,#10182e,#06080f)';return;}
+function showErr(err){mount.innerHTML='<div style="position:absolute;inset:0;display:flex;flex-direction:column;gap:9px;align-items:center;justify-content:center;text-align:center;padding:44px;font-family:monospace;font-size:13px;color:#ff9a9a;background:radial-gradient(circle at 50% 42%,#141026,#06080f)">Mappa 3D non disponibile<span style="color:#7a8499;font-size:11px;max-width:82%;word-break:break-word">'+((err&&err.message)||err||'errore sconosciuto')+'</span></div>';}
+if(!window.THREE){showErr('libreria Three.js non caricata (CDN)');return;}
 const T=window.THREE;
-let visible=false,running=false;
 try{
 const scene=new T.Scene();
 scene.fog=new T.FogExp2(0x05060f,0.0008);
@@ -1523,6 +1515,7 @@ const camera=new T.PerspectiveCamera(58,1,1,3000);
 camera.position.set(0,42,470);
 const renderer=new T.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setClearColor(0x0a1428,1);
 renderer.domElement.style.display='block';
 mount.appendChild(renderer.domElement);
 function resize(){const w=slide.offsetWidth||window.innerWidth,h=slide.offsetHeight||window.innerHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
@@ -1620,9 +1613,11 @@ cv.addEventListener('pointerup',endDrag);
 cv.addEventListener('pointercancel',()=>{dragging=false;cv.style.cursor='grab';});
 cv.addEventListener('pointerleave',()=>{dragging=false;cv.style.cursor='grab';});
 cv.addEventListener('wheel',e=>{e.preventDefault();e.stopPropagation();zoom=Math.max(290,Math.min(720,zoom+e.deltaY*0.35));},{passive:false});
-// loop — gira solo quando la slide 3D è in viewport
+// loop
+let _alive=true;
 function loop(){
-if(!visible){running=false;return;}
+if(!_alive)return;
+try{
 if(!dragging)velY+=(AUTO-velY)*0.035;
 group.rotation.y+=velY;
 group.rotation.x+=(tiltX-group.rotation.x)*0.08;
@@ -1635,23 +1630,25 @@ pl.sph.material.opacity+=((on?.92:.55)-pl.sph.material.opacity)*0.14;
 pl.lb.material.opacity+=((on?1:.66)-pl.lb.material.opacity)*0.14;
 });
 renderer.render(scene,camera);
+}catch(err){_alive=false;showErr(err);return;}
 requestAnimationFrame(loop);
 }
-new IntersectionObserver(es=>{
-visible=es[0].isIntersecting;
-if(visible){resize();if(!running){running=true;loop();}}
-},{threshold:0.01}).observe(slide);
-cv.addEventListener('webglcontextlost',e=>{e.preventDefault();running=false;});
-cv.addEventListener('webglcontextrestored',()=>{resize();if(visible&&!running){running=true;loop();}});
+cv.addEventListener('webglcontextlost',e=>{e.preventDefault();_alive=false;});
+cv.addEventListener('webglcontextrestored',()=>{_alive=true;resize();loop();});
+resize();
+loop();
 }catch(err){
-mount.style.background='radial-gradient(circle at 50% 42%,#10182e,#06080f)';
+showErr(err);
 }
 })();
 
 // ── GRAFICO REVENUE — Chart.js (slide Investor Summary B) ──
 (function(){
   const cv=document.getElementById('revChart');
-  if(!cv||!window.Chart) return;
+  if(!cv) return;
+  const box=cv.parentElement;
+  if(!window.Chart){box.innerHTML='<div style="height:100%;display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:11px;color:#ff9a9a">Chart.js non caricata (CDN)</div>';return;}
+  try{
   new Chart(cv,{
     type:'bar',
     data:{
@@ -1678,6 +1675,9 @@ mount.style.background='radial-gradient(circle at 50% 42%,#10182e,#06080f)';
       }
     }
   });
+  }catch(err){
+    box.innerHTML='<div style="height:100%;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;text-align:center;font-family:monospace;font-size:11px;color:#ff9a9a;padding:12px">Grafico non disponibile<span style="color:#7a8499">'+((err&&err.message)||err||'errore')+'</span></div>';
+  }
 })();
 
 // ── PHASE BAR — costruisce le barre di processo dai placeholder ──

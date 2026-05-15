@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pluriagency · Universe v5</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Serif+Display:ital@0;1&family=Syne+Mono&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-snap-type:y mandatory;overflow-y:scroll;height:100%}
+body{font-family:'Syne',sans-serif;background:#040608;color:#f0f4ff;overflow-x:hidden}
+
+.slide{height:100vh;min-height:640px;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;overflow:hidden;padding:52px 0}
+canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.sc{position:relative;z-index:2;width:100%;max-width:1040px;padding:0 60px}
+
+#nav{position:fixed;right:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;z-index:300;max-height:90vh;overflow:hidden}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.14);cursor:pointer;transition:all .2s;border:1px solid rgba(255,255,255,.18);flex-shrink:0}
+.dot.active{background:#fff;transform:scale(1.4)}
+.dot.ma{background:rgba(255,255,255,.08);border-style:dashed}
+.dot.ma.active{background:rgba(255,200,80,.8);border-color:#fac850}
+.slide-num{position:absolute;bottom:22px;right:40px;font-family:‘Syne Mono’,monospace;font-size:9px;opacity:.16;letter-spacing:.14em}
+.slide-type{position:absolute;top:22px;left:60px;font-family:‘Syne Mono’,monospace;font-size:8px;letter-spacing:.22em;text-transform:uppercase;opacity:.25;z-index:3}
+
+/* TYPE */
+.eyebrow{font-family:‘Syne Mono’,monospace;font-size:9px;letter-spacing:.26em;text-transform:uppercase;margin-bottom:14px}
+.h2{font-family:‘DM Serif Display’,serif;font-size:clamp(28px,3.8vw,54px);font-weight:400;line-height:1.0;margin-bottom:4px}
+.h2 em{font-style:italic}
+.domain{font-family:‘Syne Mono’,monospace;font-size:9.5px;opacity:.28;letter-spacing:.13em;margin-bottom:20px}
+.body{font-size:12.5px;color:rgba(240,244,255,.52);line-height:1.85}
+.body strong{color:rgba(240,244,255,.9);font-weight:600}
+.mission{font-family:‘DM Serif Display’,serif;font-style:italic;font-size:14px;color:rgba(240,244,255,.4);line-height:1.6;border-left:2px solid;padding-left:13px;margin-top:14px}
+
+/* TAG */
+.tag{display:inline-flex;align-items:center;gap:5px;font-family:‘Syne Mono’,monospace;font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;padding:4px 11px;border-radius:40px;margin-bottom:14px}
+.tag-ma{background:rgba(255,200,80,.08);color:#fac850;border:1px solid rgba(255,200,80,.2)}
+
+/* LAYOUT */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+
+/* METRIC STRIP */
+.mstrip{display:flex;gap:0;border:1px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden;margin-bottom:18px}
+.mitem{flex:1;padding:12px 14px;border-right:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.02)}
+.mitem:last-child{border-right:none}
+.mval{font-family:‘DM Serif Display’,serif;font-size:24px;line-height:1;margin-bottom:2px}
+.mlabel{font-family:‘Syne Mono’,monospace;font-size:7.5px;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.28)}
+.mtrend{font-family:‘Syne Mono’,monospace;font-size:7.5px;margin-top:3px}
+
+/* MARKET ANALYSIS COMPONENTS */
+.ma-section{margin-bottom:16px}
+.ma-title{font-family:‘Syne Mono’,monospace;font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:9px;display:flex;align-items:center;gap:8px}
+.ma-title::after{content:’’;flex:1;height:1px;background:rgba(255,255,255,.06)}
+
+/* TAM/SAM/SOM FUNNEL */
+.tssfunnel{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.tss-row{display:flex;align-items:center;gap:10px}
+.tss-bar-wrap{flex:1;height:28px;border-radius:5px;overflow:hidden;position:relative;background:rgba(255,255,255,.04)}
+.tss-bar-fill{height:100%;border-radius:5px;display:flex;align-items:center;padding-left:10px}
+.tss-label{width:36px;font-family:‘Syne Mono’,monospace;font-size:8px;letter-spacing:.1em;color:rgba(255,255,255,.35);text-align:right}
+.tss-val{font-size:11px;font-weight:700;white-space:nowrap}
+.tss-sub{font-family:‘Syne Mono’,monospace;font-size:8px;color:rgba(255,255,255,.35);margin-left:6px}
+
+/* COMPETITOR TABLE */
+.comp-grid{display:grid;gap:6px}
+.comp-row{display:grid;grid-template-columns:120px 1fr auto;gap:8px;align-items:center;padding:7px 10px;border-radius:7px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05)}
+.comp-name{font-size:11px;font-weight:600;color:rgba(240,244,255,.75)}
+.comp-desc{font-size:10px;color:rgba(240,244,255,.38)}
+.comp-badge{font-family:‘Syne Mono’,monospace;font-size:8px;padding:2px 7px;border-radius:10px;white-space:nowrap}
+
+/* REVENUE MODEL */
+.rev-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rev-card{padding:12px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)}
+.rev-title{font-size:11px;font-weight:600;margin-bottom:4px}
+.rev-val{font-family:‘DM Serif Display’,serif;font-size:20px;margin-bottom:2px}
+.rev-note{font-size:9.5px;color:rgba(240,244,255,.35);line-height:1.5}
+
+/* STAT BAR */
+.sbar{margin-bottom:10px}
+.sbar-head{display:flex;justify-content:space-between;margin-bottom:3px}
+.sbar-l{font-size:10.5px;color:rgba(240,244,255,.42)}
+.sbar-v{font-size:10.5px;font-weight:600}
+.sbar-track{height:3px;border-radius:3px;background:rgba(255,255,255,.07)}
+.sbar-fill{height:100%;border-radius:3px}
+
+/* CARDS */
+.card{padding:13px 15px;border-radius:9px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)}
+.card-title{font-size:11.5px;font-weight:600;margin-bottom:3px}
+.card-body{font-size:10px;color:rgba(240,244,255,.36);line-height:1.5}
+
+/* BULLETS */
+.fi{display:flex;align-items:flex-start;gap:7px;font-size:11px;color:rgba(240,244,255,.44);line-height:1.65;margin-bottom:6px}
+.fi-dot{width:4px;height:4px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.fi strong{color:rgba(240,244,255,.82);font-weight:600}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:11px}
+.tbl th{font-family:‘Syne Mono’,monospace;font-size:7.5px;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.2);padding:5px 9px 6px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;font-weight:400}
+.tbl td{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.03);color:rgba(240,244,255,.52)}
+.tbl td:first-child{color:rgba(240,244,255,.78);font-weight:600}
+.tbl tr:last-child td{border-bottom:none}
+
+/* PILLS */
+.pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.pill{font-family:‘Syne Mono’,monospace;font-size:7.5px;padding:2px 7px;border-radius:4px;border:1px solid rgba(255,255,255,.07);color:rgba(255,255,255,.24)}
+.slabel{font-family:‘Syne Mono’,monospace;font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.22);margin-bottom:8px}
+
+/* DIVIDER */
+.div{height:1px;background:rgba(255,255,255,.06);margin:14px 0}
+
+/* LAB SECTION */
+.lab-badge{display:inline-flex;align-items:center;gap:6px;font-family:‘Syne Mono’,monospace;font-size:8px;letter-spacing:.18em;text-transform:uppercase;padding:4px 11px;border-radius:40px;background:rgba(255,255,255,.04);color:rgba(255,255,255,.35);border:1px solid rgba(255,255,255,.08);margin-bottom:14px}
+
+/* COVER */
+.cover-wrap{display:flex;flex-direction:column;align-items:center;text-align:center;max-width:700px;margin:0 auto;position:relative;z-index:2}
+.cover-h{font-family:‘DM Serif Display’,serif;font-size:clamp(50px,7vw,104px);font-weight:400;line-height:.92;margin-bottom:20px}
+.cover-h em{font-style:italic;color:#d4a843}
+.chip{font-family:‘Syne Mono’,monospace;font-size:8.5px;padding:5px 13px;border:1px solid rgba(255,255,255,.1);border-radius:30px;color:rgba(255,255,255,.3);letter-spacing:.05em}
+
+/* SCROLL HINT */
+.hint{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;opacity:.18;font-family:‘Syne Mono’,monospace;font-size:8px;letter-spacing:.2em;text-transform:uppercase;animation:bY 2.2s ease-in-out infinite;white-space:nowrap}
+@keyframes bY{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
+
+/* NETWORK */
+#net{position:absolute;inset:0;z-index:1;cursor:grab}
+#net:active{cursor:grabbing}
+.net-legend{position:absolute;top:40px;right:40px;z-index:10}
+.nl{display:flex;align-items:center;gap:6px;font-family:‘Syne Mono’,monospace;font-size:8px;color:rgba(255,255,255,.24);margin-bottom:5px}
+.nl-d{width:7px;height:7px;border-radius:50%}
+.net-ui{position:absolute;bottom:36px;left:60px;z-index:10}
+
+/* VISION */
+.orb-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:28px}
+.orb-item{display:flex;flex-direction:column;align-items:center;gap:5px}
+.orb-c{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;border:1px solid rgba(255,255,255,.06)}
+.orb-n{font-family:‘Syne Mono’,monospace;font-size:7px;letter-spacing:.1em;text-transform:uppercase;opacity:.28}
+
+/* MA page accent bar */
+.ma-accent{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,rgba(255,200,80,.5),transparent)}
+</style>
+
+</head>
+<body>
+<div id="nav"></div>
+
+<!-- ══ S0 COVER ══ -->
+
+<section class="slide" id="s0">
+<canvas class="bg" id="c0"></canvas>
+<div class="cover-wrap">
+<div class="eyebrow" style="color:#d4a843">Portfolio · Ecosistema · 2024—∞</div>
+<div class="cover-h">Pluriagency<br><em>Universe</em></div>
+<p style="font-size:13.5px;color:rgba(240,244,255,.4);line-height:1.75;margin-bottom:32px;max-width:460px">Nove progetti connessi. Un collettivo di builder, commerciali, creativi e developer. Un cervello AI personale al centro.</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:26px">
+<span class="chip">B2B Industriale</span><span class="chip">Agenzia Digital</span><span class="chip">SaaS</span><span class="chip">AI Automation</span><span class="chip">Fotografia</span><span class="chip">Musica</span><span class="chip">Mappe 3D</span>
+</div>
+<div style="display:flex;gap:22px;border-top:1px solid rgba(255,255,255,.07);padding-top:18px;flex-wrap:wrap;justify-content:center">
+<div style="text-align:center"><div style="font-family:'DM Serif Display',serif;font-size:30px;color:#d4a843">9</div><div style="font-family:'Syne Mono',monospace;font-size:7.5px;letter-spacing:.14em;color:rgba(255,255,255,.28);text-transform:uppercase">Progetti</div></div>
+<div style="text-align:center"><div style="font-family:'DM Serif Display',serif;font-size:30px;color:#4a90e2">7+</div><div style="font-family:'Syne Mono',monospace;font-size:7.5px;letter-spacing:.14em;color:rgba(255,255,255,.28);text-transform:uppercase">Mandanti</div></div>
+<div style="text-align:center"><div style="font-family:'DM Serif Display',serif;font-size:30px;color:#3ecf8e">64</div><div style="font-family:'Syne Mono',monospace;font-size:7.5px;letter-spacing:.14em;color:rgba(255,255,255,.28);text-transform:uppercase">Test AI OK</div></div>
+<div style="text-align:center"><div style="font-family:'DM Serif Display',serif;font-size:30px;color:#9b6ef3">€5</div><div style="font-family:'Syne Mono',monospace;font-size:7.5px;letter-spacing:.14em;color:rgba(255,255,255,.28);text-transform:uppercase">Server/mese</div></div>
+<div style="text-align:center"><div style="font-family:'DM Serif Display',serif;font-size:30px;color:#f07b3f">∞</div><div style="font-family:'Syne Mono',monospace;font-size:7.5px;letter-spacing:.14em;color:rgba(255,255,255,.28);text-transform:uppercase">Scalabilità</div></div>
+</div>
+</div>
+<div class="hint"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>Scorri</div>
+<div class="slide-num">00</div>
+</section>
+
+<!-- ══ S1 LO.PLURIAGENCY OVERVIEW ══ -->
+
+<section class="slide" id="s1">
+<canvas class="bg" id="c1"></canvas>
+<div class="slide-type">Overview</div>
+<div class="sc">
+<div class="tag" style="background:rgba(212,168,67,.1);color:#d4a843;border:1px solid rgba(212,168,67,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#d4a843;display:inline-block"></span>Core Business · Agente + CRM SaaS</div>
+<div class="h2">lo.<em>pluriagency</em>.com</div>
+<div class="domain">lo.pluriagency.com · app.pluriagency.com (CRM)</div>
+<div class="mstrip">
+<div class="mitem"><div class="mval" style="color:#d4a843">3+</div><div class="mlabel">Mandanti</div><div class="mtrend" style="color:#3ecf8e">↑ In crescita</div></div>
+<div class="mitem"><div class="mval" style="color:#d4a843">7</div><div class="mlabel">Settori</div><div class="mtrend" style="color:rgba(255,255,255,.28)">DPI·Pack·Gadget+</div></div>
+<div class="mitem"><div class="mval" style="color:#d4a843">0</div><div class="mlabel">Costi fissi</div><div class="mtrend" style="color:#3ecf8e">Solo provvigioni</div></div>
+<div class="mitem"><div class="mval" style="color:#d4a843">CRM</div><div class="mlabel">Proprietario</div><div class="mtrend" style="color:#d4a843">→ SaaS</div></div>
+</div>
+<div class="g2">
+<div>
+<p class="body">Piattaforma agente plurimandatario B2B. <strong>7 fornitori</strong> danno accesso a qualsiasi categoria industriale. Il <strong>CRM proprietario</strong> gestisce lead, clienti, catalogo prodotti, tariffari e marketing — pensato esattamente per chi vende prodotti a taglia o a listino ad aziende ricorrenti. Unico nel suo genere come gestionale-CRM per agenti e PMI.</p>
+<div class="mission" style="border-color:#d4a843">"Il commerciale di domani non ha un singolo mandante. Ha una piattaforma che gli permette di vendere qualsiasi cosa a qualsiasi industria — e un CRM che cresce con lui."</div>
+<div class="pills"><span class="pill">Next.js</span><span class="pill">Supabase</span><span class="pill">CRM custom</span><span class="pill">Emiltecnica</span><span class="pill">Tecnocart</span><span class="pill">Applepromo</span></div>
+</div>
+<div>
+<div class="slabel">CRM app.pluriagency — funzionalità chiave</div>
+<div class="fi"><span class="fi-dot" style="background:#d4a843"></span><span><strong>Catalogo + listino integrato</strong> — prodotti a taglia, prezzi personalizzati per cliente</span></div>
+<div class="fi"><span class="fi-dot" style="background:#d4a843"></span><span><strong>Pipeline visuale</strong> — lead → trattativa → chiusura → follow-up automatico</span></div>
+<div class="fi"><span class="fi-dot" style="background:#d4a843"></span><span><strong>Marketing integrato</strong> — email, promemoria, campagne per cliente ricorrente</span></div>
+<div class="fi"><span class="fi-dot" style="background:#d4a843"></span><span><strong>Multi-mandante</strong> — un solo pannello per tutti i fornitori e tutte le aziende clienti</span></div>
+<div class="fi"><span class="fi-dot" style="background:#d4a843"></span><span><strong>Agenti esterni</strong> — ogni junior agent ha il suo accesso, visibilità tracciata</span></div>
+<div class="div"></div>
+<div class="sbar"><div class="sbar-head"><span class="sbar-l">Revenue attuale (baseline)</span><span class="sbar-v" style="color:#d4a843">Attivo</span></div><div class="sbar-track"><div class="sbar-fill" style="width:28%;background:#d4a843"></div></div></div>
+<div class="sbar"><div class="sbar-head"><span class="sbar-l">Con rete junior agent (×3)</span><span class="sbar-v" style="color:#d4a843">Prossimo</span></div><div class="sbar-track"><div class="sbar-fill" style="width:60%;background:rgba(212,168,67,.55)"></div></div></div>
+<div class="sbar"><div class="sbar-head"><span class="sbar-l">CRM SaaS · licenze terzi (×10)</span><span class="sbar-v" style="color:#d4a843">Futuro</span></div><div class="sbar-track"><div class="sbar-fill" style="width:90%;background:rgba(212,168,67,.25)"></div></div></div>
+</div>
+</div>
+</div>
+<div class="slide-num">01</div>
+</section>
+
+<!-- ══ S2 LO.PLURIAGENCY MARKET ANALYSIS ══ -->
+
+<section class="slide" id="s2" style="background:#04060a">
+<canvas class="bg" id="c2"></canvas>
+<div class="ma-accent"></div>
+<div class="slide-type" style="color:#fac850;opacity:.55">Market Analysis</div>
+<div class="sc">
+<div class="tag tag-ma">lo.pluriagency · CRM a Progetto · Mercato italiano · Market Analysis</div>
+<div class="h2" style="font-size:clamp(22px,3vw,40px);margin-bottom:16px">Nessuno strumento <em>uguale</em><br>nel mercato italiano B2B</div>
+<div class="g2">
+<div>
+<div class="ma-section">
+<div class="ma-title">TAM · SAM · SOM</div>
+<div class="tssfunnel">
+<div class="tss-row"><span class="tss-label">TAM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:100%;background:rgba(212,168,67,.18)"><span class="tss-val" style="color:#d4a843">€2.1B</span><span class="tss-sub">Mercato CRM e Sales Automation Italia (2024)</span></div></div></div>
+<div class="tss-row"><span class="tss-label">SAM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:62%;background:rgba(212,168,67,.12)"><span class="tss-val" style="color:#d4a843">€380M</span><span class="tss-sub">PMI italiane + agenti plurimandatari con CRM base</span></div></div></div>
+<div class="tss-row"><span class="tss-label">SOM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:18%;background:rgba(212,168,67,.08)"><span class="tss-val" style="color:#d4a843">€8.5M</span><span class="tss-sub">Agenti+PMI industriali Nord Italia raggiungibili in 3 anni</span></div></div></div>
+</div>
+</div>
+<div class="ma-section">
+<div class="ma-title">Concorrenza · Perché non esiste niente di uguale</div>
+<div class="comp-grid">
+<div class="comp-row"><span class="comp-name">Salesforce / HubSpot</span><span class="comp-desc">Enterprise, costosi, generici — non pensati per agenti con listini varianti</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Vantaggio totale</span></div>
+<div class="comp-row"><span class="comp-name">Gestionali ERP</span><span class="comp-desc">SAP, AS400 — pesanti, costosi, no CRM commerciale integrato, no marketing</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Vantaggio agilità</span></div>
+<div class="comp-row"><span class="comp-name">Excel / Fogli Google</span><span class="comp-desc">La realtà di 9 PMI italiane su 10 — nessuna automazione, nessun CRM</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Cliente ideale</span></div>
+<div class="comp-row"><span class="comp-name">Fatture in Cloud</span><span class="comp-desc">Solo fatturazione — zero catalogo prodotti varianti, zero pipeline, zero marketing</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Complementare</span></div>
+</div>
+</div>
+</div>
+<div>
+<div class="ma-section">
+<div class="ma-title">Modello Revenue · Vendita a Progetto (non solo SaaS)</div>
+<div class="rev-cols">
+<div class="rev-card"><div class="rev-title" style="color:#d4a843">Pacchetto Base</div><div class="rev-val" style="color:#d4a843">€8-10k</div><div class="rev-note">CRM installato + 2 mesi setup. Include: caricamento listini fornitori, varianti prodotto, database clienti, training team</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#d4a843">Canone supporto</div><div class="rev-val" style="color:#d4a843">€200-400/mese</div><div class="rev-note">Aggiornamenti, assistenza, piccole modifiche. Revenue ricorrente post-installazione</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#d4a843">Sviluppi custom</div><div class="rev-val" style="color:#d4a843">€5-20k cad.</div><div class="rev-note">API con gestionale esistente, integrazione e-commerce, automazioni ordini, sync magazzino — ogni integrazione è un progetto a sé</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#fac850">Potenziale</div><div class="rev-val" style="color:#fac850">3 clienti/anno</div><div class="rev-note">€25-40k fatturato da solo 3 installazioni + canoni ricorrenti a regime</div></div>
+</div>
+</div>
+<div class="div"></div>
+<div class="ma-section">
+<div class="ma-title">Cosa include il Pacchetto Base · €8-10k</div>
+<div class="fi"><span class="fi-dot" style="background:#d4a843"></span><span><strong>Installazione e configurazione</strong> — sistema su server cliente o cloud dedicato</span></div>
+<div class="fi"><span class="fi-dot" style="background:#d4a843"></span><span><strong>Caricamento listini fornitori</strong> — prodotti con varianti (taglie, colori, formati), prezzi personalizzati per cliente</span></div>
+<div class="fi"><span class="fi-dot" style="background:#d4a843"></span><span><strong>Database clienti</strong> — migrazione da Excel/vecchio gestionale, storico acquisti, categorie</span></div>
+<div class="fi"><span class="fi-dot" style="background:#d4a843"></span><span><strong>2 mesi di setup e formazione</strong> — training team, prime pipeline configurate, supporto attivo</span></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>Sviluppi futuri fatturabili</strong> — API gestionale esistente, sync e-commerce, automazioni ordini: ogni integrazione €5-20k aggiuntivi</span></div>
+</div>
+</div>
+</div>
+</div>
+<div class="slide-num">02</div>
+</section>
+
+<!-- ══ S3 PLURIAGENCY AGENCY OVERVIEW ══ -->
+
+<section class="slide" id="s3">
+<canvas class="bg" id="c3"></canvas>
+<div class="slide-type">Overview</div>
+<div class="sc">
+<div class="tag" style="background:rgba(74,144,226,.1);color:#4a90e2;border:1px solid rgba(74,144,226,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#4a90e2;display:inline-block"></span>Agenzia Digitale · Tech Collective</div>
+<div class="h2"><em>Pluriagency</em> Agency</div>
+<div class="domain">pluriagency.com · Stack: Astro / Next.js + Coolify + Hetzner + Strapi</div>
+<div class="mstrip">
+<div class="mitem"><div class="mval" style="color:#4a90e2">€5</div><div class="mlabel">Server/mese totale</div><div class="mtrend" style="color:#3ecf8e">↓ vs €60+ altri</div></div>
+<div class="mitem"><div class="mval" style="color:#4a90e2">€0</div><div class="mlabel">Costo sito vetrina</div><div class="mtrend" style="color:#3ecf8e">Margine puro</div></div>
+<div class="mitem"><div class="mval" style="color:#4a90e2">AI</div><div class="mlabel">Deploy automatico</div><div class="mtrend" style="color:#4a90e2">Claude Code</div></div>
+<div class="mitem"><div class="mval" style="color:#4a90e2">3+</div><div class="mlabel">Team attivo</div><div class="mtrend" style="color:rgba(255,255,255,.28)">Dev+Grafici+Comm.</div></div>
+</div>
+<div class="g2">
+<div>
+<p class="body">Hub di servizi digitali B2B con stack tecnico definitivo. <strong>Astro</strong> per vetrine statiche a costo zero, <strong>Next.js + Strapi</strong> per siti con backend complesso, tutto su un Hetzner da €5/mese. Claude Code genera e pubblica modifiche automaticamente.</p>
+<div class="mission" style="border-color:#4a90e2">"Dev, grafici e commerciali lavorano come un organismo. Il cliente riceve un prodotto che normalmente costerebbe il triplo — consegnato in metà tempo."</div>
+<div class="div"></div>
+<div class="g2" style="gap:8px;max-width:100%">
+<div class="card"><div class="card-title" style="color:#4a90e2">Vetrina Astro</div><div class="card-body">€0 infra · deploy su Cloudflare · da €500 a cliente</div></div>
+<div class="card"><div class="card-title" style="color:#4a90e2">Sito complesso</div><div class="card-body">~€1/mese su Hetzner · da €2k-8k a cliente</div></div>
+<div class="card"><div class="card-title" style="color:#4a90e2">Manutenzione</div><div class="card-body">€30-80/mese · revenue ricorrente garantita</div></div>
+<div class="card"><div class="card-title" style="color:#4a90e2">Page Builder</div><div class="card-body">Filippo: siti chiavi in mano, 0 dev richiesti</div></div>
+</div>
+</div>
+<div>
+<div class="slabel">Stack definitivo 2026</div>
+<table class="tbl">
+<tr><th>Layer</th><th>Tecnologia</th><th>Uso</th></tr>
+<tr><td>Frontend</td><td style="color:rgba(255,255,255,.4)">Astro + CF</td><td style="color:#4a90e2">Vetrine €0</td></tr>
+<tr><td>Full-stack</td><td style="color:rgba(255,255,255,.4)">Next.js + Coolify</td><td style="color:#4a90e2">Siti complessi</td></tr>
+<tr><td>CMS</td><td style="color:rgba(255,255,255,.4)">Strapi</td><td style="color:#4a90e2">Backend con admin</td></tr>
+<tr><td>DB light</td><td style="color:rgba(255,255,255,.4)">PocketBase</td><td style="color:#4a90e2">Progetti leggeri</td></tr>
+<tr><td>SaaS</td><td style="color:rgba(255,255,255,.4)">Supabase</td><td style="color:#4a90e2">Prodotti propri</td></tr>
+<tr><td>Server</td><td style="color:rgba(255,255,255,.4)">Hetzner VPS</td><td style="color:#d4a843">€5/mese flat</td></tr>
+</table>
+</div>
+</div>
+</div>
+<div class="slide-num">03</div>
+</section>
+
+<!-- ══ S4 PLURIAGENCY MARKET ANALYSIS ══ -->
+
+<section class="slide" id="s4" style="background:#030810">
+<canvas class="bg" id="c4"></canvas>
+<div class="ma-accent"></div>
+<div class="slide-type" style="color:#fac850;opacity:.55">Market Analysis</div>
+<div class="sc">
+<div class="tag tag-ma">Pluriagency Agency · Market Analysis</div>
+<div class="h2" style="font-size:clamp(22px,3vw,40px);margin-bottom:16px">Mercato <em>web agency</em><br>+ servizi digitali PMI Italia</div>
+<div class="g2">
+<div>
+<div class="ma-section">
+<div class="ma-title">TAM · SAM · SOM</div>
+<div class="tssfunnel">
+<div class="tss-row"><span class="tss-label">TAM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:100%;background:rgba(74,144,226,.18)"><span class="tss-val" style="color:#4a90e2">€3.8B</span><span class="tss-sub">Mercato servizi web/digital Italia (2024)</span></div></div></div>
+<div class="tss-row"><span class="tss-label">SAM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:55%;background:rgba(74,144,226,.12)"><span class="tss-val" style="color:#4a90e2">€520M</span><span class="tss-sub">PMI Nord Italia, budget sito €500-10k, no agenzia interna</span></div></div></div>
+<div class="tss-row"><span class="tss-label">SOM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:12%;background:rgba(74,144,226,.08)"><span class="tss-val" style="color:#4a90e2">€2.4M</span><span class="tss-sub">40 clienti/anno a €5k medio + canoni ricorrenti</span></div></div></div>
+</div>
+</div>
+<div class="ma-section">
+<div class="ma-title">Vantaggio competitivo chiave</div>
+<div class="comp-grid">
+<div class="comp-row"><span class="comp-name">Agency classiche</span><span class="comp-desc">€60+/mese server, team rigido, no AI deploy</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Vantaggio costi</span></div>
+<div class="comp-row"><span class="comp-name">Freelancer</span><span class="comp-desc">No team, no struttura, no CRM, no scale</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Vantaggio team</span></div>
+<div class="comp-row"><span class="comp-name">Page builder (Wix)</span><span class="comp-desc">No personalizzazione, no backend, no supporto</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Vantaggio qualità</span></div>
+</div>
+</div>
+</div>
+<div>
+<div class="ma-section">
+<div class="ma-title">Proiezione ricavi · anno 1 → 3</div>
+<div class="rev-cols">
+<div class="rev-card"><div class="rev-title" style="color:#4a90e2">Anno 1</div><div class="rev-val" style="color:#4a90e2">€30k</div><div class="rev-note">6 siti + 10 canoni/mese manutenzione</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#4a90e2">Anno 2</div><div class="rev-val" style="color:#4a90e2">€90k</div><div class="rev-note">Page Builder attivo, 30 canoni, cross-sell B2B</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#4a90e2">Anno 3</div><div class="rev-val" style="color:#4a90e2">€250k</div><div class="rev-note">Team strutturato, CRM licensing, white label</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#fac850">Costi fissi</div><div class="rev-val" style="color:#fac850">€5/mese</div><div class="rev-note">Server Hetzner per tutti i siti cliente</div></div>
+</div>
+</div>
+<div class="div"></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>Prossimo step</strong> — landing page Pluriagency con portfolio + pricing trasparente</span></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>Leva industriale</strong> — ogni cliente acquisito come agente è un potenziale cliente sito</span></div>
+</div>
+</div>
+</div>
+<div class="slide-num">04</div>
+</section>
+
+<!-- ══ S4b PAGE BUILDER OVERVIEW ══ -->
+
+<section class="slide" id="s4b">
+<canvas class="bg" id="c4b"></canvas>
+<div class="slide-type">Overview</div>
+<div class="sc">
+<div class="tag" style="background:rgba(250,200,80,.1);color:#fac850;border:1px solid rgba(250,200,80,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#fac850;display:inline-block"></span>Automazione · Lead Generation · Progetto Filippo</div>
+<div class="h2">Page <em>Builder</em><br>Automatico</div>
+<div class="domain">Scraping → Template → Preview → Invio → Call · Integrato in Pluriagency</div>
+<div class="mstrip">
+<div class="mitem"><div class="mval" style="color:#fac850">0</div><div class="mlabel">Dev richiesti</div><div class="mtrend" style="color:#3ecf8e">Commerciale autonomo</div></div>
+<div class="mitem"><div class="mval" style="color:#fac850">Auto</div><div class="mlabel">Scraping → Deploy</div><div class="mtrend" style="color:rgba(255,255,255,.28)">Info reali del cliente</div></div>
+<div class="mitem"><div class="mval" style="color:#fac850">X/sett</div><div class="mlabel">Preview inviate</div><div class="mtrend" style="color:#fac850">Pipeline cold outreach</div></div>
+<div class="mitem"><div class="mval" style="color:#fac850">€0</div><div class="mlabel">Infra aggiuntiva</div><div class="mtrend" style="color:#3ecf8e">Sul server già pagato</div></div>
+</div>
+<div class="g2">
+<div>
+<p class="body">Il sistema scrapa il sito di un professionista o azienda, estrae le informazioni chiave (nome, servizi, foto, contatti) e genera automaticamente una <strong>versione migliorata del sito</strong> usando i template Astro. Una preview viene inviata al contatto — <em>"abbiamo rifatto il tuo sito, guarda com'è"</em> — come aggancio per una call di vendita. <strong>Outreach caldo con valore immediato.</strong></p>
+<div class="mission" style="border-color:#fac850">"Non chiamiamo a freddo. Arriviamo con un sito già fatto meglio del loro — e chiedemmo solo se vogliono tenerlo."</div>
+<div class="pills"><span class="pill">Web scraping</span><span class="pill">Astro templates</span><span class="pill">Auto-deploy Coolify</span><span class="pill">Email preview automatica</span><span class="pill">CRM tracking</span><span class="pill">Call pipeline</span></div>
+</div>
+<div>
+<div class="slabel">Il flusso completo</div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>1 · Scraping</strong> — il sistema legge sito target: testi, servizi, foto, contatti, colori</span></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>2 · Template match</strong> — seleziona il template Astro più adatto al settore/stile</span></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>3 · Build auto</strong> — genera la versione migliorata con le info reali del target</span></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>4 · Preview link</strong> — invia email personalizzata con link alla preview live</span></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>5 · Call schedulata</strong> — il commerciale chiama con un asset concreto già in mano</span></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>6 · CRM tracking</strong> — ogni contatto entra nel funnel, status aggiornato automaticamente</span></div>
+<div class="div"></div>
+<div class="fi"><span class="fi-dot" style="background:#3ecf8e"></span><span><strong>Volume settimanale</strong> — ogni commerciale gestisce X preview/settimana in autonomia totale</span></div>
+</div>
+</div>
+</div>
+<div class="slide-num">04b</div>
+</section>
+
+<!-- ══ S4c PAGE BUILDER MARKET ANALYSIS ══ -->
+
+<section class="slide" id="s4c" style="background:#080600">
+<canvas class="bg" id="c4c"></canvas>
+<div class="ma-accent"></div>
+<div class="slide-type" style="color:#fac850;opacity:.55">Market Analysis</div>
+<div class="sc">
+<div class="tag tag-ma">Page Builder Automatico · Lead Generation · Market Analysis</div>
+<div class="h2" style="font-size:clamp(22px,3vw,40px);margin-bottom:16px">Outreach <em>con valore</em><br>come modello di acquisizione</div>
+<div class="g2">
+<div>
+<div class="ma-section">
+<div class="ma-title">TAM · SAM · SOM</div>
+<div class="tssfunnel">
+<div class="tss-row"><span class="tss-label">TAM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:100%;background:rgba(250,200,80,.18)"><span class="tss-val" style="color:#fac850">€3.8B</span><span class="tss-sub">Mercato servizi web/digital Italia — stesso del canale agency</span></div></div></div>
+<div class="tss-row"><span class="tss-label">SAM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:58%;background:rgba(250,200,80,.12)"><span class="tss-val" style="color:#fac850">€680M</span><span class="tss-sub">Professionisti/PMI con sito obsoleto o assente — target diretto outreach</span></div></div></div>
+<div class="tss-row"><span class="tss-label">SOM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:14%;background:rgba(250,200,80,.08)"><span class="tss-val" style="color:#fac850">€480k</span><span class="tss-sub">80 contratti/anno a €6k medio — 2 commerciali attivi</span></div></div></div>
+</div>
+</div>
+<div class="ma-section">
+<div class="ma-title">Vantaggi vs cold call classica</div>
+<div class="comp-grid">
+<div class="comp-row"><span class="comp-name">Cold call classica</span><span class="comp-desc">Tasso conversione 1-3%, nessun valore immediato, respinta facile</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Noi: 10-20%</span></div>
+<div class="comp-row"><span class="comp-name">Email marketing blast</span><span class="comp-desc">Generico, spam, zero personalizzazione, open rate basso</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Noi: iper-personale</span></div>
+<div class="comp-row"><span class="comp-name">Agenzia classica outreach</span><span class="comp-desc">Nessun asset concreto da mostrare prima della call</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Noi: preview live</span></div>
+</div>
+</div>
+</div>
+<div>
+<div class="ma-section">
+<div class="ma-title">Modello Revenue · Integrato Pluriagency</div>
+<div class="rev-cols">
+<div class="rev-card"><div class="rev-title" style="color:#fac850">Sito consegnato</div><div class="rev-val" style="color:#fac850">€800-3k</div><div class="rev-note">Il prospect accetta la preview → viene venduto subito. Zero costi dev aggiuntivi</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#fac850">Canone manutenzione</div><div class="rev-val" style="color:#fac850">€30-80/mese</div><div class="rev-note">Ogni sito venduto diventa revenue ricorrente automatica post-consegna</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#fac850">Volume settimanale</div><div class="rev-val" style="color:#fac850">20-50</div><div class="rev-note">Preview inviate a settimana per commerciale — pipeline sempre piena senza effort manuale</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#3ecf8e">Costo marginalе</div><div class="rev-val" style="color:#3ecf8e">~€0</div><div class="rev-note">Build automatico su server Hetzner già pagato. Ogni preview costa zero infra</div></div>
+</div>
+</div>
+<div class="div"></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>Scala con il team</strong> — ogni nuovo commerciale moltiplicа il volume di preview settimanali</span></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>Template library</strong> — più settori coperti = più target raggiungibili automaticamente</span></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>Feedback loop</strong> — ogni preview accettata migliora il template di quel settore per i prossimi</span></div>
+</div>
+</div>
+</div>
+<div class="slide-num">04c</div>
+</section>
+
+<!-- ══ S5 SELEKT OVERVIEW ══ -->
+
+<section class="slide" id="s5">
+<canvas class="bg" id="c5"></canvas>
+<div class="slide-type">Overview</div>
+<div class="sc">
+<div class="tag" style="background:rgba(45,212,191,.1);color:#2dd4bf;border:1px solid rgba(45,212,191,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#2dd4bf;display:inline-block"></span>SaaS · Fotografi · Alto potenziale virale</div>
+<div class="h2"><em>Selekt</em>Photo</div>
+<div class="domain">selektphoto.com · Stripe · Cloudflare R2 · Supabase</div>
+<div class="mstrip">
+<div class="mitem"><div class="mval" style="color:#2dd4bf">3→1</div><div class="mlabel">Tool sostituiti</div><div class="mtrend" style="color:#3ecf8e">WhatsApp+WeTr+Email</div></div>
+<div class="mitem"><div class="mval" style="color:#2dd4bf">Ore→Min</div><div class="mlabel">Selezione foto</div><div class="mtrend" style="color:#3ecf8e">↓ 95% tempo</div></div>
+<div class="mitem"><div class="mval" style="color:#2dd4bf">Viral</div><div class="mlabel">Modello diffusione</div><div class="mtrend" style="color:#2dd4bf">Ogni cliente vede</div></div>
+<div class="mitem"><div class="mval" style="color:#2dd4bf">R2</div><div class="mlabel">Storage infinito</div><div class="mtrend" style="color:rgba(255,255,255,.28)">Cloudflare</div></div>
+</div>
+<div class="g2">
+<div>
+<p class="body">Il fotografo carica, il cliente seleziona con swipe in una <strong>gallery privata dedicata</strong>. Ogni cliente che usa Selekt diventa un vettore di acquisizione — vede il brand, può diventare fotografo egli stesso. <strong>Modello virale naturale</strong> a costo pubblicitario quasi zero.</p>
+<div class="mission" style="border-color:#2dd4bf">"Il rapporto fotografo-cliente merita un'esperienza bella quanto le foto. SelektPhoto la crea — e si diffonde da sola."</div>
+<div class="div"></div>
+<div class="sbar"><div class="sbar-head"><span class="sbar-l">SwipeReviewer + PhotoGrid + OAuth</span><span class="sbar-v" style="color:#2dd4bf">✓ Live</span></div><div class="sbar-track"><div class="sbar-fill" style="width:100%;background:#2dd4bf"></div></div></div>
+<div class="sbar"><div class="sbar-head"><span class="sbar-l">Stripe Live + Cloudflare R2</span><span class="sbar-v" style="color:rgba(45,212,191,.6)">In corso</span></div><div class="sbar-track"><div class="sbar-fill" style="width:55%;background:rgba(45,212,191,.5)"></div></div></div>
+<div class="sbar"><div class="sbar-head"><span class="sbar-l">Admin + Dark mode + Connect</span><span class="sbar-v" style="color:rgba(45,212,191,.4)">Q3 2026</span></div><div class="sbar-track"><div class="sbar-fill" style="width:15%;background:rgba(45,212,191,.25)"></div></div></div>
+</div>
+<div>
+<div class="slabel">Perché è spammabile online</div>
+<div class="fi"><span class="fi-dot" style="background:#2dd4bf"></span><span><strong>Ogni gallery condivisa</strong> è una pubblicità gratuita — il cliente vede il brand Selekt</span></div>
+<div class="fi"><span class="fi-dot" style="background:#2dd4bf"></span><span><strong>Community fotografica</strong> — Instagram, TikTok, gruppi FB: nicchia altamente digitale</span></div>
+<div class="fi"><span class="fi-dot" style="background:#2dd4bf"></span><span><strong>Costo acquisizione basso</strong> — referral organico tra fotografi, word of mouth forte</span></div>
+<div class="fi"><span class="fi-dot" style="background:#2dd4bf"></span><span><strong>Freemium possibile</strong> — 1 gallery gratis, poi upgrade per illimitato</span></div>
+<div class="fi"><span class="fi-dot" style="background:#2dd4bf"></span><span><strong>Stripe Connect</strong> — fotografi con clienti paganti, fee sulla transazione</span></div>
+<div class="pills"><span class="pill">Next.js</span><span class="pill">Supabase</span><span class="pill">Stripe</span><span class="pill">Cloudflare R2</span><span class="pill">Framer Motion</span></div>
+</div>
+</div>
+</div>
+<div class="slide-num">05</div>
+</section>
+
+<!-- ══ S6 SELEKT MARKET ANALYSIS ══ -->
+
+<section class="slide" id="s6" style="background:#030a09">
+<canvas class="bg" id="c6"></canvas>
+<div class="ma-accent"></div>
+<div class="slide-type" style="color:#fac850;opacity:.55">Market Analysis</div>
+<div class="sc">
+<div class="tag tag-ma">SelektPhoto · SaaS Fotografia · Market Analysis</div>
+<div class="h2" style="font-size:clamp(22px,3vw,40px);margin-bottom:16px">Mercato <em>workflow fotografico</em><br>+ SaaS tool creativi</div>
+<div class="g2">
+<div>
+<div class="ma-section">
+<div class="ma-title">TAM · SAM · SOM</div>
+<div class="tssfunnel">
+<div class="tss-row"><span class="tss-label">TAM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:100%;background:rgba(45,212,191,.18)"><span class="tss-val" style="color:#2dd4bf">€180M</span><span class="tss-sub">Fotografi professionisti Italia con budget tool (~85k persone)</span></div></div></div>
+<div class="tss-row"><span class="tss-label">SAM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:52%;background:rgba(45,212,191,.12)"><span class="tss-val" style="color:#2dd4bf">€42M</span><span class="tss-sub">Fotografi attivi con clienti ricorrenti disposti a pagare SaaS</span></div></div></div>
+<div class="tss-row"><span class="tss-label">SOM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:14%;background:rgba(45,212,191,.08)"><span class="tss-val" style="color:#2dd4bf">€720k</span><span class="tss-sub">400 fotografi a €15/mese in 12 mesi — obiettivo realistico</span></div></div></div>
+</div>
+</div>
+<div class="ma-section">
+<div class="ma-title">Concorrenza</div>
+<div class="comp-grid">
+<div class="comp-row"><span class="comp-name">Pixieset</span><span class="comp-desc">Gallery per consegna, no selezione swipe</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Differente</span></div>
+<div class="comp-row"><span class="comp-name">Pic-Time</span><span class="comp-desc">US-centrico, costoso, no modello italiano</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Vantaggio</span></div>
+<div class="comp-row"><span class="comp-name">Google Forms</span><span class="comp-desc">Usato per selezione, esperienza pessima</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Vantaggio UX</span></div>
+<div class="comp-row"><span class="comp-name">WeTransfer</span><span class="comp-desc">Solo consegna, no selezione interattiva</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Vantaggio</span></div>
+</div>
+</div>
+</div>
+<div>
+<div class="ma-section">
+<div class="ma-title">Modello Pricing · Proiezione</div>
+<div class="rev-cols">
+<div class="rev-card"><div class="rev-title" style="color:#2dd4bf">Free</div><div class="rev-val" style="color:#2dd4bf">€0</div><div class="rev-note">1 gallery attiva, 50 foto, brand Selekt</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#2dd4bf">Pro</div><div class="rev-val" style="color:#2dd4bf">€15/mese</div><div class="rev-note">Gallery illimitate, custom branding, download</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#2dd4bf">Lifetime</div><div class="rev-val" style="color:#2dd4bf">€199</div><div class="rev-note">Una tantum — Pro per sempre, priorità feature</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#fac850">Target MRR</div><div class="rev-val" style="color:#fac850">€4k</div><div class="rev-note">200 Pro/mese + lifetime sales in anno 1</div></div>
+</div>
+</div>
+<div class="div"></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>CAC vicino a zero</strong> — ogni gallery condivisa acquisisce organicamente</span></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>Strategia lancio</strong> — 10 fotografi beta gratuiti → testimonial → post Instagram/TikTok</span></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>Integrazione Disfatti</strong> — uso interno immediato, case study autentico</span></div>
+</div>
+</div>
+</div>
+<div class="slide-num">06</div>
+</section>
+
+<!-- ══ S7 THINKR OVERVIEW ══ -->
+
+<section class="slide" id="s7">
+<canvas class="bg" id="c7"></canvas>
+<div class="slide-type">Overview</div>
+<div class="sc">
+<div class="tag" style="background:rgba(155,110,243,.1);color:#9b6ef3;border:1px solid rgba(155,110,243,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#9b6ef3;display:inline-block"></span>Startup · Incubatore · MVP Attivo</div>
+<div class="h2"><em>Thinkr</em>.it</div>
+<div class="domain">thinkr.it · Supabase · Vercel · ProtoView · Candidature</div>
+<div class="mstrip">
+<div class="mitem"><div class="mval" style="color:#9b6ef3">MVP</div><div class="mlabel">Stato</div><div class="mtrend" style="color:#3ecf8e">Live e funzionante</div></div>
+<div class="mitem"><div class="mval" style="color:#9b6ef3">Hub</div><div class="mlabel">Ruolo collettivo</div><div class="mtrend" style="color:#9b6ef3">Incubatore reale</div></div>
+<div class="mitem"><div class="mval" style="color:#9b6ef3">4+</div><div class="mlabel">Features attive</div><div class="mtrend" style="color:rgba(255,255,255,.28)">Idee·Team·Proto·Cand.</div></div>
+<div class="mitem"><div class="mval" style="color:#9b6ef3">SaaS</div><div class="mlabel">Monetizzazione</div><div class="mtrend" style="color:#9b6ef3">→ Q3 2026</div></div>
+</div>
+<div class="g2">
+<div>
+<p class="body">Non solo idea-sharing. <strong>Un incubatore creativo reale</strong> dove talenti si connettono, progetti nascono e trovano team. La visione è diventare <strong>hub del collettivo Pluriagency</strong> — chi vuole lavorare su un progetto lo trova qui; chi ha un'idea la porta qui e trova le competenze per costruirla.</p>
+<div class="mission" style="border-color:#9b6ef3">"Le idee migliori non muoiono per mancanza di talento. Muoiono per mancanza di connessione. Thinkr risolve questo."</div>
+<div class="div"></div>
+<div class="g2" style="gap:8px;max-width:100%">
+<div class="card" style="border-color:rgba(155,110,243,.14)"><div class="card-title" style="color:#9b6ef3">💡 Idea sharing</div><div class="card-body">Pubblica, presenta con ProtoView embedded, ricevi feedback</div></div>
+<div class="card" style="border-color:rgba(155,110,243,.14)"><div class="card-title" style="color:#9b6ef3">👥 Team match</div><div class="card-body">Trova collaboratori, candidati ai progetti attivi</div></div>
+<div class="card" style="border-color:rgba(155,110,243,.14)"><div class="card-title" style="color:#9b6ef3">🪟 ProtoView</div><div class="card-body">Demo live embedded — mostri il prodotto, non solo descrivi</div></div>
+<div class="card" style="border-color:rgba(155,110,243,.14)"><div class="card-title" style="color:#9b6ef3">🏗 Build</div><div class="card-body">Dall'idea al team al prodotto — tutto in un posto</div></div>
+</div>
+</div>
+<div>
+<div class="slabel">Thinkr come incubatore del collettivo</div>
+<div class="fi"><span class="fi-dot" style="background:#9b6ef3"></span><span><strong>Dev liberi</strong> — trovano qui i progetti su cui lavorare, scelgono quello che li motiva</span></div>
+<div class="fi"><span class="fi-dot" style="background:#9b6ef3"></span><span><strong>Commerciali</strong> — trovano idee da portare sul mercato, lead su cui lavorare</span></div>
+<div class="fi"><span class="fi-dot" style="background:#9b6ef3"></span><span><strong>Creativi</strong> — trovano collaboratori per progetti visivi, musicali, fotografici</span></div>
+<div class="fi"><span class="fi-dot" style="background:#9b6ef3"></span><span><strong>AI match futuro</strong> — abbinamento automatico idea ↔ competenza ↔ disponibilità</span></div>
+<div class="pills"><span class="pill">Next.js</span><span class="pill">Supabase</span><span class="pill">Resend DKIM</span><span class="pill">Google OAuth</span><span class="pill">ProtoView</span></div>
+</div>
+</div>
+</div>
+<div class="slide-num">07</div>
+</section>
+
+<!-- ══ S8 THINKR MARKET ══ -->
+
+<section class="slide" id="s8" style="background:#060410">
+<canvas class="bg" id="c8"></canvas>
+<div class="ma-accent"></div>
+<div class="slide-type" style="color:#fac850;opacity:.55">Market Analysis</div>
+<div class="sc">
+<div class="tag tag-ma">Thinkr · Incubatore · Market Analysis</div>
+<div class="h2" style="font-size:clamp(22px,3vw,40px);margin-bottom:16px">Mercato <em>community platform</em><br>+ incubatori digitali</div>
+<div class="g2">
+<div>
+<div class="ma-section">
+<div class="ma-title">TAM · SAM · SOM</div>
+<div class="tssfunnel">
+<div class="tss-row"><span class="tss-label">TAM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:100%;background:rgba(155,110,243,.18)"><span class="tss-val" style="color:#9b6ef3">€280M</span><span class="tss-sub">Mercato incubatori, acceleratori, community startup Italia</span></div></div></div>
+<div class="tss-row"><span class="tss-label">SAM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:50%;background:rgba(155,110,243,.12)"><span class="tss-val" style="color:#9b6ef3">€65M</span><span class="tss-sub">Universitari + creativi + maker Nord Italia (BO/MI/TO)</span></div></div></div>
+<div class="tss-row"><span class="tss-label">SOM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:10%;background:rgba(155,110,243,.08)"><span class="tss-val" style="color:#9b6ef3">€480k</span><span class="tss-sub">Lancio Bologna: 2000 utenti attivi, mix ads + Pro in anno 1</span></div></div></div>
+</div>
+</div>
+<div class="ma-section">
+<div class="ma-title">Concorrenza</div>
+<div class="comp-grid">
+<div class="comp-row"><span class="comp-name">LinkedIn</span><span class="comp-desc">Network professionale, non costruzione progetti</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Diverso</span></div>
+<div class="comp-row"><span class="comp-name">Indie Hackers</span><span class="comp-desc">Solo discussioni, no team matching, no demo live</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Vantaggio</span></div>
+<div class="comp-row"><span class="comp-name">AngelList</span><span class="comp-desc">US-centric, solo startup formali, barriera alta</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Vantaggio</span></div>
+<div class="comp-row"><span class="comp-name">GitHub</span><span class="comp-desc">Solo codice, no idee creative o commerciali</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Diverso</span></div>
+</div>
+</div>
+</div>
+<div>
+<div class="ma-section">
+<div class="ma-title">Modello Revenue · Multi-stream</div>
+<div class="rev-cols">
+<div class="rev-card"><div class="rev-title" style="color:#9b6ef3">Ads universitari</div><div class="rev-val" style="color:#9b6ef3">Fase 1</div><div class="rev-note">Lancio Bologna — pubblicità mirata su universitari, costi bassi, trazione locale reale</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#9b6ef3">Pro</div><div class="rev-val" style="color:#9b6ef3">€8/mese</div><div class="rev-note">Idee illimitate, ProtoView, featured, analytics — upgrade naturale per chi costruisce</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#9b6ef3">Mentorship</div><div class="rev-val" style="color:#9b6ef3">€199-499</div><div class="rev-note">Pacchetti mentorship per progetti meritevoli. Premi ai migliori ogni trimestre</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#fac850">Equity deals</div><div class="rev-val" style="color:#fac850">3-10%</div><div class="rev-note">Investimento diretto + contrattualizzazione share nei progetti più promettenti</div></div>
+</div>
+</div>
+<div class="div"></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>Lancio locale Bologna</strong> — università, coworking, eventi: trazione reale prima di scalare</span></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>Premi trimestrali</strong> — i progetti più votati dalla community ricevono visibilità e mentorship</span></div>
+<div class="fi"><span class="fi-dot" style="background:#9b6ef3"></span><span><strong>Equity play</strong> — i progetti che ci piacciono di più: piccola share in cambio di incubazione attiva</span></div>
+</div>
+</div>
+</div>
+<div class="slide-num">08</div>
+</section>
+
+<!-- ══ S9 SEAM OVERVIEW ══ -->
+
+<section class="slide" id="s9">
+<canvas class="bg" id="c9"></canvas>
+<div class="slide-type">Overview</div>
+<div class="sc">
+<div class="tag" style="background:rgba(232,93,93,.1);color:#e85d5d;border:1px solid rgba(232,93,93,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#e85d5d;display:inline-block"></span>Musica · AI Targeting · Marketplace · In costruzione</div>
+<div class="h2"><em>SEAM</em></div>
+<div class="domain">Sistema di analisi, targettizzazione e marketplace musicale</div>
+<div class="mstrip">
+<div class="mitem"><div class="mval" style="color:#e85d5d">AI</div><div class="mlabel">Core tech</div><div class="mtrend" style="color:rgba(255,255,255,.28)">Mood·BPM·Genere</div></div>
+<div class="mitem"><div class="mval" style="color:#e85d5d">B2B</div><div class="mlabel">Target primario</div><div class="mtrend" style="color:rgba(255,255,255,.28)">Brand·Label·Creator</div></div>
+<div class="mitem"><div class="mval" style="color:#e85d5d">3×</div><div class="mlabel">Stream revenue</div><div class="mtrend" style="color:rgba(255,255,255,.28)">Artisti·Brand·Sub</div></div>
+<div class="mitem"><div class="mval" style="color:#e85d5d">∅</div><div class="mlabel">Player dominante</div><div class="mtrend" style="color:#3ecf8e">Spazio libero</div></div>
+</div>
+<div class="g2">
+<div>
+<p class="body">Sistema per <strong>classificare musica e targetizzare canzoni</strong> con AI. Mood, BPM, genere, contesto d'uso — classificati in automatico. Un brand cerca "energetico, urbano, 30 secondi" e trova 10 tracce perfette da artisti emergenti. <strong>Marketplace musicale intelligente</strong> che connette chi crea e chi ha bisogno.</p>
+<div class="mission" style="border-color:#e85d5d">"Il talento musicale esiste ovunque. La connessione tra quel talento e chi ha bisogno di musica — questa è la lacuna che SEAM riempie."</div>
+<div class="pills"><span class="pill">AI mood detection</span><span class="pill">BPM analysis</span><span class="pill">Sync licensing</span><span class="pill">Marketplace</span><span class="pill">Artisti emergenti</span><span class="pill">Brand targeting</span></div>
+</div>
+<div>
+<div class="g2" style="gap:8px;max-width:100%;margin-bottom:14px">
+<div class="card" style="border-color:rgba(232,93,93,.14)"><div class="card-title" style="color:#e85d5d">🎵 Classifica</div><div class="card-body">AI analizza traccia → mood, BPM, uso commerciale ideale</div></div>
+<div class="card" style="border-color:rgba(232,93,93,.14)"><div class="card-title" style="color:#e85d5d">🎯 Abbina</div><div class="card-body">Brand cerca → riceve selezione curata da artisti reali</div></div>
+<div class="card" style="border-color:rgba(232,93,93,.14)"><div class="card-title" style="color:#e85d5d">🔗 Connette</div><div class="card-body">Artista emergente ↔ brand con budget licenza</div></div>
+<div class="card" style="border-color:rgba(232,93,93,.14)"><div class="card-title" style="color:#e85d5d">💰 Monetizza</div><div class="card-body">Fee licensing, abbonamenti brand, commissioni artista</div></div>
+</div>
+<div class="fi"><span class="fi-dot" style="background:#e85d5d"></span><span><strong>Link con Thinkr</strong> — community creativa già esistente, artisti già lì</span></div>
+<div class="fi"><span class="fi-dot" style="background:#e85d5d"></span><span><strong>Link con Pluriagency</strong> — clienti brand che già conosciamo, bisogno reale di musica</span></div>
+</div>
+</div>
+</div>
+<div class="slide-num">09</div>
+</section>
+
+<!-- ══ S10 SEAM MARKET ══ -->
+
+<section class="slide" id="s10" style="background:#080506">
+<canvas class="bg" id="c10"></canvas>
+<div class="ma-accent"></div>
+<div class="slide-type" style="color:#fac850;opacity:.55">Market Analysis</div>
+<div class="sc">
+<div class="tag tag-ma">SEAM · Musica AI · Market Analysis</div>
+<div class="h2" style="font-size:clamp(22px,3vw,40px);margin-bottom:16px">Mercato <em>sync licensing</em><br>+ music AI tools</div>
+<div class="g2">
+<div>
+<div class="ma-section">
+<div class="ma-title">TAM · SAM · SOM</div>
+<div class="tssfunnel">
+<div class="tss-row"><span class="tss-label">TAM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:100%;background:rgba(232,93,93,.18)"><span class="tss-val" style="color:#e85d5d">€120M</span><span class="tss-sub">Mercato sync licensing e music placement Italia</span></div></div></div>
+<div class="tss-row"><span class="tss-label">SAM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:52%;background:rgba(232,93,93,.12)"><span class="tss-val" style="color:#e85d5d">€28M</span><span class="tss-sub">Brand + agenzie + content creator italiani con budget musica</span></div></div></div>
+<div class="tss-row"><span class="tss-label">SOM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:10%;background:rgba(232,93,93,.08)"><span class="tss-val" style="color:#e85d5d">€360k</span><span class="tss-sub">50 brand sub + 200 artisti Pro in anno 2</span></div></div></div>
+</div>
+</div>
+<div class="ma-section">
+<div class="ma-title">Concorrenza</div>
+<div class="comp-grid">
+<div class="comp-row"><span class="comp-name">Musicbed</span><span class="comp-desc">US, premium, no artisti emergenti italiani</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Nicchia libera</span></div>
+<div class="comp-row"><span class="comp-name">Artlist</span><span class="comp-desc">Subscription flat, no AI targeting, no connessione diretta</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">AI diff.</span></div>
+<div class="comp-row"><span class="comp-name">Epidemic Sound</span><span class="comp-desc">Libreria generica, non artisti ma produzione massiva</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Autenticità</span></div>
+</div>
+</div>
+</div>
+<div>
+<div class="ma-section">
+<div class="ma-title">Modello Revenue · Semplice e diretto</div>
+<div class="rev-cols">
+<div class="rev-card"><div class="rev-title" style="color:#e85d5d">Artista Free</div><div class="rev-val" style="color:#e85d5d">€0</div><div class="rev-note">Carica tracce, classificazione AI base, visibilità marketplace</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#e85d5d">Artista Pro</div><div class="rev-val" style="color:#e85d5d">€5-10/mese</div><div class="rev-note">Analytics, featured placement, AI boost visibilità, priorità curation</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#e85d5d">Lifetime artista</div><div class="rev-val" style="color:#e85d5d">€79</div><div class="rev-note">Una tantum — Pro per sempre + badge fondatore</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#fac850">Fee deal</div><div class="rev-val" style="color:#fac850">15-20%</div><div class="rev-note">Commissione su ogni deal diretto mediato dalla piattaforma</div></div>
+</div>
+</div>
+<div class="div"></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>Investimento richiesto</strong> — sviluppo AI pipeline + marketplace UI + onboarding artisti beta</span></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>Timeline realistica</strong> — MVP in 6 mesi, primo revenue in 9-12 mesi</span></div>
+</div>
+</div>
+</div>
+<div class="slide-num">10</div>
+</section>
+
+<!-- ══ S11 NEBULA OVERVIEW ══ -->
+
+<section class="slide" id="s11">
+<canvas class="bg" id="c11"></canvas>
+<div class="slide-type">Overview</div>
+<div class="sc">
+<div class="tag" style="background:rgba(100,180,255,.1);color:#64b4ff;border:1px solid rgba(100,180,255,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#64b4ff;display:inline-block"></span>Tool · Mappe 3D · €5 Lifetime · Già acquisito</div>
+<div class="h2">Neural OS — <em>Nebula</em></div>
+<div class="domain">pluriagency.com/nebula · Mappa concettuale 3D interattiva</div>
+<div class="mstrip">
+<div class="mitem"><div class="mval" style="color:#64b4ff">€5</div><div class="mlabel">Costo lifetime</div><div class="mtrend" style="color:#3ecf8e">Pagato una volta</div></div>
+<div class="mitem"><div class="mval" style="color:#64b4ff">3D</div><div class="mlabel">Visuale nativa</div><div class="mtrend" style="color:rgba(255,255,255,.28)">Nodi ruotabili</div></div>
+<div class="mitem"><div class="mval" style="color:#64b4ff">46</div><div class="mlabel">Nodi attivi ora</div><div class="mtrend" style="color:rgba(255,255,255,.28)">49 sinapsi</div></div>
+<div class="mitem"><div class="mval" style="color:#64b4ff">Team</div><div class="mlabel">Condivisibile</div><div class="mtrend" style="color:#64b4ff">Costellazioni</div></div>
+</div>
+<div class="g2">
+<div>
+<p class="body">Strumento di visual thinking 3D unico nel suo genere. Ogni <strong>pianeta è un progetto/nodo</strong>, cliccabile, con task embedded. Il pianeta si illumina quando una task è in lavorazione. Si può pinnare, lavorare su costellazioni, condividere con il team. <strong>Già usato internamente</strong> per mappare l'intero ecosistema Pluriagency — i 46 nodi nello screenshot sono la mappa reale.</p>
+<div class="mission" style="border-color:#64b4ff">"Non una board di task. Un universo dove ogni progetto è un pianeta vivo — e vedi il sistema dall'alto, in movimento."</div>
+</div>
+<div>
+<div class="slabel">Funzionalità chiave</div>
+<div class="fi"><span class="fi-dot" style="background:#64b4ff"></span><span><strong>Pianeti cliccabili</strong> — ogni nodo contiene tasks, note, link, status</span></div>
+<div class="fi"><span class="fi-dot" style="background:#64b4ff"></span><span><strong>Illuminazione live</strong> — il pianeta si accende quando una task è attiva</span></div>
+<div class="fi"><span class="fi-dot" style="background:#64b4ff"></span><span><strong>Costellazioni</strong> — raggruppa nodi correlati in cluster visivi</span></div>
+<div class="fi"><span class="fi-dot" style="background:#64b4ff"></span><span><strong>Condivisione team</strong> — ogni membro vede la mappa in real-time</span></div>
+<div class="fi"><span class="fi-dot" style="background:#64b4ff"></span><span><strong>Pinnare nodi</strong> — priorità visiva immediata sulla mappa</span></div>
+<div class="fi"><span class="fi-dot" style="background:#64b4ff"></span><span><strong>Vista Focus</strong> — zoom su una sotto-nebulosa senza rumore</span></div>
+<div class="fi"><span class="fi-dot" style="background:#64b4ff"></span><span><strong>Navigazione 3D</strong> — drag per spostare, rotella per zoom, R-click per pan</span></div>
+</div>
+</div>
+</div>
+<div class="slide-num">11</div>
+</section>
+
+<!-- ══ S12 NEBULA MARKET ══ -->
+
+<section class="slide" id="s12" style="background:#030810">
+<canvas class="bg" id="c12"></canvas>
+<div class="ma-accent"></div>
+<div class="slide-type" style="color:#fac850;opacity:.55">Market Analysis</div>
+<div class="sc">
+<div class="tag tag-ma">Nebula · Visual Thinking 3D · Market Analysis</div>
+<div class="h2" style="font-size:clamp(22px,3vw,40px);margin-bottom:16px">Mercato <em>visual thinking</em><br>+ project management alternativo</div>
+<div class="g2">
+<div>
+<div class="ma-section">
+<div class="ma-title">TAM · SAM · SOM</div>
+<div class="tssfunnel">
+<div class="tss-row"><span class="tss-label">TAM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:100%;background:rgba(100,180,255,.18)"><span class="tss-val" style="color:#64b4ff">€320M</span><span class="tss-sub">Mercato PM tools + visual thinking Italia (2024)</span></div></div></div>
+<div class="tss-row"><span class="tss-label">SAM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:44%;background:rgba(100,180,255,.12)"><span class="tss-val" style="color:#64b4ff">€55M</span><span class="tss-sub">Team creativi, startup, agenzie italiane cercano visual PM alternativo</span></div></div></div>
+<div class="tss-row"><span class="tss-label">SOM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:8%;background:rgba(100,180,255,.08)"><span class="tss-val" style="color:#64b4ff">€280k</span><span class="tss-sub">700 team a €40 lifetime — se commercializzato</span></div></div></div>
+</div>
+</div>
+<div class="ma-section">
+<div class="ma-title">Concorrenza · Differenziazione radicale</div>
+<div class="comp-grid">
+<div class="comp-row"><span class="comp-name">Notion</span><span class="comp-desc">Lineare, testo, nessuna vista 3D o spaziale</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Radicalmente diverso</span></div>
+<div class="comp-row"><span class="comp-name">Miro</span><span class="comp-desc">2D whiteboard, no profondità 3D, no illuminazione live</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Diverso</span></div>
+<div class="comp-row"><span class="comp-name">Obsidian</span><span class="comp-desc">Grafo 2D statico, solo note, no task live</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Vantaggio</span></div>
+</div>
+</div>
+</div>
+<div>
+<div class="ma-section">
+<div class="ma-title">Analisi investimento · Per noi</div>
+<div class="rev-cols">
+<div class="rev-card"><div class="rev-title" style="color:#64b4ff">Costo acquisito</div><div class="rev-val" style="color:#64b4ff">€5</div><div class="rev-note">Lifetime personale già pagato. Nessun abbonamento, accesso permanente</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#64b4ff">ROI immediato</div><div class="rev-val" style="color:#64b4ff">∞</div><div class="rev-note">Sostituisce Notion + ClickUp per la visione strategica del collettivo</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#64b4ff">Se venduto</div><div class="rev-val" style="color:#64b4ff">€3/mese</div><div class="rev-note">Oppure €40 una tantum — accesso lifetime, nessun lock-in abbonamento</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#fac850">Azione ora</div><div class="rev-val" style="color:#fac850">Team</div><div class="rev-note">Condividi la mappa Pluriagency con Filippo, Matte, Lorenzo — pianeti live per tutti</div></div>
+</div>
+</div>
+<div class="div"></div>
+<div class="fi"><span class="fi-dot" style="background:#64b4ff"></span><span><strong>Azione immediata</strong> — condividi la mappa con Filippo, Matte, Lorenzo: tutti vedono l'universo</span></div>
+<div class="fi"><span class="fi-dot" style="background:#64b4ff"></span><span><strong>Ogni progetto Pluriagency</strong> diventa una nebulosità con sub-task illuminati in tempo reale</span></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>Se commercializzato</strong> — tool perfetto per agenzie, startup, team creativi: mercato libero</span></div>
+</div>
+</div>
+</div>
+<div class="slide-num">12</div>
+</section>
+
+<!-- ══ S13 DISFATTI OS (strumento personale) ══ -->
+
+<section class="slide" id="s13">
+<canvas class="bg" id="c13"></canvas>
+<div class="slide-type">Lab Personale · Strumento AI</div>
+<div class="sc">
+<div class="lab-badge">🔬 Strumento personale · Non un prodotto commerciale · Test reale</div>
+<div class="h2">Disfatti <em>OS</em></div>
+<div class="domain">AI Assistant personale · Bot Telegram + Dashboard · RTX3060 · Ollama locale</div>
+<div class="mstrip">
+<div class="mitem"><div class="mval" style="color:#3ecf8e">64</div><div class="mlabel">Test OK</div><div class="mtrend" style="color:#3ecf8e">0 falliti</div></div>
+<div class="mitem"><div class="mval" style="color:#3ecf8e">4</div><div class="mlabel">Modelli AI locali</div><div class="mtrend" style="color:rgba(255,255,255,.28)">phi3·llama3·llava·Whisper</div></div>
+<div class="mitem"><div class="mval" style="color:#3ecf8e">12</div><div class="mlabel">Job scheduler</div><div class="mtrend" style="color:rgba(255,255,255,.28)">Briefing·Mail·GTD</div></div>
+<div class="mitem"><div class="mval" style="color:#3ecf8e">Lab</div><div class="mlabel">Scopo primario</div><div class="mtrend" style="color:#3ecf8e">Test costi API reali</div></div>
+</div>
+<div class="g2">
+<div>
+<p class="body">Sistema operativo AI personale. <strong>Bot Telegram + Dashboard FastAPI</strong>. Gestisce mail, task, calendario, foto e news con 4 modelli AI completamente locali su RTX3060 — nessun dato esce, costo vicino a zero. È uno strumento personale, non un prodotto commerciale.</p>
+<div class="mission" style="border-color:#3ecf8e">"Lo usiamo per capire i costi reali delle chiamate Claude API prima di offrire prodotti AI ai clienti. Ogni sessione è un dato reale su cui costruire i prezzi futuri."</div>
+<div class="pills"><span class="pill">Ollama</span><span class="pill">phi3:mini router</span><span class="pill">llama3:8b</span><span class="pill">llava:7b foto</span><span class="pill">Whisper audio</span><span class="pill">Claude API</span><span class="pill">FastAPI</span><span class="pill">Telegram</span><span class="pill">Tailscale</span></div>
+</div>
+<div>
+<div class="slabel">Perché è utile all'ecosistema</div>
+<div class="fi"><span class="fi-dot" style="background:#3ecf8e"></span><span><strong>Test costi Claude API</strong> — misuriamo il reale costo per chiamata, per tipo di task, per volume</span></div>
+<div class="fi"><span class="fi-dot" style="background:#3ecf8e"></span><span><strong>Mail AI operativa</strong> — dual-panel Gmail+Workspace, regole auto, VIP alert mandanti</span></div>
+<div class="fi"><span class="fi-dot" style="background:#3ecf8e"></span><span><strong>Foto AI</strong> — rating automatico ogni scatto RAW con llava:7b, già integrato con Disfatti</span></div>
+<div class="fi"><span class="fi-dot" style="background:#3ecf8e"></span><span><strong>AI aziendale futuro</strong> — istanza del bot risponde a mail commerciali, fa preventivi, cerca documenti</span></div>
+<div class="fi"><span class="fi-dot" style="background:#3ecf8e"></span><span><strong>Aperto al team</strong> — chi vuole capire come funziona un AI OS può esplorare e contribuire</span></div>
+</div>
+</div>
+</div>
+<div class="slide-num">13</div>
+</section>
+
+<!-- ══ S13b DISFATTI FOTO OVERVIEW ══ -->
+
+<section class="slide" id="s13b">
+<canvas class="bg" id="c13b"></canvas>
+<div class="slide-type">Lab Personale · Brand Fotografico</div>
+<div class="sc">
+<div class="lab-badge">📸 Progetto personale · Aperto a collaborazioni · Può crescere</div>
+<div class="h2"><em>Disfatti</em>.it</div>
+<div class="domain">disfatti.it · Brand fotografico · Stampe fine art · Shooting · Abbonamenti · Eventi · Rivista</div>
+<div class="mstrip">
+<div class="mitem"><div class="mval" style="color:#f07b3f">4+</div><div class="mlabel">Revenue stream</div><div class="mtrend" style="color:rgba(255,255,255,.28)">Shoot·Stampe·Sub·Rivista</div></div>
+<div class="mitem"><div class="mval" style="color:#f07b3f">AI</div><div class="mlabel">Rating automatico</div><div class="mtrend" style="color:#3ecf8e">llava:7b attivo</div></div>
+<div class="mitem"><div class="mval" style="color:#f07b3f">∞</div><div class="mlabel">Stampe online</div><div class="mtrend" style="color:#f07b3f">→ E-commerce</div></div>
+<div class="mitem"><div class="mval" style="color:#f07b3f">Open</div><div class="mlabel">Team fotografico</div><div class="mtrend" style="color:rgba(255,255,255,.28)">Fotografi welcome</div></div>
+</div>
+<div class="g2">
+<div>
+<p class="body">Brand fotografico personale che unisce <strong>arte visiva e modelli di business scalabili</strong>. Shooting commerciali e artistici, stampe fine art, configuratore quadri online. Non solo portfolio — una piattaforma con più stream di revenue che possono crescere con il contributo di altri fotografi, grafici e creativi.</p>
+<div class="mission" style="border-color:#f07b3f">"Ogni immagine è un prodotto. L'AI decide quali meritano di essere viste. L'uomo decide dove portarle — e chi vuole partecipare è benvenuto."</div>
+<div class="div"></div>
+<div class="g2" style="gap:8px;max-width:100%">
+<div class="card" style="border-color:rgba(240,123,63,.14)"><div class="card-title" style="color:#f07b3f">📸 Shooting</div><div class="card-body">Commerciali, ritratti, eventi, scouting modelle. B2B con i mandanti industriali</div></div>
+<div class="card" style="border-color:rgba(240,123,63,.14)"><div class="card-title" style="color:#f07b3f">🖼 Stampe fine art</div><div class="card-body">Configuratore quadri online, stampe su richiesta, e-commerce diretto</div></div>
+<div class="card" style="border-color:rgba(240,123,63,.14)"><div class="card-title" style="color:#f07b3f">📅 Abbonamento</div><div class="card-body">Accesso al catalogo foto, licenze uso commerciale, aggiornamento mensile</div></div>
+<div class="card" style="border-color:rgba(240,123,63,.14)"><div class="card-title" style="color:#f07b3f">📖 Rivista</div><div class="card-body">Rivista fotografica acquistabile — digitale o fisica, periodica, curata editorialmente</div></div>
+</div>
+</div>
+<div>
+<div class="slabel">Collaborazioni aperte</div>
+<div class="fi"><span class="fi-dot" style="background:#f07b3f"></span><span><strong>Fotografi</strong> — shooting collaborativi, imparare la selezione AI, co-branding</span></div>
+<div class="fi"><span class="fi-dot" style="background:#f07b3f"></span><span><strong>Grafici e creativi</strong> — direzione artistica, layout rivista, post-produzione</span></div>
+<div class="fi"><span class="fi-dot" style="background:#f07b3f"></span><span><strong>Modelle e talent</strong> — scouting, shooting artistici, eventi moda/creative</span></div>
+<div class="fi"><span class="fi-dot" style="background:#f07b3f"></span><span><strong>Brand B2B</strong> — shooting catalogo per mandanti Emiltecnica, Applepromo, Tecnocart</span></div>
+<div class="fi"><span class="fi-dot" style="background:#f07b3f"></span><span><strong>Integrazione Selekt</strong> — workflow fotografo→cliente già costruito e funzionante</span></div>
+<div class="pills"><span class="pill">llava:7b</span><span class="pill">RAW processing</span><span class="pill">Configuratore quadri</span><span class="pill">Fine art print</span><span class="pill">Scouting</span><span class="pill">Selekt integration</span></div>
+</div>
+</div>
+</div>
+<div class="slide-num">13b</div>
+</section>
+
+<!-- ══ S13c DISFATTI FOTO MARKET ANALYSIS ══ -->
+
+<section class="slide" id="s13c" style="background:#060402">
+<canvas class="bg" id="c13c"></canvas>
+<div class="ma-accent" style="background:linear-gradient(90deg,rgba(240,123,63,.5),transparent)"></div>
+<div class="slide-type" style="color:#f07b3f;opacity:.55">Market Analysis · Lab Personale</div>
+<div class="sc">
+<div class="tag" style="background:rgba(240,123,63,.08);color:#f07b3f;border:1px solid rgba(240,123,63,.2)">Disfatti · Fotografia · Modelli Business · Market Analysis</div>
+<div class="h2" style="font-size:clamp(22px,3vw,40px);margin-bottom:16px">Mercato <em>fotografia</em><br>+ content licensing Italia</div>
+<div class="g2">
+<div>
+<div class="ma-section">
+<div class="ma-title">TAM · SAM · SOM</div>
+<div class="tssfunnel">
+<div class="tss-row"><span class="tss-label">TAM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:100%;background:rgba(240,123,63,.18)"><span class="tss-val" style="color:#f07b3f">€2.8B</span><span class="tss-sub">Mercato fotografia professionale + stock + eventi Italia</span></div></div></div>
+<div class="tss-row"><span class="tss-label">SAM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:48%;background:rgba(240,123,63,.12)"><span class="tss-val" style="color:#f07b3f">€320M</span><span class="tss-sub">Stampe fine art + abbonamenti + riviste foto + shooting B2B Italia</span></div></div></div>
+<div class="tss-row"><span class="tss-label">SOM</span><div class="tss-bar-wrap"><div class="tss-bar-fill" style="width:6%;background:rgba(240,123,63,.08)"><span class="tss-val" style="color:#f07b3f">€80k</span><span class="tss-sub">Anno 1: 20 shooting + 50 stampe/mese + 100 abbonati rivista</span></div></div></div>
+</div>
+</div>
+<div class="ma-section">
+<div class="ma-title">Concorrenza · Differenziazione</div>
+<div class="comp-grid">
+<div class="comp-row"><span class="comp-name">Getty / Shutterstock</span><span class="comp-desc">Stock generico, nessuna identità artistica, nessun rapporto diretto</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Brand personale</span></div>
+<div class="comp-row"><span class="comp-name">Fotografi freelance</span><span class="comp-desc">No e-commerce, no stampe, no rivista, no abbonamento</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Più stream</span></div>
+<div class="comp-row"><span class="comp-name">Riviste foto classiche</span><span class="comp-desc">Modello tradizionale, costi produzione alti, no digitale nativo</span><span class="comp-badge" style="background:rgba(62,207,142,.1);color:#3ecf8e">Digital first</span></div>
+</div>
+</div>
+</div>
+<div>
+<div class="ma-section">
+<div class="ma-title">Modelli di Business · Multi-stream</div>
+<div class="rev-cols">
+<div class="rev-card"><div class="rev-title" style="color:#f07b3f">Shooting</div><div class="rev-val" style="color:#f07b3f">€300-2k</div><div class="rev-note">Per sessione — commerciali, ritratti, eventi, catalogo B2B per i mandanti</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#f07b3f">Stampe fine art</div><div class="rev-val" style="color:#f07b3f">€80-500 cad.</div><div class="rev-note">Configuratore online, stampa on-demand, spedizione. Margine alto, zero stock</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#f07b3f">Abbonamento</div><div class="rev-val" style="color:#f07b3f">€9-29/mese</div><div class="rev-note">Catalogo foto ad alta risoluzione, licenza uso commerciale, aggiornamento mensile</div></div>
+<div class="rev-card"><div class="rev-title" style="color:#f07b3f">Rivista</div><div class="rev-val" style="color:#f07b3f">€8-15 cad.</div><div class="rev-note">Digitale o fisica, acquisto singolo numero o abbonamento annuale. Curatoriale, non solo portfolio</div></div>
+</div>
+</div>
+<div class="div"></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>Evento fotografico</strong> — mostra + vendita stampe dal vivo: un evento = €2-5k potenziale in una serata</span></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>AI selezione</strong> — llava:7b già attivo: rating automatico che riduce il tempo di editing del 70%</span></div>
+<div class="fi"><span class="fi-dot" style="background:#fac850"></span><span><strong>Cross B2B</strong> — ogni cliente mandante è un potenziale cliente shooting catalogo prodotti</span></div>
+</div>
+</div>
+</div>
+<div class="slide-num">13c</div>
+</section>
+
+<!-- ══ S14 NETWORK MAP ══ -->
+
+<section class="slide" id="s14" style="padding:0;align-items:stretch;justify-content:stretch">
+<canvas id="net"></canvas>
+<div class="net-legend">
+<div style="font-family:'Syne Mono',monospace;font-size:8px;letter-spacing:.18em;color:rgba(255,255,255,.18);margin-bottom:7px;text-transform:uppercase">Legenda</div>
+<div class="nl"><div class="nl-d" style="background:#d4a843"></div>Core B2B</div>
+<div class="nl"><div class="nl-d" style="background:#4a90e2"></div>Agenzia</div>
+<div class="nl"><div class="nl-d" style="background:#f07b3f"></div>Creativo/Lab</div>
+<div class="nl"><div class="nl-d" style="background:#9b6ef3"></div>Startup/Hub</div>
+<div class="nl"><div class="nl-d" style="background:#2dd4bf"></div>SaaS</div>
+<div class="nl"><div class="nl-d" style="background:#3ecf8e"></div>AI Lab</div>
+<div class="nl"><div class="nl-d" style="background:#e85d5d"></div>Musica</div>
+<div class="nl"><div class="nl-d" style="background:#fac850"></div>Builder</div>
+<div class="nl"><div class="nl-d" style="background:#64b4ff"></div>Nebula</div>
+</div>
+<div class="net-ui">
+<div style="font-family:'DM Serif Display',serif;font-size:20px;font-style:italic;color:rgba(240,244,255,.5);margin-bottom:4px">Mappa Connessioni</div>
+<div style="font-family:'Syne Mono',monospace;font-size:8px;letter-spacing:.11em;color:rgba(240,244,255,.2);line-height:1.7">Trascina · hover per dettagli</div>
+</div>
+<div class="slide-num" style="color:rgba(255,255,255,.1)">14</div>
+</section>
+
+<!-- ══ S15 VISION ══ -->
+
+<section class="slide" id="s15">
+<canvas class="bg" id="c15"></canvas>
+<div class="cover-wrap">
+<div class="orb-row">
+<div class="orb-item"><div class="orb-c" style="background:rgba(212,168,67,.1)">🏭</div><div class="orb-n">lo.pluri</div></div>
+<div class="orb-item"><div class="orb-c" style="background:rgba(74,144,226,.1)">🌐</div><div class="orb-n">Agency</div></div>
+<div class="orb-item"><div class="orb-c" style="background:rgba(240,123,63,.1)">📸</div><div class="orb-n">Disfatti</div></div>
+<div class="orb-item"><div class="orb-c" style="background:rgba(155,110,243,.1)">💡</div><div class="orb-n">Thinkr</div></div>
+<div class="orb-item"><div class="orb-c" style="background:rgba(45,212,191,.1)">🎞️</div><div class="orb-n">Selekt</div></div>
+<div class="orb-item"><div class="orb-c" style="background:rgba(62,207,142,.1)">🤖</div><div class="orb-n">OS Lab</div></div>
+<div class="orb-item"><div class="orb-c" style="background:rgba(232,93,93,.1)">🎵</div><div class="orb-n">SEAM</div></div>
+<div class="orb-item"><div class="orb-c" style="background:rgba(250,200,80,.1)">⚡</div><div class="orb-n">Builder</div></div>
+<div class="orb-item"><div class="orb-c" style="background:rgba(100,180,255,.1)">🌌</div><div class="orb-n">Nebula</div></div>
+</div>
+<div style="font-family:'DM Serif Display',serif;font-size:clamp(26px,4.2vw,58px);font-weight:400;line-height:1.05;margin-bottom:18px;text-align:center">
+Creatività, commercio,<br>tecnologia. <em>Insieme.</em>
+</div>
+<p style="font-size:12px;color:rgba(240,244,255,.28);max-width:480px;line-height:1.8;font-family:'Syne Mono',monospace;letter-spacing:.04em;margin-bottom:24px;text-align:center">Un team giovane e smart che può spaccare su qualsiasi fronte.<br>Dev, grafici, fotografi e commerciali — liberi di scegliere, forti del collettivo.</p>
+<div style="font-family:'Syne Mono',monospace;font-size:9.5px;letter-spacing:.26em;color:#d4a843;opacity:.52;text-transform:uppercase">Emails → Tasks → Actions → Sales</div>
+</div>
+<div class="slide-num">15</div>
+</section>
+
+<script>
+// ── NAV + SCROLL ──
+const SL=document.querySelectorAll('.slide');
+const NV=document.getElementById('nav');
+const maSlides=[2,4,6,8,10,12];
+SL.forEach((_,i)=>{
+const d=document.createElement('div');
+d.className='dot'+(maSlides.includes(i)?' ma':'')+(i===0?' active':'');
+d.title=d.className.includes('ma')?'Market Analysis':'';
+d.onclick=()=>GT(i);NV.appendChild(d);
+});
+const DT=document.querySelectorAll('.dot');
+function GT(i){SL[i].scrollIntoView({behavior:'smooth'})}
+const _io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.intersectionRatio>.5){const i=Array.from(SL).indexOf(e.target);DT.forEach(d=>d.classList.remove('active'));if(DT[i])DT[i].classList.add('active');}});},{threshold:.5});
+SL.forEach(s=>_io.observe(s));
+document.addEventListener('keydown',e=>{const c=Array.from(DT).findIndex(d=>d.classList.contains('active'));if(e.key==='ArrowDown'||e.key===' '){e.preventDefault();GT(Math.min(c+1,SL.length-1))}if(e.key==='ArrowUp'){e.preventDefault();GT(Math.max(c-1,0))}});
+
+// ── CANVAS ENGINE ──
+function BG(id,type,r,g,b){
+const cv=document.getElementById(id);if(!cv)return;
+const ctx=cv.getContext('2d');let W,H,t=0;
+function rsz(){W=cv.width=cv.parentElement.offsetWidth;H=cv.height=cv.parentElement.offsetHeight;}
+rsz();new ResizeObserver(rsz).observe(cv.parentElement);
+const ST=()=>{
+if(!BG._st)BG._st={};const k=id;
+if(!BG._st[k])BG._st[k]=Array.from({length:140},()=>({x:Math.random(),y:Math.random(),r:Math.random()*.8+.2,ph:Math.random()*Math.PI*2,sp:Math.random()*.0002}));
+return BG._st[k];
+};
+const draws={
+stars(){ctx.clearRect(0,0,W,H);t+=.35;ST().forEach(s=>{const a=.09+.06*Math.sin(t*s.sp*100+s.ph);ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(${r},${g},${b},${a})`;ctx.fill();});const grd=ctx.createRadialGradient(W*.5,H*.5,0,W*.5,H*.5,W*.32);grd.addColorStop(0,`rgba(${r},${g},${b},.045)`);grd.addColorStop(1,'transparent');ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);requestAnimationFrame(draws.stars);},
+hex(){ctx.clearRect(0,0,W,H);t+=.3;const s=54,rows=Math.ceil(H/s)+2,cols=Math.ceil(W/(s*1.73))+2;for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){const ox=col*s*1.73+(row%2)*s*.866,oy=row*s*.75;const d=Math.sqrt((ox-W*.75)**2+(oy-H*.28)**2);const a=.025+.04*((Math.sin(d*.01-t*.03)+1)/2);ctx.beginPath();for(let i=0;i<6;i++){const ang=i*Math.PI/3-Math.PI/6;ctx.lineTo(ox+s*.44*Math.cos(ang),oy+s*.44*Math.sin(ang));}ctx.closePath();ctx.strokeStyle=`rgba(${r},${g},${b},${a})`;ctx.lineWidth=.6;ctx.stroke();}requestAnimationFrame(draws.hex);},
+flow(){ctx.clearRect(0,0,W,H);t+=.22;if(!draws._fl)draws._fl=Array.from({length:12},(_,i)=>({y:i*(H/10),ph:Math.random()*Math.PI*2}));draws._fl.forEach(l=>{ctx.beginPath();ctx.moveTo(0,l.y);for(let x=0;x<=W;x+=8){ctx.lineTo(x,l.y+Math.sin(x*.006+t*.018+l.ph)*25+Math.sin(x*.014+t*.013)*12);}ctx.strokeStyle=`rgba(${r},${g},${b},.035)`;ctx.lineWidth=.9;ctx.stroke();});requestAnimationFrame(draws.flow);},
+rings(){ctx.clearRect(0,0,W,H);t+=.38;const rings=Array.from({length:7},(_,i)=>({r:i*68+46,ph:i*.5}));const cx=W*.86,cy=H*.2;rings.forEach((rg,i)=>{const a=.02+.016*Math.sin(t*.0003*1000+rg.ph);ctx.beginPath();ctx.arc(cx,cy,rg.r+Math.sin(t*.005+rg.ph)*8,0,Math.PI*2);ctx.strokeStyle=`rgba(${r},${g},${b},${a})`;ctx.lineWidth=.65;ctx.stroke();});requestAnimationFrame(draws.rings);},
+const8(){ctx.clearRect(0,0,W,H);if(!draws._pt)draws._pt=Array.from({length:46},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,r:Math.random()*1.2+.4}));draws._pt.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;});for(let i=0;i<draws._pt.length;i++)for(let j=i+1;j<draws._pt.length;j++){const d=Math.hypot(draws._pt[i].x-draws._pt[j].x,draws._pt[i].y-draws._pt[j].y);if(d<110){ctx.beginPath();ctx.moveTo(draws._pt[i].x,draws._pt[i].y);ctx.lineTo(draws._pt[j].x,draws._pt[j].y);ctx.strokeStyle=`rgba(${r},${g},${b},${.09*(1-d/110)})`;ctx.lineWidth=.5;ctx.stroke();}}draws._pt.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(${r},${g},${b},.26)`;ctx.fill();});requestAnimationFrame(draws.const8);},
+scan(){ctx.clearRect(0,0,W,H);t+=.42;const gs=44,sy=(t*.95)%H;for(let x=0;x<=W;x+=gs){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.strokeStyle=`rgba(${r},${g},${b},.02)`;ctx.lineWidth=.4;ctx.stroke();}for(let y=0;y<=H;y+=gs){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.strokeStyle=`rgba(${r},${g},${b},.02)`;ctx.lineWidth=.4;ctx.stroke();}const sg=ctx.createLinearGradient(0,sy-50,0,sy+50);sg.addColorStop(0,'transparent');sg.addColorStop(.5,`rgba(${r},${g},${b},.044)`);sg.addColorStop(1,'transparent');ctx.fillStyle=sg;ctx.fillRect(0,sy-50,W,100);requestAnimationFrame(draws.scan);},
+matrix(){ctx.fillStyle=`rgba(4,6,8,.17)`;ctx.fillRect(0,0,W,H);if(!draws._dr)draws._dr=Array.from({length:Math.floor(W/18)+1},()=>Math.random()*H);const ch='01アAB#$%'.split('');ctx.font='11px "Syne Mono",monospace';draws._dr.forEach((y,i)=>{ctx.fillStyle=`rgba(${r},${g},${b},.2)`;ctx.fillText(ch[Math.floor(Math.random()*ch.length)],i*18,y);if(y>H&&Math.random()>.975)draws._dr[i]=0;draws._dr[i]+=15;});requestAnimationFrame(draws.matrix);},
+wave(){ctx.clearRect(0,0,W,H);t+=.32;for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(0,H*.5);for(let x=0;x<=W;x+=4){ctx.lineTo(x,H*.5+Math.sin(x*.007+t*.022+i*.9)*H*.1*(.5+i*.12)+Math.sin(x*.019+t*.036+i*1.3)*H*.05);}ctx.strokeStyle=`rgba(${r},${g},${b},${.055-i*.009})`;ctx.lineWidth=1.3-i*.18;ctx.stroke();}requestAnimationFrame(draws.wave);},
+nebula(){ctx.clearRect(0,0,W,H);t+=.35;ST().forEach(s=>{const a=.08+.06*Math.sin(t*s.sp*80+s.ph);const x=s.x*W,y=s.y*H;ctx.beginPath();ctx.arc(x,y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(${r},${g},${b},${a})`;ctx.fill();});for(let i=0;i<3;i++){const cx=W*(.3+i*.2),cy=H*(.4+Math.sin(t*.003+i)*H*.08);const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,W*.18);grd.addColorStop(0,`rgba(${r},${g},${b},.06)`);grd.addColorStop(1,'transparent');ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);}requestAnimationFrame(draws.nebula);},
+pulse(){ctx.clearRect(0,0,W,H);t+=.42;const cx=W*.5,cy=H*.5;for(let i=0;i<5;i++){const rp=50+(i*85)+((t*.95)%85);const a=Math.max(0,.06*(1-rp/(H*.8)));ctx.beginPath();ctx.arc(cx,cy,rp,0,Math.PI*2);ctx.strokeStyle=`rgba(${r},${g},${b},${a})`;ctx.lineWidth=.7;ctx.stroke();}requestAnimationFrame(draws.pulse);},
+orbit(){
+ctx.clearRect(0,0,W,H);t+=.3;
+if(!draws._orb){draws._orb=Array.from({length:60},(_,i)=>({a:Math.random()*Math.PI*2,r:80+Math.random()*(Math.min(W,H)*.38),sp:(Math.random()-.5)*.006+.002,sz:Math.random()*1.4+.3,ph:Math.random()*Math.PI*2}));}
+// central glow
+const gc=ctx.createRadialGradient(W*.5,H*.5,0,W*.5,H*.5,W*.2);gc.addColorStop(0,`rgba(${r},${g},${b},.07)`);gc.addColorStop(1,'transparent');ctx.fillStyle=gc;ctx.fillRect(0,0,W,H);
+// orbiting particles
+draws._orb.forEach(p=>{
+p.a+=p.sp;
+const x=W*.5+Math.cos(p.a)*p.r,y=H*.5+Math.sin(p.a)*p.r*.45;
+const bright=.08+.12*Math.sin(t*.01+p.ph);
+ctx.beginPath();ctx.arc(x,y,p.sz,0,Math.PI*2);ctx.fillStyle=`rgba(${r},${g},${b},${bright})`;ctx.fill();
+});
+// faint orbit rings
+[.22,.35,.48].forEach((f,i)=>{const radius=Math.min(W,H)*f;ctx.beginPath();ctx.ellipse(W*.5,H*.5,radius,radius*.45,0,0,Math.PI*2);ctx.strokeStyle=`rgba(${r},${g},${b},.025)`;ctx.lineWidth=.5;ctx.stroke();});
+requestAnimationFrame(draws.orbit);
+},
+pyrain(){
+ctx.fillStyle=`rgba(4,6,8,.15)`;ctx.fillRect(0,0,W,H);
+if(!draws._py){
+const cols=Math.floor(W/14)+1;
+draws._py=Array.from({length:cols},()=>({y:Math.random()*H,sp:8+Math.random()*8}));
+draws._pywords=['def','for','if','class','import','return','await','async','True','None','in','not','and','or','try','except','with','yield','lambda','self','init','super','pass','raise','while','break','from','as','is','print','len','range','type','dict','list','tuple','set','int','str','float','bool'];
+}
+ctx.font='11px "Syne Mono",monospace';
+draws._py.forEach((col,i)=>{
+const word=draws._pywords[Math.floor(Math.random()*draws._pywords.length)];
+const bright=.15+Math.random()*.15;
+ctx.fillStyle=`rgba(${r},${g},${b},${bright})`;
+ctx.fillText(word,i*14,col.y);
+col.y+=col.sp;
+if(col.y>H+20)col.y=Math.random()*-100;
+});
+requestAnimationFrame(draws.pyrain);
+}
+};
+(draws[type]||draws.stars)();
+}
+
+[['c0','stars',212,168,67],
+['c1','orbit',212,168,67],
+['c2','orbit',212,168,67],
+['c3','flow',74,144,226],
+['c4','pyrain',74,144,226],
+['c4b','pyrain',250,200,80],
+['c4c','pyrain',250,200,80],
+['c5','scan',45,212,191],
+['c6','scan',45,212,191],
+['c7','const8',155,110,243],
+['c8','const8',155,110,243],
+['c9','wave',232,93,93],
+['c10','wave',232,93,93],
+['c11','nebula',100,180,255],
+['c12','nebula',100,180,255],
+['c13','pyrain',62,207,142],
+['c13b','rings',240,123,63],
+['c13c','rings',240,123,63],
+['c15','pulse',212,168,67]
+].forEach(([id,tp,r,g,b])=>BG(id,tp,r,g,b));
+
+// ── NETWORK ──
+(function(){
+const cv=document.getElementById('net');if(!cv)return;
+const ctx=cv.getContext('2d'),slide=document.getElementById('s14');
+let W,H,t=0;
+function rsz(){W=cv.width=slide.offsetWidth;H=cv.height=slide.offsetHeight;place();}
+const ND=[
+{id:'lo',l:'lo.pluriagency',s:'Core B2B',c:'212,168,67',e:'🏭',z:35},
+{id:'crm',l:'CRM',s:'app.pluri',c:'212,168,67',e:'📋',z:21},
+{id:'ag',l:'Pluriagency',s:'Agenzia',c:'74,144,226',e:'🌐',z:28},
+{id:'pb',l:'Page Builder',s:'Filippo',c:'250,200,80',e:'⚡',z:22},
+{id:'di',l:'Disfatti Lab',s:'Foto',c:'240,123,63',e:'📸',z:24},
+{id:'th',l:'Thinkr',s:'Incubatore',c:'155,110,243',e:'💡',z:29},
+{id:'sk',l:'Selekt',s:'SaaS',c:'45,212,191',e:'🎞️',z:24},
+{id:'os',l:'Disfatti OS',s:'AI Lab',c:'62,207,142',e:'🤖',z:28},
+{id:'se',l:'SEAM',s:'Musica',c:'232,93,93',e:'🎵',z:24},
+{id:'nb',l:'Nebula',s:'3D Map',c:'100,180,255',e:'🌌',z:22},
+{id:'em',l:'Emiltecnica',s:'Mandante',c:'200,175,90',e:'🏭',z:17},
+{id:'tc',l:'Tecnocart',s:'Mandante',c:'200,175,90',e:'📦',z:17},
+{id:'ap',l:'Applepromo',s:'Mandante',c:'200,175,90',e:'🎁',z:17},
+];
+const ED=[
+{a:'lo',b:'crm',sol:true,l:'pipeline'},{a:'lo',b:'ag',sol:true,l:'cross-sell'},
+{a:'lo',b:'em',sol:true},{a:'lo',b:'tc',sol:true},{a:'lo',b:'ap',sol:true},
+{a:'ag',b:'pb',sol:true,l:'deploy'},{a:'ag',b:'di',sol:false},
+{a:'ag',b:'th',sol:false,l:'hub'},{a:'ag',b:'sk',sol:false},
+{a:'os',b:'lo',sol:true,l:'mail AI'},{a:'os',b:'ag',sol:true},
+{a:'os',b:'di',sol:true},{a:'os',b:'th',sol:false},
+{a:'os',b:'sk',sol:false},{a:'os',b:'crm',sol:false,l:'write'},
+{a:'th',b:'se',sol:false,l:'music'},{a:'th',b:'sk',sol:false},
+{a:'di',b:'sk',sol:true,l:'workflow'},{a:'se',b:'ag',sol:false,l:'licensing'},
+{a:'pb',b:'crm',sol:false},{a:'nb',b:'ag',sol:true,l:'mappa'},
+{a:'nb',b:'th',sol:false},{a:'nb',b:'os',sol:false},
+];
+let nodes=[];
+function place(){
+const cx=W*.5,cy=H*.46;
+const pos=[{x:cx,y:cy},{x:cx+155,y:cy-70},{x:cx-188,y:cy-105},{x:cx-218,y:cy+86},{x:cx-248,y:cy-35},{x:cx+68,y:cy+168},{x:cx+225,y:cy+84},{x:cx-55,y:cy-188},{x:cx+168,y:cy+175},{x:cx-50,y:cy+185},{x:cx+168,y:cy-200},{x:cx-115,y:cy+215},{x:cx+292,y:cy-16}];
+nodes=ND.map((d,i)=>({...d,x:Math.max(d.z,Math.min(W-d.z,pos[i]?.x||cx)),y:Math.max(d.z,Math.min(H-d.z,pos[i]?.y||cy))}));
+}
+let hov=null,drag=null,dox=0,doy=0;
+const gn=(mx,my)=>nodes.find(n=>Math.hypot(n.x-mx,n.y-my)<n.z+10);
+cv.addEventListener('mousemove',e=>{const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;if(drag){drag.x=Math.max(drag.z,Math.min(W-drag.z,mx-dox));drag.y=Math.max(drag.z,Math.min(H-drag.z,my-doy));return;}hov=gn(mx,my);cv.style.cursor=hov?'pointer':'grab';});
+cv.addEventListener('mousedown',e=>{const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;drag=gn(mx,my);if(drag){dox=mx-drag.x;doy=my-drag.y;cv.style.cursor='grabbing';}});
+cv.addEventListener('mouseup',()=>{drag=null;});cv.addEventListener('mouseleave',()=>{drag=null;hov=null;});
+function draw(){
+ctx.clearRect(0,0,W,H);ctx.fillStyle='#040608';ctx.fillRect(0,0,W,H);t+=.4;
+for(let x=0;x<=W;x+=64){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.strokeStyle='rgba(255,255,255,.014)';ctx.lineWidth=.4;ctx.stroke();}
+for(let y=0;y<=H;y+=64){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.strokeStyle='rgba(255,255,255,.014)';ctx.lineWidth=.4;ctx.stroke();}
+ED.forEach(e=>{
+const a=nodes.find(n=>n.id===e.a),b=nodes.find(n=>n.id===e.b);if(!a||!b)return;
+const ih=hov&&(hov.id===e.a||hov.id===e.b);
+ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+if(e.sol){ctx.strokeStyle=ih?'rgba(255,255,255,.28)':'rgba(255,255,255,.07)';}
+else{ctx.setLineDash([4,5]);ctx.strokeStyle=ih?'rgba(255,255,255,.15)':'rgba(255,255,255,.03)';}
+ctx.lineWidth=ih?1.3:.6;ctx.stroke();ctx.setLineDash([]);
+if(e.l&&ih){const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;ctx.font='8px "Syne Mono",monospace';ctx.fillStyle='rgba(255,255,255,.32)';ctx.textAlign='center';ctx.fillText(e.l,mx,my-4);}
+});
+nodes.forEach(n=>{
+const ih=hov&&hov.id===n.id,pulse=ih?n.z+3+Math.sin(t*.1)*2:n.z;
+if(ih){const grd=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,pulse*2.5);grd.addColorStop(0,`rgba(${n.c},.12)`);grd.addColorStop(1,'transparent');ctx.fillStyle=grd;ctx.beginPath();ctx.arc(n.x,n.y,pulse*2.5,0,Math.PI*2);ctx.fill();}
+ctx.beginPath();ctx.arc(n.x,n.y,pulse+2,0,Math.PI*2);ctx.strokeStyle=`rgba(${n.c},${ih?.4:.15})`;ctx.lineWidth=ih?1.2:.6;ctx.stroke();
+ctx.beginPath();ctx.arc(n.x,n.y,pulse,0,Math.PI*2);ctx.fillStyle=`rgba(${n.c},.09)`;ctx.fill();
+ctx.font=`${n.z*.82}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(n.e,n.x,n.y);
+ctx.font=`600 9.5px "Syne",sans-serif`;ctx.textAlign='center';ctx.textBaseline='top';
+ctx.fillStyle=ih?`rgba(${n.c},1)`:'rgba(255,255,255,.42)';ctx.fillText(n.l,n.x,n.y+pulse+4);
+if(ih){ctx.font=`8px "Syne Mono",monospace`;ctx.fillStyle=`rgba(${n.c},.5)`;ctx.fillText(n.s,n.x,n.y+pulse+15);}
+});
+ctx.textBaseline='alphabetic';requestAnimationFrame(draw);
+}
+rsz();new ResizeObserver(rsz).observe(slide);draw();
+})();
+</script>
+
+</body>
+</html>

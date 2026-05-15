@@ -195,7 +195,7 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
   .net-ui{left:22px}
 }
 </style>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 <body>
 <div id="nav"></div>
@@ -1152,6 +1152,128 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 <div class="slide-num">A·05</div>
 </section>
 
+<!-- ══ INVESTOR SUMMARY · A — TABELLONE ══ -->
+
+<section class="slide" id="sinv-recap" style="background:#05060c">
+<div class="ma-accent"></div>
+<div class="slide-type">Investor Summary</div>
+<div class="sc">
+<div class="tag" style="background:rgba(212,168,67,.1);color:#d4a843;border:1px solid rgba(212,168,67,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#d4a843;display:inline-block"></span>Quadro comparativo · tutti i progetti</div>
+<div class="h2">I numeri, in <em>una schermata</em></div>
+<div class="domain">Fase · costo per finire · revenue annua potenziale · mercato</div>
+<table class="tbl" style="margin-top:20px">
+<thead><tr><th>Progetto</th><th>Fase</th><th>Costo finire</th><th>Revenue/anno</th><th>TAM</th><th>SAM</th><th>SOM</th></tr></thead>
+<tbody>
+<tr><td style="color:#d4a843">lo.pluriagency</td><td>⑥ Scala</td><td>€200</td><td>~€45k</td><td>€2,1B</td><td>€380M</td><td>€8,5M</td></tr>
+<tr><td style="color:#4a90e2">Pluriagency · Agency+CMS</td><td>⑤ Vendita</td><td>~€700</td><td>~€30k</td><td>€3,8B</td><td>€520M</td><td>€2,4M</td></tr>
+<tr><td style="color:#2dd4bf">SelektPhoto</td><td>③ Beta</td><td>€700</td><td>~€25k</td><td>€180M</td><td>€42M</td><td>€720k</td></tr>
+<tr><td style="color:#9b6ef3">Thinkr</td><td>④ Pronto</td><td>live</td><td>~€10k</td><td>€280M</td><td>€65M</td><td>€480k</td></tr>
+<tr><td style="color:#e85d5d">SEAM</td><td>② Sviluppo</td><td>scommessa</td><td>~€5k</td><td>€120M</td><td>€28M</td><td>€360k</td></tr>
+<tr><td style="color:#64b4ff">Nebula</td><td>④ Pronto</td><td>fatto</td><td>~€8k</td><td>€320M</td><td>€55M</td><td>€280k</td></tr>
+<tr><td style="color:#f07b3f">Disfatti</td><td>② Sviluppo</td><td>€1.000</td><td>~€15k</td><td>€2,8B</td><td>€320M</td><td>€80k</td></tr>
+</tbody>
+</table>
+<p class="body" style="margin-top:16px;font-size:10.5px;opacity:.7">Revenue/anno = scenario realistico a regime 2026-27 · Costo per finire = giorni-uomo residui × €100 · TAM/SAM/SOM dalle analisi di mercato per progetto.</p>
+</div>
+<div class="slide-num">IS·01</div>
+</section>
+
+<!-- ══ INVESTOR SUMMARY · B — REVENUE ══ -->
+
+<section class="slide" id="sinv-revenue" style="background:#05060c">
+<div class="ma-accent"></div>
+<div class="slide-type">Investor Summary</div>
+<div class="sc">
+<div class="tag" style="background:rgba(62,207,142,.1);color:#3ecf8e;border:1px solid rgba(62,207,142,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#3ecf8e;display:inline-block"></span>Revenue potenziale &amp; validazione 2026</div>
+<div class="h2">Dove si genera <em>il valore</em></div>
+<div class="domain">Revenue annua potenziale per progetto · obiettivi di validazione 2026</div>
+<div class="g2" style="margin-top:18px;align-items:center">
+<div>
+<div class="slabel">Revenue annua potenziale a regime · €k</div>
+<div style="height:270px;position:relative;margin-top:6px"><canvas id="revChart"></canvas></div>
+</div>
+<div>
+<div class="slabel">Soglie di validazione 2026 — target vs attuale</div>
+<div class="sbar"><div class="sbar-head"><span class="sbar-l">Siti web venduti</span><span class="sbar-v" style="color:#4a90e2">1 / 5-10</span></div><div class="sbar-track"><div class="sbar-fill" style="width:13%;background:#4a90e2"></div></div></div>
+<div class="sbar"><div class="sbar-head"><span class="sbar-l">Clienti gestiti (Lorenzo + pluri-agenti)</span><span class="sbar-v" style="color:#d4a843">5 / 30-50</span></div><div class="sbar-track"><div class="sbar-fill" style="width:13%;background:#d4a843"></div></div></div>
+<div class="sbar"><div class="sbar-head"><span class="sbar-l">Licenze CRM vendute</span><span class="sbar-v" style="color:#3ecf8e">1 / 5</span></div><div class="sbar-track"><div class="sbar-fill" style="width:20%;background:#3ecf8e"></div></div></div>
+<div class="div"></div>
+<p class="body" style="font-size:11px">2026 è l'anno di <strong>validazione</strong>: centrare queste tre soglie dimostra che il modello regge. Da lì, il 2027 è scala.</p>
+</div>
+</div>
+</div>
+<div class="slide-num">IS·02</div>
+</section>
+
+<!-- ══ INVESTOR SUMMARY · C — NOTE DI CAMPAGNA ══ -->
+
+<section class="slide" id="sinv-invest" style="background:#070611">
+<div class="slide-type">Investor Summary</div>
+<div class="sc">
+<div class="tag" style="background:rgba(155,110,243,.1);color:#9b6ef3;border:1px solid rgba(155,110,243,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#9b6ef3;display:inline-block"></span>Modello di investimento · Note di Campagna</div>
+<div class="h2">Investire senza <em>diluizione</em></div>
+<div class="domain">L'investitore compra velocità, non pezzi di azienda — i progetti restano nostri</div>
+<div class="g2" style="margin-top:16px">
+<div>
+<div class="slabel">Come funziona</div>
+<div class="fi"><span class="fi-dot" style="background:#9b6ef3"></span><span><strong>1 · Investimento mirato</strong> — capitale su un progetto già validato (fase ⑤-⑥)</span></div>
+<div class="fi"><span class="fi-dot" style="background:#9b6ef3"></span><span><strong>2 · Allocazione</strong> — una quota copre lo sviluppo residuo, il resto è budget marketing</span></div>
+<div class="fi"><span class="fi-dot" style="background:#9b6ef3"></span><span><strong>3 · Campagna</strong> — gira N mesi con metriche definite a monte</span></div>
+<div class="fi"><span class="fi-dot" style="background:#9b6ef3"></span><span><strong>4 · Rimborso</strong> — capitale + premio (% del margine generato), in liquidità</span></div>
+<div class="mission" style="border-color:#9b6ef3">"Niente equity, niente diluizione. L'investitore finanzia una campagna, non compra l'azienda."</div>
+</div>
+<div>
+<div class="slabel">3 cose da blindare</div>
+<div class="card" style="border-color:rgba(155,110,243,.16);margin-bottom:8px"><div class="card-title" style="color:#9b6ef3">Attribuzione</div><div class="card-body">Come si misura il margine generato dalla campagna: codici dedicati, landing, UTM, finestra temporale</div></div>
+<div class="card" style="border-color:rgba(155,110,243,.16);margin-bottom:8px"><div class="card-title" style="color:#9b6ef3">Cap + Floor</div><div class="card-body">Tetto sul rendimento (es. max 1,5×) e regola chiara sul downside se la campagna fallisce</div></div>
+<div class="card" style="border-color:rgba(155,110,243,.16)"><div class="card-title" style="color:#9b6ef3">Forma legale</div><div class="card-body">Revenue-based financing, non equity. IP sempre 100% della società in ogni accordo</div></div>
+</div>
+</div>
+</div>
+<div class="slide-num">IS·03</div>
+</section>
+
+<!-- ══ INVESTOR SUMMARY · D — PROIEZIONE 2027 ══ -->
+
+<section class="slide" id="sinv-2027" style="background:#05080c">
+<div class="ma-accent"></div>
+<div class="slide-type">Investor Summary</div>
+<div class="sc">
+<div class="tag" style="background:rgba(74,144,226,.1);color:#4a90e2;border:1px solid rgba(74,144,226,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#4a90e2;display:inline-block"></span>Proiezione 2027</div>
+<div class="h2">2026 <em>valida</em>, 2027 <em>scala</em></div>
+<div class="domain">Scenario: se i target di validazione 2026 sono centrati</div>
+<div class="g2" style="margin-top:16px">
+<div>
+<div class="slabel">Fine 2026 · run-rate ricorrente</div>
+<table class="tbl">
+<thead><tr><th>Linea</th><th>Volume</th><th>Revenue</th></tr></thead>
+<tbody>
+<tr><td>Web Agency</td><td>~8 siti</td><td>€20k + manut.</td></tr>
+<tr><td>Lorenzo Agente</td><td>~40 clienti</td><td>~€20k/anno</td></tr>
+<tr><td>CRM</td><td>5 licenze</td><td>~€21k/anno</td></tr>
+<tr><td style="color:#3ecf8e">Run-rate ricorrente</td><td></td><td style="color:#3ecf8e">~€45k/anno</td></tr>
+</tbody>
+</table>
+</div>
+<div>
+<div class="slabel">2027 · costo per scalare</div>
+<table class="tbl">
+<thead><tr><th>Voce</th><th>Banda annua</th></tr></thead>
+<tbody>
+<tr><td>Dev dedicato (P.IVA)</td><td>€25-35k</td></tr>
+<tr><td>Marketing/commerciale (P.IVA)</td><td>€25-30k</td></tr>
+<tr><td>Budget ads / promo</td><td>€20-40k</td></tr>
+<tr><td>Infra</td><td>~€1k</td></tr>
+<tr><td style="color:#fac850">Totale</td><td style="color:#fac850">€70-105k</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<p class="body" style="margin-top:14px">Il gap tra run-rate e costo di scala è ciò che l'investimento colma — tramite <strong>Note di Campagna</strong> su linee già validate, non lo stipendio del team. Priorità: ① Lorenzo Agente → ② Web Agency → ③ SelektPhoto + CMS.</p>
+</div>
+<div class="slide-num">IS·04</div>
+</section>
+
 <!-- ══ S14 NETWORK MAP ══ -->
 
 <section class="slide" id="s14" style="padding:0;align-items:stretch;justify-content:stretch">
@@ -1379,6 +1501,38 @@ if(ih){ctx.font=`8px "Syne Mono",monospace`;ctx.fillStyle=`rgba(${n.c},.5)`;ctx.
 ctx.textBaseline='alphabetic';requestAnimationFrame(draw);
 }
 rsz();new ResizeObserver(rsz).observe(slide);draw();
+})();
+
+// ── GRAFICO REVENUE — Chart.js (slide Investor Summary B) ──
+(function(){
+  const cv=document.getElementById('revChart');
+  if(!cv||!window.Chart) return;
+  new Chart(cv,{
+    type:'bar',
+    data:{
+      labels:['lo.pluri','Pluriagency','SelektPhoto','Thinkr','SEAM','Nebula','Disfatti'],
+      datasets:[{
+        data:[45,30,25,10,5,8,15],
+        backgroundColor:['#d4a843','#4a90e2','#2dd4bf','#9b6ef3','#e85d5d','#64b4ff','#f07b3f'],
+        borderRadius:5, barPercentage:.66
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'rgba(8,10,18,.95)', borderColor:'rgba(255,255,255,.1)', borderWidth:1,
+          titleFont:{family:'Syne Mono'}, bodyFont:{family:'Syne Mono'},
+          callbacks:{ label:c=>'€'+c.raw+'k / anno' }
+        }
+      },
+      scales:{
+        y:{ beginAtZero:true, ticks:{color:'rgba(255,255,255,.32)',font:{family:'Syne Mono',size:9},callback:v=>'€'+v+'k'}, grid:{color:'rgba(255,255,255,.05)'} },
+        x:{ ticks:{color:'rgba(255,255,255,.5)',font:{family:'Syne Mono',size:8.5}}, grid:{display:false} }
+      }
+    }
+  });
 })();
 
 // ── PHASE BAR — costruisce le barre di processo dai placeholder ──

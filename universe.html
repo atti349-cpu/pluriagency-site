@@ -1423,6 +1423,10 @@ window.addEventListener('wheel',e=>{
 function BG(id,type,r,g,b){
 const cv=document.getElementById(id);if(!cv)return;
 const ctx=cv.getContext('2d');let W,H,t=0;
+// ── gating: il loop gira solo quando la slide è in viewport ──
+let _vis=true,_run=false;
+const _RAF=window.requestAnimationFrame.bind(window);
+function requestAnimationFrame(fn){if(_vis){_run=true;_RAF(fn);}else{_run=false;}}
 function rsz(){W=cv.width=cv.parentElement.offsetWidth;H=cv.height=cv.parentElement.offsetHeight;}
 rsz();new ResizeObserver(rsz).observe(cv.parentElement);
 const ST=()=>{
@@ -1477,6 +1481,10 @@ requestAnimationFrame(draws.pyrain);
 }
 };
 (draws[type]||draws.stars)();
+new IntersectionObserver(es=>{
+_vis=es[0].isIntersecting;
+if(_vis&&!_run){_run=true;_RAF(()=>(draws[type]||draws.stars)());}
+},{threshold:0}).observe(cv.parentElement);
 }
 
 [['c0','stars',212,168,67],
@@ -1503,16 +1511,21 @@ requestAnimationFrame(draws.pyrain);
 // ── MAPPA ECOSISTEMA 3D (slide s14) ──
 (function(){
 const mount=document.getElementById('eco3d');
-if(!mount||!window.THREE) return;
-const T=window.THREE, slide=document.getElementById('s14');
+const slide=document.getElementById('s14');
+if(!mount||!slide)return;
+if(!window.THREE){mount.style.background='radial-gradient(circle at 50% 42%,#10182e,#06080f)';return;}
+const T=window.THREE;
+let visible=false,running=false;
+try{
 const scene=new T.Scene();
 scene.fog=new T.FogExp2(0x05060f,0.0008);
 const camera=new T.PerspectiveCamera(58,1,1,3000);
 camera.position.set(0,42,470);
-const renderer=new T.WebGLRenderer({antialias:true,alpha:true});
+const renderer=new T.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.domElement.style.display='block';
 mount.appendChild(renderer.domElement);
-function resize(){const w=slide.offsetWidth,h=slide.offsetHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
+function resize(){const w=slide.offsetWidth||window.innerWidth,h=slide.offsetHeight||window.innerHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
 resize();new ResizeObserver(resize).observe(slide);
 const group=new T.Group();scene.add(group);
 // glow texture
@@ -1607,8 +1620,9 @@ cv.addEventListener('pointerup',endDrag);
 cv.addEventListener('pointercancel',()=>{dragging=false;cv.style.cursor='grab';});
 cv.addEventListener('pointerleave',()=>{dragging=false;cv.style.cursor='grab';});
 cv.addEventListener('wheel',e=>{e.preventDefault();e.stopPropagation();zoom=Math.max(290,Math.min(720,zoom+e.deltaY*0.35));},{passive:false});
-// loop
-(function loop(){
+// loop — gira solo quando la slide 3D è in viewport
+function loop(){
+if(!visible){running=false;return;}
 if(!dragging)velY+=(AUTO-velY)*0.035;
 group.rotation.y+=velY;
 group.rotation.x+=(tiltX-group.rotation.x)*0.08;
@@ -1622,7 +1636,16 @@ pl.lb.material.opacity+=((on?1:.66)-pl.lb.material.opacity)*0.14;
 });
 renderer.render(scene,camera);
 requestAnimationFrame(loop);
-})();
+}
+new IntersectionObserver(es=>{
+visible=es[0].isIntersecting;
+if(visible){resize();if(!running){running=true;loop();}}
+},{threshold:0.01}).observe(slide);
+cv.addEventListener('webglcontextlost',e=>{e.preventDefault();running=false;});
+cv.addEventListener('webglcontextrestored',()=>{resize();if(visible&&!running){running=true;loop();}});
+}catch(err){
+mount.style.background='radial-gradient(circle at 50% 42%,#10182e,#06080f)';
+}
 })();
 
 // ── GRAFICO REVENUE — Chart.js (slide Investor Summary B) ──

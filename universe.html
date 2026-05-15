@@ -33,6 +33,25 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 .body strong{color:rgba(240,244,255,.9);font-weight:600}
 .mission{font-family:‘DM Serif Display’,serif;font-style:italic;font-size:14px;color:rgba(240,244,255,.4);line-height:1.6;border-left:2px solid;padding-left:13px;margin-top:14px}
 
+/* PHASE BAR — processo di sviluppo */
+.phase-wrap{margin:14px 0 18px}
+.phase-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:11px}
+.phase-eyebrow{font-family:‘Syne Mono’,monospace;font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.25)}
+.phase-now{font-family:‘Syne Mono’,monospace;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+.phase{display:flex;align-items:flex-start;gap:0}
+.phase-step{flex:1;display:flex;flex-direction:column;align-items:center;position:relative}
+.phase-line{position:absolute;top:6px;right:50%;width:100%;height:2px;background:rgba(255,255,255,.08);z-index:1}
+.phase-step:first-child .phase-line{display:none}
+.phase-dot{width:13px;height:13px;border-radius:50%;background:#0c0e16;border:2px solid rgba(255,255,255,.14);position:relative;z-index:2;transition:all .3s}
+.phase-step.done .phase-line{background:var(--pc)}
+.phase-step.done .phase-dot{background:var(--pc);border-color:var(--pc)}
+.phase-step.current .phase-line{background:var(--pc)}
+.phase-step.current .phase-dot{background:var(--pc);border-color:#fff;width:17px;height:17px;margin-top:-2px;animation:phasePulse 2.1s ease-in-out infinite}
+@keyframes phasePulse{0%,100%{box-shadow:0 0 0 4px rgba(255,255,255,.05),0 0 14px var(--pc)}50%{box-shadow:0 0 0 7px rgba(255,255,255,.03),0 0 24px var(--pc)}}
+.phase-lbl{font-family:‘Syne Mono’,monospace;font-size:7px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.24);margin-top:9px;text-align:center}
+.phase-step.current .phase-lbl{color:var(--pc);font-weight:600}
+.phase-step.done .phase-lbl{color:rgba(255,255,255,.4)}
+
 /* TAG */
 .tag{display:inline-flex;align-items:center;gap:5px;font-family:‘Syne Mono’,monospace;font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;padding:4px 11px;border-radius:40px;margin-bottom:14px}
 .tag-ma{background:rgba(255,200,80,.08);color:#fac850;border:1px solid rgba(255,200,80,.2)}
@@ -236,6 +255,7 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 <div class="tag" style="background:rgba(212,168,67,.1);color:#d4a843;border:1px solid rgba(212,168,67,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#d4a843;display:inline-block"></span>Core Business · Agente + CRM SaaS</div>
 <div class="h2">lo.<em>pluriagency</em>.com</div>
 <div class="domain">lo.pluriagency.com · app.pluriagency.com (CRM)</div>
+<div class="phase-mount" data-phase="6" data-pc="#d4a843"></div>
 <div class="mstrip">
 <div class="mitem"><div class="mval" style="color:#d4a843">3+</div><div class="mlabel">Mandanti</div><div class="mtrend" style="color:#3ecf8e">↑ In crescita</div></div>
 <div class="mitem"><div class="mval" style="color:#d4a843">7</div><div class="mlabel">Settori</div><div class="mtrend" style="color:rgba(255,255,255,.28)">DPI·Pack·Gadget+</div></div>
@@ -363,6 +383,7 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 <div class="tag" style="background:rgba(74,144,226,.1);color:#4a90e2;border:1px solid rgba(74,144,226,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#4a90e2;display:inline-block"></span>Agenzia Digitale · Tech Collective</div>
 <div class="h2"><em>Pluriagency</em> Agency</div>
 <div class="domain">pluriagency.com · Stack: Astro / Next.js + Coolify + Hetzner + Strapi</div>
+<div class="phase-mount" data-phase="5" data-pc="#4a90e2"></div>
 <div class="mstrip">
 <div class="mitem"><div class="mval" style="color:#4a90e2">€5</div><div class="mlabel">Server/mese totale</div><div class="mtrend" style="color:#3ecf8e">↓ vs €60+ altri</div></div>
 <div class="mitem"><div class="mval" style="color:#4a90e2">€0</div><div class="mlabel">Costo sito vetrina</div><div class="mtrend" style="color:#3ecf8e">Margine puro</div></div>
@@ -454,6 +475,7 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 <div class="tag" style="background:rgba(250,200,80,.1);color:#fac850;border:1px solid rgba(250,200,80,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#fac850;display:inline-block"></span>Automazione · Lead Generation · Progetto Filippo</div>
 <div class="h2">Page <em>Builder</em><br>Automatico</div>
 <div class="domain">Scraping → Template → Preview → Invio → Call · Integrato in Pluriagency</div>
+<div class="phase-mount" data-phase="3" data-pc="#fac850"></div>
 <div class="mstrip">
 <div class="mitem"><div class="mval" style="color:#fac850">0</div><div class="mlabel">Dev richiesti</div><div class="mtrend" style="color:#3ecf8e">Commerciale autonomo</div></div>
 <div class="mitem"><div class="mval" style="color:#fac850">Auto</div><div class="mlabel">Scraping → Deploy</div><div class="mtrend" style="color:rgba(255,255,255,.28)">Info reali del cliente</div></div>
@@ -573,6 +595,7 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 <div class="tag" style="background:rgba(45,212,191,.1);color:#2dd4bf;border:1px solid rgba(45,212,191,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#2dd4bf;display:inline-block"></span>SaaS · Fotografi · Alto potenziale virale</div>
 <div class="h2"><em>Selekt</em>Photo</div>
 <div class="domain">selektphoto.com · Stripe · Cloudflare R2 · Supabase</div>
+<div class="phase-mount" data-phase="3" data-pc="#2dd4bf"></div>
 <div class="mstrip">
 <div class="mitem"><div class="mval" style="color:#2dd4bf">3→1</div><div class="mlabel">Tool sostituiti</div><div class="mtrend" style="color:#3ecf8e">WhatsApp+WeTr+Email</div></div>
 <div class="mitem"><div class="mval" style="color:#2dd4bf">Ore→Min</div><div class="mlabel">Selezione foto</div><div class="mtrend" style="color:#3ecf8e">↓ 95% tempo</div></div>
@@ -696,6 +719,7 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 <div class="tag" style="background:rgba(155,110,243,.1);color:#9b6ef3;border:1px solid rgba(155,110,243,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#9b6ef3;display:inline-block"></span>Startup · Incubatore · MVP Attivo</div>
 <div class="h2"><em>Thinkr</em>.it</div>
 <div class="domain">thinkr.it · Supabase · Vercel · ProtoView · Candidature</div>
+<div class="phase-mount" data-phase="4" data-pc="#9b6ef3"></div>
 <div class="mstrip">
 <div class="mitem"><div class="mval" style="color:#9b6ef3">MVP</div><div class="mlabel">Stato</div><div class="mtrend" style="color:#3ecf8e">Live e funzionante</div></div>
 <div class="mitem"><div class="mval" style="color:#9b6ef3">Hub</div><div class="mlabel">Ruolo collettivo</div><div class="mtrend" style="color:#9b6ef3">Incubatore reale</div></div>
@@ -815,6 +839,7 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 <div class="tag" style="background:rgba(232,93,93,.1);color:#e85d5d;border:1px solid rgba(232,93,93,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#e85d5d;display:inline-block"></span>Musica · AI Targeting · Marketplace · In costruzione</div>
 <div class="h2"><em>SEAM</em></div>
 <div class="domain">Sistema di analisi, targettizzazione e marketplace musicale</div>
+<div class="phase-mount" data-phase="2" data-pc="#e85d5d"></div>
 <div class="mstrip">
 <div class="mitem"><div class="mval" style="color:#e85d5d">AI</div><div class="mlabel">Core tech</div><div class="mtrend" style="color:rgba(255,255,255,.28)">Mood·BPM·Genere</div></div>
 <div class="mitem"><div class="mval" style="color:#e85d5d">B2B</div><div class="mlabel">Target primario</div><div class="mtrend" style="color:rgba(255,255,255,.28)">Brand·Label·Creator</div></div>
@@ -898,6 +923,7 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 <div class="tag" style="background:rgba(100,180,255,.1);color:#64b4ff;border:1px solid rgba(100,180,255,.2)"><span style="width:4px;height:4px;border-radius:50%;background:#64b4ff;display:inline-block"></span>Tool · Mappe 3D · €49,99 Lifetime / €3 mese</div>
 <div class="h2">Neural OS — <em>Nebula</em></div>
 <div class="domain">pluriagency.com/nebula · Mappa concettuale 3D interattiva</div>
+<div class="phase-mount" data-phase="4" data-pc="#64b4ff"></div>
 <div class="mstrip">
 <div class="mitem"><div class="mval" style="color:#64b4ff">€49,99</div><div class="mlabel">Costo lifetime</div><div class="mtrend" style="color:#3ecf8e">oppure €3/mese</div></div>
 <div class="mitem"><div class="mval" style="color:#64b4ff">3D</div><div class="mlabel">Visuale nativa</div><div class="mtrend" style="color:rgba(255,255,255,.28)">Nodi ruotabili</div></div>
@@ -1015,6 +1041,7 @@ canvas.bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z
 <div class="lab-badge">📸 Progetto personale · Aperto a collaborazioni · Può crescere</div>
 <div class="h2"><em>Disfatti</em>.it</div>
 <div class="domain">disfatti.it · Brand fotografico · Stampe fine art · Shooting · Abbonamenti · Eventi · Rivista</div>
+<div class="phase-mount" data-phase="2" data-pc="#f07b3f"></div>
 <div class="mstrip">
 <div class="mitem"><div class="mval" style="color:#f07b3f">4+</div><div class="mlabel">Revenue stream</div><div class="mtrend" style="color:rgba(255,255,255,.28)">Shoot·Stampe·Sub·Rivista</div></div>
 <div class="mitem"><div class="mval" style="color:#f07b3f">AI</div><div class="mlabel">Rating automatico</div><div class="mtrend" style="color:#3ecf8e">llava:7b attivo</div></div>
@@ -1352,6 +1379,24 @@ if(ih){ctx.font=`8px "Syne Mono",monospace`;ctx.fillStyle=`rgba(${n.c},.5)`;ctx.
 ctx.textBaseline='alphabetic';requestAnimationFrame(draw);
 }
 rsz();new ResizeObserver(rsz).observe(slide);draw();
+})();
+
+// ── PHASE BAR — costruisce le barre di processo dai placeholder ──
+(function(){
+  const PHASES=['Idea','Sviluppo','Beta','Pronto','Vendita','Scala'];
+  document.querySelectorAll('.phase-mount').forEach(el=>{
+    const cur=+el.dataset.phase, pc=el.dataset.pc||'#d4a843';
+    let steps='';
+    PHASES.forEach((p,i)=>{
+      const n=i+1;
+      const cls='phase-step'+(n<cur?' done':n===cur?' current':'');
+      steps+='<div class="'+cls+'"><span class="phase-line"></span><span class="phase-dot"></span><span class="phase-lbl">'+p+'</span></div>';
+    });
+    el.className='phase-wrap';
+    el.innerHTML='<div class="phase-head"><span class="phase-eyebrow">Processo di sviluppo</span>'
+      +'<span class="phase-now" style="color:'+pc+'">▸ Fase '+cur+'/6 · '+PHASES[cur-1]+'</span></div>'
+      +'<div class="phase" style="--pc:'+pc+'">'+steps+'</div>';
+  });
 })();
 </script>
 

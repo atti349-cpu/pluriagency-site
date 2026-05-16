@@ -223,6 +223,44 @@
     margin-top: 4px;
   }
 
+  /* DOWNLOAD CTA */
+  .hero-download {
+    margin-top: 56px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.8s forwards;
+  }
+  .dl-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 34px;
+    background: var(--amber);
+    color: var(--black);
+    text-decoration: none;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 19px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .dl-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
+  .dl-btn:hover {
+    background: var(--white);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 40px rgba(232,160,32,0.22);
+  }
+  .dl-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 14px;
+  }
+  .dl-meta .dl-dot { color: var(--green-bright); }
+
   /* HEADINGS */
   h2 {
     font-family: 'Barlow Condensed', sans-serif;
@@ -1036,6 +1074,14 @@
         <div class="hero-stat-num">>95%</div>
         <div class="hero-stat-label">Margine lordo stimato</div>
       </div>
+    </div>
+
+    <div class="hero-download">
+      <a class="dl-btn" href="https://github.com/atti349-cpu/pluriagency-site/releases/download/seam-demo/seam-setup.exe">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 3h8.4v8.4H3zM12.6 3H21v8.4h-8.4zM3 12.6h8.4V21H3zM12.6 12.6H21V21h-8.4z"/></svg>
+        Scarica la demo
+      </a>
+      <div class="dl-meta"><span class="dl-dot">●</span> Eseguibile Windows 10 / 11 · ~97 MB · v0.1.0</div>
     </div>
   </div>
 </section>

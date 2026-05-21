@@ -470,7 +470,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .cl-btn-del:hover{background:rgba(255,107,107,.08);border-color:#ff6b6b;}
 
 /* DASHBOARD */
-.db-kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem;margin-bottom:1.5rem;}
+.db-kpi-row{display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:.75rem;margin-bottom:1.5rem;}
 .db-kpi{background:var(--panel);border:1px solid var(--border);padding:1rem 1.25rem;position:relative;overflow:hidden;}
 .db-kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--db-kpi-c,var(--g3));}
 .db-kpi-label{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.2em;color:var(--muted);margin-bottom:.4rem;text-transform:uppercase;}

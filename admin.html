@@ -537,6 +537,23 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .ordine-item-badge { font-family:'Share Tech Mono',monospace; font-size:.48rem; padding:1px 5px; border:1px solid rgba(0,207,255,.4); color:#00cfff; white-space:nowrap; }
 .ordine-foot { padding:1rem 1.25rem; border-top:1px solid var(--border); display:flex; gap:.5rem; justify-content:flex-end; align-items:center; }
 
+/* DEDUZIONI su ordine (A-48b) */
+.ded-section { margin-top:1.25rem; padding-top:.9rem; border-top:1px dashed var(--border); }
+.ded-head { font-family:'Orbitron',monospace; font-size:.62rem; font-weight:700; letter-spacing:.16em; color:#fac850; margin-bottom:.15rem; text-transform:uppercase; }
+.ded-sub { font-family:'Share Tech Mono',monospace; font-size:.55rem; color:var(--muted); margin-bottom:.6rem; letter-spacing:.05em; }
+.ded-row { display:grid; grid-template-columns:1fr auto 100px; align-items:center; gap:.6rem; padding:.3rem .1rem; }
+.ded-label { font-family:'Share Tech Mono',monospace; font-size:.6rem; color:var(--text); letter-spacing:.04em; }
+.ded-input-wrap { display:flex; align-items:center; gap:.25rem; }
+.ded-input-pct, .ded-input-eur { width:60px; padding:.25rem .35rem; font-family:'Orbitron',monospace; font-size:.62rem; font-weight:700; color:#fac850; background:var(--panel); border:1px solid var(--border2); border-radius:3px; text-align:right; -moz-appearance:textfield; }
+.ded-input-eur { width:80px; }
+.ded-input-pct::-webkit-outer-spin-button, .ded-input-pct::-webkit-inner-spin-button, .ded-input-eur::-webkit-outer-spin-button, .ded-input-eur::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+.ded-suffix { font-family:'Share Tech Mono',monospace; font-size:.55rem; color:var(--muted); }
+.ded-amt { font-family:'Orbitron',monospace; font-size:.62rem; color:var(--text); text-align:right; white-space:nowrap; }
+.ded-amt.minus { color:#ff8a8a; }
+.ded-net { display:flex; justify-content:space-between; align-items:center; margin-top:.55rem; padding:.6rem .75rem; background:rgba(45,212,191,.08); border:1px solid rgba(45,212,191,.3); border-radius:3px; font-family:'Share Tech Mono',monospace; font-size:.6rem; letter-spacing:.1em; color:#2dd4bf; }
+.ded-net span:first-child { font-weight:700; letter-spacing:.13em; }
+.ded-net-amt { font-family:'Orbitron',monospace; font-size:.82rem; font-weight:700; letter-spacing:.04em; color:#2dd4bf; }
+
 /* DISTRIBUZIONE TEAM su ordine (A-48) */
 .split-section { margin-top:1.5rem; padding-top:1rem; border-top:1px dashed var(--border); }
 .split-head { font-family:'Orbitron',monospace; font-size:.62rem; font-weight:700; letter-spacing:.16em; color:var(--v); margin-bottom:.15rem; text-transform:uppercase; }
@@ -1900,6 +1917,37 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
       </div>
       <div id="ordine-items-list"></div>
 
+      <!-- DEDUZIONI (A-48b) -->
+      <div class="ded-section">
+        <div class="ded-head">DEDUZIONI</div>
+        <div class="ded-sub">Cosa togliere prima di dividere fra il team</div>
+        <div class="ded-row">
+          <div class="ded-label">Imponibile</div>
+          <div></div>
+          <div class="ded-amt" id="ded-imponibile">0,00 €</div>
+        </div>
+        <div class="ded-row">
+          <div class="ded-label">− Tasse</div>
+          <div class="ded-input-wrap">
+            <input type="number" id="ded-tax-pct" class="ded-input-pct" min="0" max="100" step="0.5" value="26" oninput="dedUpdate()">
+            <span class="ded-suffix">%</span>
+          </div>
+          <div class="ded-amt minus" id="ded-tax-amt">0,00 €</div>
+        </div>
+        <div class="ded-row">
+          <div class="ded-label">− Costi sviluppo</div>
+          <div class="ded-input-wrap">
+            <input type="number" id="ded-dev-cost" class="ded-input-eur" min="0" step="50" value="0" oninput="dedUpdate()">
+            <span class="ded-suffix">€</span>
+          </div>
+          <div class="ded-amt minus" id="ded-dev-amt">0,00 €</div>
+        </div>
+        <div class="ded-net">
+          <span>▸ NETTO DA DISTRIBUIRE</span>
+          <span class="ded-net-amt" id="ded-net-amt">0,00 €</span>
+        </div>
+      </div>
+
       <!-- DISTRIBUZIONE TEAM (A-48) -->
       <div class="split-section">
         <div class="split-head">DISTRIBUZIONE TEAM</div>
@@ -3205,6 +3253,7 @@ async function riaprePv(id){
 let _ordineCurrentPvId = null;
 let _ordineTeamSplit = [];      // [{email, name, pct, external}] — A-48
 let _splitAgentsCache = null;
+let _ordineDeductions = { tax_pct: 26, dev_cost_eur: 0 };  // A-48b
 
 function openOrdineOverlay(pvId){
   const pv = _preventiviMap[pvId];
@@ -3233,6 +3282,7 @@ function openOrdineOverlay(pvId){
       </div>
     </div>`;
   }).join('');
+  dedInit(pv);
   ordineUpdateCount();
   splitInit(pv);
   document.getElementById('ordine-overlay').classList.add('open');
@@ -3252,7 +3302,49 @@ function ordineUpdateCount(){
   const totalItems = document.querySelectorAll('#ordine-items-list input[type=checkbox]').length;
   const el = document.getElementById('ordine-selected-count');
   if(el) el.textContent = `${checked} / ${totalItems} articoli · totale ${runningTotal.toLocaleString('it-IT',{style:'currency',currency:'EUR'})}`;
-  splitUpdateTotals(runningTotal);
+  dedRender(runningTotal);
+  splitUpdateTotals(dedComputeNetto(runningTotal));
+}
+
+// ── DEDUZIONI prima dello split (A-48b) ──
+function dedInit(pv){
+  const cfg = (pv && pv.team_split_config) || {};
+  _ordineDeductions = {
+    tax_pct: typeof cfg.tax_pct === 'number' ? cfg.tax_pct : 26,
+    dev_cost_eur: typeof cfg.dev_cost_eur === 'number' ? cfg.dev_cost_eur : 0
+  };
+  const taxEl = document.getElementById('ded-tax-pct');
+  const devEl = document.getElementById('ded-dev-cost');
+  if(taxEl) taxEl.value = _ordineDeductions.tax_pct;
+  if(devEl) devEl.value = _ordineDeductions.dev_cost_eur;
+}
+
+function dedUpdate(){
+  const taxEl = document.getElementById('ded-tax-pct');
+  const devEl = document.getElementById('ded-dev-cost');
+  _ordineDeductions.tax_pct = Math.max(0, Math.min(100, parseFloat(taxEl?.value)||0));
+  _ordineDeductions.dev_cost_eur = Math.max(0, parseFloat(devEl?.value)||0);
+  ordineUpdateCount();
+}
+
+function dedComputeNetto(imponibile){
+  const imp = imponibile || 0;
+  const tax = imp * (_ordineDeductions.tax_pct||0) / 100;
+  const dev = _ordineDeductions.dev_cost_eur || 0;
+  return Math.max(0, imp - tax - dev);
+}
+
+function dedRender(imponibile){
+  const imp = imponibile || 0;
+  const tax = imp * (_ordineDeductions.tax_pct||0) / 100;
+  const dev = _ordineDeductions.dev_cost_eur || 0;
+  const netto = Math.max(0, imp - tax - dev);
+  const fmt = v => v.toLocaleString('it-IT',{style:'currency',currency:'EUR'});
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  set('ded-imponibile', fmt(imp));
+  set('ded-tax-amt', '−' + fmt(tax));
+  set('ded-dev-amt', '−' + fmt(dev));
+  set('ded-net-amt', fmt(netto));
 }
 
 // ── DISTRIBUZIONE TEAM (A-48) ──
@@ -3411,15 +3503,20 @@ async function confermaOrdine(){
     pct: Math.round((parseFloat(m.pct)||0) * 100) / 100,
     external: !!m.external
   }));
+  const teamSplitConfigToSave = {
+    tax_pct: Math.round((_ordineDeductions.tax_pct||0)*100)/100,
+    dev_cost_eur: Math.round((_ordineDeductions.dev_cost_eur||0)*100)/100
+  };
 
   const btn = document.querySelector('#ordine-overlay .btn-primary');
   if(btn){ btn.disabled = true; btn.textContent = '> salvataggio...'; }
 
-  // 1. Aggiorna preventivo → ordine + salva ordine_items + team_split
+  // 1. Aggiorna preventivo → ordine + salva ordine_items + team_split + config
   const { error } = await _sb.from('preventivi').update({
     status: 'ordine',
     ordine_items: selectedItems,
     team_split: teamSplitToSave,
+    team_split_config: teamSplitConfigToSave,
     updated_at: new Date().toISOString()
   }).eq('id', pvId);
   if(error){ alert('Errore: ' + error.message); if(btn){ btn.disabled=false; btn.textContent='◈ CONFERMA ORDINE'; } return; }
@@ -3429,6 +3526,7 @@ async function confermaOrdine(){
     _preventiviMap[pvId].status='ordine';
     _preventiviMap[pvId].ordine_items=selectedItems;
     _preventiviMap[pvId].team_split=teamSplitToSave;
+    _preventiviMap[pvId].team_split_config=teamSplitConfigToSave;
   }
 
   // 3. Crea progetto con articoli selezionati

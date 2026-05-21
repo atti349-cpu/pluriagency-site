@@ -2947,16 +2947,46 @@ document.getElementById('pv-modal').addEventListener('click', e => {
 
 // ===== MODIFICA PRODOTTI PREVENTIVO (STEP 17) =====
 
-// Copia locale degli items del preventivo in editing
+// Copia locale degli items del preventivo in editing (condivisa con il form "+ Nuovo preventivo")
 let _pvEditItems = [];
 let _pvDragIdx = null;
+
+// Helpers cross-context: il form "+ Nuovo preventivo" e la modifica preventivo
+// condividono _pvEditItems. Solo uno dei due è visibile alla volta.
+function _pvIsCreateOpen(){
+  const f = document.getElementById('form-nuovo-pv');
+  return !!f && f.style.display !== 'none';
+}
+function _pvItemsContainer(){
+  return _pvIsCreateOpen()
+    ? document.getElementById('npv-selected-lines')
+    : document.getElementById('pv-edit-items-list');
+}
+function _pvRerenderItems(){
+  const el = _pvItemsContainer();
+  if(!el) return;
+  el.innerHTML = _pvEditItems.length
+    ? renderPvEditList()
+    : '<div style="font-family:\'Share Tech Mono\',monospace;font-size:.6rem;color:var(--muted);padding:.4rem 0">> nessun servizio selezionato</div>';
+  if(_pvIsCreateOpen()){
+    if(!el._npvBound){
+      el.addEventListener('input', () => npvRecalc());
+      el._npvBound = true;
+    }
+    npvRecalc();
+    npvRenderServiceList(document.getElementById('npv-svc-search')?.value || '');
+  }
+}
+function _pvHasItem(id){ return _pvEditItems.some(i => i.id === id); }
 
 function pvDragStart(idx){ _pvDragIdx = idx; }
 function pvDragOver(e, idx){
   e.preventDefault();
   if(_pvDragIdx === null || _pvDragIdx === idx) return;
-  document.querySelectorAll('#pv-edit-items-list .pv-edit-item-row').forEach(r => r.classList.remove('drag-over'));
-  const el = document.querySelector(`#pv-edit-items-list .pv-edit-item-row[data-idx="${idx}"]`);
+  const container = _pvItemsContainer();
+  if(!container) return;
+  container.querySelectorAll('.pv-edit-item-row').forEach(r => r.classList.remove('drag-over'));
+  const el = container.querySelector(`.pv-edit-item-row[data-idx="${idx}"]`);
   if(el) el.classList.add('drag-over');
 }
 function pvDragLeave(el){ el.classList.remove('drag-over'); }
@@ -2965,13 +2995,13 @@ function pvDrop(targetIdx){
   const item = _pvEditItems.splice(_pvDragIdx, 1)[0];
   _pvEditItems.splice(targetIdx, 0, item);
   _pvDirty = true;
-  const el = document.getElementById('pv-edit-items-list');
-  if(el) el.innerHTML = renderPvEditList();
+  _pvRerenderItems();
   pvDragEnd();
 }
 function pvDragEnd(){
   _pvDragIdx = null;
-  document.querySelectorAll('#pv-edit-items-list .pv-edit-item-row').forEach(r => r.classList.remove('drag-over'));
+  const container = _pvItemsContainer();
+  if(container) container.querySelectorAll('.pv-edit-item-row').forEach(r => r.classList.remove('drag-over'));
 }
 
 function buildPvEditItems(pv){
@@ -3076,8 +3106,7 @@ function pvUpdateItemNote(idx, val){
 function pvRemoveItem(idx){
   _pvDirty = true;
   _pvEditItems.splice(idx,1);
-  const el = document.getElementById('pv-edit-items-list');
-  if(el) el.innerHTML = renderPvEditList();
+  _pvRerenderItems();
 }
 
 function pvRenderCatalog(query){
@@ -3563,7 +3592,7 @@ const NPV_CATS_FALLBACK = [
 ];
 let NPV_CATS = NPV_CATS_FALLBACK;
 let NPV_ALL = NPV_CATS.flatMap(c => c.items.map(i => ({...i, cat: c.label})));
-const _npvSelected = {}; // id → {item, qty, price}
+// _npvSelected rimosso — il form "+ Nuovo preventivo" usa ora _pvEditItems (refactor A-53)
 
 // carica catalogo da Supabase e aggiorna NPV_CATS + NPV_ALL
 async function loadServiceCatalog(){
@@ -3902,8 +3931,8 @@ function npvReset(){
   });
   const disc = document.getElementById('npv-discount'); if(disc) disc.value = '0';
   const iva = document.getElementById('npv-iva'); if(iva) iva.checked = false;
-  Object.keys(_npvSelected).forEach(k => delete _npvSelected[k]);
-  npvRecalc(); npvRenderSelectedLines();
+  _pvEditItems = [];
+  npvRenderSelectedLines();
   const msg = document.getElementById('npv-msg'); if(msg) msg.textContent = '';
 }
 
@@ -3927,31 +3956,17 @@ function npvFilterServices(){
 }
 
 function npvItemRow(item){
-  const sel = _npvSelected[item.id];
+  const isSel = _pvHasItem(item.id);
   const suffix = item.monthly ? '/mese' : item.yearly ? '/anno' : '';
-  const price = sel ? sel.price : item.price;
   const editBtn = _isAdmin ? `<button onclick="event.stopPropagation();catEditItem('${item.id}')" title="Modifica prodotto" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:.65rem;padding:0 3px;flex-shrink:0;opacity:.5;transition:opacity .15s" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=.5">✎</button>` : '';
   const recBadge = item.monthly ? `<span style="font-size:.45rem;border:1px solid rgba(0,207,255,.4);color:#00cfff;padding:1px 3px;flex-shrink:0">MENS</span>`
                  : item.yearly  ? `<span style="font-size:.45rem;border:1px solid rgba(155,92,255,.4);color:var(--v2);padding:1px 3px;flex-shrink:0">ANN</span>` : '';
-  return `<div id="npv-item-${item.id}" style="display:flex;align-items:center;gap:.6rem;padding:.4rem .5rem;cursor:pointer;border-bottom:1px solid var(--border);background:${sel ? 'var(--v-dim)' : 'transparent'}" onclick="npvToggleItem('${item.id}')">
-    <div style="width:12px;height:12px;border:1px solid ${sel ? 'var(--v)' : 'var(--muted)'};background:${sel ? 'var(--v)' : 'transparent'};flex-shrink:0"></div>
-    <div style="flex:1;font-family:'Share Tech Mono',monospace;font-size:.6rem;color:${sel ? 'var(--v)' : 'var(--text)'}">${item.name}</div>
+  return `<div id="npv-item-${item.id}" style="display:flex;align-items:center;gap:.6rem;padding:.4rem .5rem;cursor:pointer;border-bottom:1px solid var(--border);background:${isSel ? 'var(--v-dim)' : 'transparent'}" onclick="npvToggleItem('${item.id}')">
+    <div style="width:12px;height:12px;border:1px solid ${isSel ? 'var(--v)' : 'var(--muted)'};background:${isSel ? 'var(--v)' : 'transparent'};flex-shrink:0"></div>
+    <div style="flex:1;font-family:'Share Tech Mono',monospace;font-size:.6rem;color:${isSel ? 'var(--v)' : 'var(--text)'}">${item.name}</div>
     ${recBadge}
     ${editBtn}
-    ${sel ? `<div style="display:flex;align-items:center;gap:.3rem;flex-wrap:wrap">
-      <button onclick="npvQty('${item.id}',-1,event)" style="width:18px;height:18px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:10px">-</button>
-      <span style="font-family:'Share Tech Mono',monospace;font-size:.6rem;min-width:16px;text-align:center">${sel.qty}</span>
-      <button onclick="npvQty('${item.id}',1,event)" style="width:18px;height:18px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:10px">+</button>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
-        <input type="number" value="${price}" min="${item.price}" style="width:64px;background:var(--panel2);border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.6rem;padding:2px 4px;text-align:right" onclick="event.stopPropagation()" onchange="npvSetPrice('${item.id}',this.value)">
-        <span style="font-family:'Share Tech Mono',monospace;font-size:.48rem;color:var(--muted)">cons. ${item.price}€${suffix}${item.price_max && item.price_max > item.price ? ` – <span style="color:var(--g1);opacity:.7">${item.price_max}€</span>` : ''}</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:2px" onclick="event.stopPropagation()">
-        <span style="font-family:'Share Tech Mono',monospace;font-size:.48rem;color:var(--muted)">-</span>
-        <input type="number" min="0" max="100" value="${sel.discount_pct||0}" style="width:38px;background:var(--panel2);border:1px solid var(--border);color:${(sel.discount_pct||0)>0?'var(--g1)':'var(--muted)'};font-family:'Share Tech Mono',monospace;font-size:.55rem;padding:2px 3px;text-align:right" onclick="event.stopPropagation()" oninput="npvSetDiscount('${item.id}',this.value)" onchange="npvSetDiscount('${item.id}',this.value)" title="Sconto %">
-        <span style="font-family:'Share Tech Mono',monospace;font-size:.48rem;color:var(--muted)">%</span>
-      </div>
-    </div>` : `<span style="font-family:'Share Tech Mono',monospace;font-size:.6rem"><span style="color:var(--muted)">${item.price}€${suffix}</span>${item.price_max && item.price_max > item.price ? `<span style="color:var(--g1);opacity:.55;font-size:.52rem"> – ${item.price_max}€</span>` : ''}</span>`}
+    <span style="font-family:'Share Tech Mono',monospace;font-size:.6rem"><span style="color:var(--muted)">${item.price}€${suffix}</span>${item.price_max && item.price_max > item.price ? `<span style="color:var(--g1);opacity:.55;font-size:.52rem"> – ${item.price_max}€</span>` : ''}</span>
   </div>`;
 }
 
@@ -3976,7 +3991,7 @@ function npvRenderServiceList(query){
   container.innerHTML = NPV_CATS.map(cat => {
     const isRic = cat.id === 'ricorrenti';
     const rows = cat.items.map(i => npvItemRow({...i, cat: cat.label})).join('');
-    const selCount = cat.items.filter(i => _npvSelected[i.id]).length;
+    const selCount = cat.items.filter(i => _pvHasItem(i.id)).length;
     const headerStyle = isRic
       ? `font-family:'Share Tech Mono',monospace;font-size:.52rem;letter-spacing:.18em;color:#ffaa00;padding:.4rem .5rem .3rem;background:rgba(255,170,0,0.07);border-bottom:1px solid rgba(255,170,0,0.25);border-top:1px solid rgba(255,170,0,0.15);text-transform:uppercase;position:sticky;top:0;z-index:1`
       : `font-family:'Share Tech Mono',monospace;font-size:.52rem;letter-spacing:.18em;color:var(--g3);padding:.4rem .5rem .3rem;background:var(--panel2);border-bottom:1px solid var(--border);text-transform:uppercase;position:sticky;top:0;z-index:1`;
@@ -3991,37 +4006,32 @@ function npvRenderServiceList(query){
 function npvToggleItem(id){
   const item = NPV_ALL.find(i => i.id === id);
   if(!item) return;
-  if(_npvSelected[id]) delete _npvSelected[id];
-  else _npvSelected[id] = {item, qty: 1, price: item.price, discount_pct: 0};
-  npvRecalc(); npvRenderSelectedLines(); npvRenderServiceList(document.getElementById('npv-svc-search')?.value || '');
+  const idx = _pvEditItems.findIndex(i => i.id === id);
+  if(idx >= 0){
+    _pvEditItems.splice(idx, 1);
+  } else {
+    _pvEditItems.push({
+      id: item.id, name: item.name, qty: 1,
+      unit_price: item.price, total: item.price, discount_pct: 0,
+      monthly: !!item.monthly, yearly: !!item.yearly,
+      note: '', description: ''
+    });
+  }
+  _pvRerenderItems();
 }
 
-function npvQty(id, dir, e){
-  e.stopPropagation();
-  if(!_npvSelected[id]) return;
-  _npvSelected[id].qty = Math.max(1, _npvSelected[id].qty + dir);
-  npvRecalc(); npvRenderSelectedLines(); npvRenderServiceList(document.getElementById('npv-svc-search')?.value || '');
-}
-
-function npvSetPrice(id, val){
-  if(!_npvSelected[id]) return;
-  const raw = parseFloat(val);
-  _npvSelected[id].price = isNaN(raw) ? _npvSelected[id].item.price : Math.max(_npvSelected[id].item.price, raw);
-  npvRecalc(); npvRenderSelectedLines();
-}
-
-function npvSetDiscount(id, val){
-  if(!_npvSelected[id]) return;
-  _npvSelected[id].discount_pct = Math.min(100, Math.max(0, parseFloat(val) || 0));
-  npvRecalc(); npvRenderSelectedLines();
-}
+// npvQty / npvSetPrice / npvSetDiscount rimosse: gli aggiustamenti avvengono
+// direttamente nelle righe ricche tramite pvUpdateItemQty/Price/Discount.
 
 function npvRecalc(){
   let sub = 0, globalBase = 0;
-  Object.values(_npvSelected).forEach(s => {
-    const lineTotal = Math.round(s.price * s.qty * (1 - (s.discount_pct||0)/100));
+  _pvEditItems.forEach(s => {
+    const price = s.unit_price || 0;
+    const qty = s.qty || 1;
+    const dpct = s.discount_pct || 0;
+    const lineTotal = Math.round(price * qty * (1 - dpct/100));
     sub += lineTotal;
-    if(!(s.discount_pct>0)) globalBase += lineTotal;
+    if(!(dpct>0)) globalBase += lineTotal;
   });
   const disc = Math.min(25, Math.max(0, parseFloat(document.getElementById('npv-discount')?.value)||0));
   const ivaActive = document.getElementById('npv-iva')?.checked || false;
@@ -4039,17 +4049,8 @@ function npvRecalc(){
 }
 
 function npvRenderSelectedLines(){
-  const el = document.getElementById('npv-selected-lines');
-  if(!el) return;
-  const entries = Object.values(_npvSelected);
-  if(!entries.length){ el.innerHTML = '> nessun servizio selezionato'; return; }
-  el.innerHTML = entries.map(s => {
-    const suffix = s.item.monthly ? '/mese' : s.item.yearly ? '/anno' : '';
-    return `<div style="display:flex;justify-content:space-between;padding:.2rem 0;border-bottom:1px solid var(--border)">
-      <span style="color:var(--text)">${s.item.name}${s.qty>1 ? ' x'+s.qty : ''}</span>
-      <span style="color:var(--v)">\u20AC${(s.price*s.qty).toLocaleString('it-IT')}${suffix}</span>
-    </div>`;
-  }).join('');
+  // Ora delega al render condiviso: stessa UI delle righe ricche della modifica.
+  _pvRerenderItems();
 }
 
 async function saveNuovoPv(status){
@@ -4065,15 +4066,21 @@ async function saveNuovoPv(status){
 
   if(!clientName){ if(msgEl) msgEl.textContent = '⚠ Nome cliente obbligatorio'; return; }
   if(!agentName){ if(msgEl) msgEl.textContent = '⚠ Seleziona agente'; return; }
-  if(!Object.keys(_npvSelected).length){ if(msgEl) msgEl.textContent = '⚠ Aggiungi almeno un servizio'; return; }
+  if(!_pvEditItems.length){ if(msgEl) msgEl.textContent = '⚠ Aggiungi almeno un servizio'; return; }
 
   let sub = 0;
-  const items = [];
-  Object.values(_npvSelected).forEach(({item, qty, price, discount_pct}) => {
-    const disc = discount_pct || 0;
-    const lineTotal = Math.round(price * qty * (1 - disc/100));
+  const items = _pvEditItems.map(s => {
+    const dpct = s.discount_pct || 0;
+    const qty = s.qty || 1;
+    const price = s.unit_price || 0;
+    const lineTotal = Math.round(price * qty * (1 - dpct/100));
     sub += lineTotal;
-    items.push({id: item.id, name: item.name, qty, unit_price: price, discount_pct: disc, total: lineTotal, monthly: !!item.monthly, yearly: !!item.yearly});
+    return {
+      id: s.id, name: s.name, qty,
+      unit_price: price, discount_pct: dpct, total: lineTotal,
+      monthly: !!s.monthly, yearly: !!s.yearly,
+      note: s.note || '', description: s.description || ''
+    };
   });
   // sconto globale solo su articoli senza sconto individuale
   const globalEligible = items.filter(it=>!(it.discount_pct>0)).reduce((s,it)=>s+(it.total||0),0);

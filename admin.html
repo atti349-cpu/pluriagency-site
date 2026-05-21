@@ -2805,6 +2805,15 @@ function buildPreventivoRow(pv){
 }
 
 function openPvModal(id){
+  // Refactor A-53 guard: stato condiviso _pvEditItems fra create-form e modify-modal.
+  // Se il form di creazione è aperto con articoli selezionati, aprire un modal
+  // li sovrascriverebbe — chiedi conferma e chiudi il form prima di procedere.
+  if(_pvIsCreateOpen() && _pvEditItems.length > 0){
+    if(!confirm('Hai un preventivo in creazione con articoli selezionati. Aprire questo preventivo scarterà la bozza in corso. Continuare?')){
+      return;
+    }
+    toggleNewPvForm(); // chiude il form di creazione
+  }
   _pvDirty = false;
   const pv = _preventiviMap[id];
   if(!pv) return;
@@ -3306,6 +3315,9 @@ function openOrdineOverlay(pvId){
   const pv = _preventiviMap[pvId];
   if(!pv || !pv.items?.length){ alert('Preventivo senza articoli.'); return; }
   _ordineCurrentPvId = pvId;
+  // Reset sincrono dello stato split — evita flash con dati della sessione precedente
+  // prima che splitInit (async) rimpiazzi con i valori del preventivo corrente
+  _ordineTeamSplit = [];
   const list = document.getElementById('ordine-items-list');
   list.innerHTML = (pv.items||[]).map((it,i) => {
     const isRecurring = it.monthly || it.yearly;

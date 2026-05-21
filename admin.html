@@ -306,6 +306,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .pv-drag-handle:hover{opacity:1;color:var(--g1);}
 .pv-drag-handle:active{cursor:grabbing;}
 .pv-edit-item-row.drag-over{border-top:2px solid var(--g1);background:rgba(0,255,136,.06);}
+.pv-note-input{width:100%;box-sizing:border-box;font-family:'Share Tech Mono',monospace;font-size:.56rem;background:transparent;border:none;border-bottom:1px solid transparent;color:var(--muted);padding:3px 0;outline:none;letter-spacing:.03em;opacity:0;transition:opacity .18s,border-color .18s,color .18s;}
+.pv-note-input::placeholder{color:transparent;transition:color .18s;}
+.pv-note-input:not(:placeholder-shown){opacity:1;border-bottom-color:var(--border);color:var(--text);}
+.pv-edit-item-row:hover .pv-note-input,.pv-edit-item-row:focus-within .pv-note-input{opacity:1;border-bottom-color:var(--border);}
+.pv-edit-item-row:hover .pv-note-input::placeholder,.pv-note-input:focus::placeholder{color:var(--muted);opacity:.6;}
+.pv-note-input:focus{border-bottom-color:var(--g1)!important;color:var(--text);}
 .pv-add-product-row{display:flex;gap:.4rem;margin-top:.75rem;flex-wrap:wrap;align-items:flex-end;}
 .pv-prod-search{flex:1;min-width:160px;background:var(--panel2);border:1px solid var(--border);
   color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:.45rem .7rem;outline:none;}
@@ -2862,10 +2868,10 @@ function openPvModal(id){
       ` : ''}
     </div>
 
-    <table class="pv-items-table" style="margin-top:1.1rem">
+    ${!canEdit ? `<table class="pv-items-table" style="margin-top:1.1rem">
       <thead><tr><th>Servizio</th><th>Q.tà</th><th>Prezzo unit.</th><th>Totale</th></tr></thead>
       <tbody>${itemRows}</tbody>
-    </table>
+    </table>` : ''}
 
     <div class="pv-total-row">
       ${(itemDiscSavings > 0 || pv.discount_pct > 0) ? `
@@ -3022,10 +3028,7 @@ function renderPvEditList(){
       <span style="font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--v);text-align:right;white-space:nowrap">${lineNet.toLocaleString('it-IT')} €</span>
       <button class="pv-edit-item-rm" onclick="pvRemoveItem(${i})">✕</button>
       <div style="grid-column:1/-1;margin-top:.1rem;padding:0 2px" onclick="event.stopPropagation()">
-        <input type="text" placeholder="✎ aggiungi dettaglio al pacchetto..." value="${escHtml(it.note||'')}"
-          style="width:100%;box-sizing:border-box;font-family:'Share Tech Mono',monospace;font-size:.56rem;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--muted);padding:3px 0;outline:none;letter-spacing:.03em;transition:border-color .15s,color .15s"
-          onfocus="this.style.borderBottomColor='var(--g1)';this.style.color='var(--text)'"
-          onblur="this.style.borderBottomColor='var(--border)';this.style.color=this.value?'var(--text)':'var(--muted)'"
+        <input type="text" class="pv-note-input" placeholder="✎ aggiungi dettaglio al pacchetto..." value="${escHtml(it.note||'')}"
           oninput="pvUpdateItemNote(${i},this.value)"
           onchange="pvUpdateItemNote(${i},this.value)">
       </div>

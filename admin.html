@@ -3363,19 +3363,41 @@ async function confermaOrdine(){
   });
   if(!selectedItems.length){ alert('Seleziona almeno un articolo.'); return; }
 
+  // ── A-48: validazione distribuzione team ──
+  if(_ordineTeamSplit.length === 0){
+    alert('Distribuzione team: aggiungi almeno un membro prima di confermare.');
+    return;
+  }
+  const sumPct = _ordineTeamSplit.reduce((s,m) => s + (parseFloat(m.pct)||0), 0);
+  if(Math.abs(sumPct - 100) > 0.01){
+    alert(`Distribuzione team: la somma delle quote deve fare 100% (ora è ${Math.round(sumPct*10)/10}%).`);
+    return;
+  }
+  const teamSplitToSave = _ordineTeamSplit.map(m => ({
+    email: (m.email||'').trim().toLowerCase(),
+    name: (m.name||'').trim(),
+    pct: Math.round((parseFloat(m.pct)||0) * 100) / 100,
+    external: !!m.external
+  }));
+
   const btn = document.querySelector('#ordine-overlay .btn-primary');
   if(btn){ btn.disabled = true; btn.textContent = '> salvataggio...'; }
 
-  // 1. Aggiorna preventivo → ordine + salva ordine_items
+  // 1. Aggiorna preventivo → ordine + salva ordine_items + team_split
   const { error } = await _sb.from('preventivi').update({
     status: 'ordine',
     ordine_items: selectedItems,
+    team_split: teamSplitToSave,
     updated_at: new Date().toISOString()
   }).eq('id', pvId);
   if(error){ alert('Errore: ' + error.message); if(btn){ btn.disabled=false; btn.textContent='◈ CONFERMA ORDINE'; } return; }
 
   // 2. Aggiorna in-memory
-  if(_preventiviMap[pvId]){ _preventiviMap[pvId].status='ordine'; _preventiviMap[pvId].ordine_items=selectedItems; }
+  if(_preventiviMap[pvId]){
+    _preventiviMap[pvId].status='ordine';
+    _preventiviMap[pvId].ordine_items=selectedItems;
+    _preventiviMap[pvId].team_split=teamSplitToSave;
+  }
 
   // 3. Crea progetto con articoli selezionati
   await creaProgettoFromPreventivo(pvId, selectedItems);

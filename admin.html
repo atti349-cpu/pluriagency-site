@@ -306,6 +306,19 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .pv-drag-handle:hover{opacity:1;color:var(--g1);}
 .pv-drag-handle:active{cursor:grabbing;}
 .pv-edit-item-row.drag-over{border-top:2px solid var(--g1);background:rgba(0,255,136,.06);}
+/* QUOTE TEAM nel modal preventivo (A-48 step 4) */
+.pv-team-split-box { margin-top:1.1rem; padding:.95rem 1.1rem; background:var(--panel2); border:1px solid var(--border); border-radius:4px; }
+.pv-split-breakdown { display:flex; flex-direction:column; gap:.3rem; margin-bottom:.85rem; padding-bottom:.7rem; border-bottom:1px dashed var(--border); }
+.pv-split-bd-row { display:flex; justify-content:space-between; align-items:center; font-family:'Share Tech Mono',monospace; font-size:.62rem; color:var(--text); letter-spacing:.05em; }
+.pv-split-bd-row span:last-child { font-family:'Orbitron',monospace; font-weight:600; }
+.pv-split-bd-row.minus { color:#ff8a8a; }
+.pv-split-bd-row.net { color:#2dd4bf; font-weight:700; padding-top:.45rem; border-top:1px solid var(--border); margin-top:.3rem; letter-spacing:.1em; font-size:.66rem; }
+.pv-split-members { display:flex; flex-direction:column; gap:.4rem; }
+.pv-split-mem-row { display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:.8rem; padding:.5rem .7rem; background:var(--panel); border:1px solid var(--border); border-radius:3px; }
+.pv-split-mem-name { font-family:'Share Tech Mono',monospace; font-size:.62rem; color:var(--text); overflow:hidden; min-width:0; }
+.pv-split-mem-name small { display:block; font-size:.52rem; color:var(--muted); letter-spacing:.06em; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pv-split-mem-pct { font-family:'Orbitron',monospace; font-size:.72rem; font-weight:700; color:var(--v); }
+.pv-split-mem-eur { font-family:'Orbitron',monospace; font-size:.72rem; font-weight:700; color:#2dd4bf; min-width:88px; text-align:right; }
 .pv-note-input{width:100%;box-sizing:border-box;font-family:'Share Tech Mono',monospace;font-size:.56rem;background:transparent;border:none;border-bottom:1px solid transparent;color:var(--muted);padding:3px 0;outline:none;letter-spacing:.03em;opacity:0;transition:opacity .18s,border-color .18s,color .18s;}
 .pv-note-input::placeholder{color:transparent;transition:color .18s;}
 .pv-note-input:not(:placeholder-shown){opacity:1;border-bottom-color:var(--border);color:var(--text);}
@@ -2813,6 +2826,40 @@ function openPvModal(id){
   const isOrdine  = pv.status === 'ordine';
   const canEdit   = !isLocked && !isOrdine;
 
+  // ── Quote team (A-48 step 4) ──
+  const splitArr = Array.isArray(pv.team_split) ? pv.team_split : [];
+  const splitCfg = pv.team_split_config || {};
+  let splitSection = '';
+  if(splitArr.length > 0){
+    const baseItems = (Array.isArray(pv.ordine_items) && pv.ordine_items.length) ? pv.ordine_items : (pv.items||[]);
+    const splitImp = baseItems.reduce((s,it) => s + (it.unit_price||0) * (it.qty||1), 0);
+    const taxPct = parseFloat(splitCfg.tax_pct)||0;
+    const devCost = parseFloat(splitCfg.dev_cost_eur)||0;
+    const taxAmt = splitImp * taxPct / 100;
+    const netto = Math.max(0, splitImp - taxAmt - devCost);
+    const fmt = v => v.toLocaleString('it-IT', {style:'currency', currency:'EUR'});
+    splitSection = `
+      <div class="pv-team-split-box">
+        <div class="pv-info-key" style="margin-bottom:.6rem">QUOTE TEAM ${isOrdine ? '· ORDINE' : ''}</div>
+        <div class="pv-split-breakdown">
+          <div class="pv-split-bd-row"><span>Imponibile ordine</span><span>${fmt(splitImp)}</span></div>
+          ${taxPct ? `<div class="pv-split-bd-row minus"><span>− Tasse (${taxPct}%)</span><span>−${fmt(taxAmt)}</span></div>` : ''}
+          ${devCost ? `<div class="pv-split-bd-row minus"><span>− Costi sviluppo</span><span>−${fmt(devCost)}</span></div>` : ''}
+          <div class="pv-split-bd-row net"><span>NETTO DISTRIBUITO</span><span>${fmt(netto)}</span></div>
+        </div>
+        <div class="pv-split-members">
+          ${splitArr.map(m => {
+            const eur = netto * (parseFloat(m.pct)||0) / 100;
+            return `<div class="pv-split-mem-row">
+              <div class="pv-split-mem-name">${escHtml(m.name||'')}<small>${escHtml(m.email||'')}${m.external?' · esterno':''}</small></div>
+              <div class="pv-split-mem-pct">${m.pct}%</div>
+              <div class="pv-split-mem-eur">${fmt(eur)}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }
+
   // item rows — ordine items highlighted if status=ordine
   const ordineIds = new Set((pv.ordine_items||[]).map(i=>i.id));
   const itemRows  = (pv.items||[]).map(it => {
@@ -2939,6 +2986,8 @@ function openPvModal(id){
         <div><div class="pv-total-label">TOTALE</div><div class="pv-total-val">${total}</div></div>
       `}
     </div>
+
+    ${splitSection}
 
     ${pv.notes ? `<div class="pv-info-key" style="margin-bottom:.4rem;margin-top:1rem">Note preventivo</div><div class="pv-notes-box">${pv.notes.replace(/</g,'&lt;')}</div>` : ''}
 

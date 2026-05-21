@@ -531,6 +531,31 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 .ordine-item-badge { font-family:'Share Tech Mono',monospace; font-size:.48rem; padding:1px 5px; border:1px solid rgba(0,207,255,.4); color:#00cfff; white-space:nowrap; }
 .ordine-foot { padding:1rem 1.25rem; border-top:1px solid var(--border); display:flex; gap:.5rem; justify-content:flex-end; align-items:center; }
 
+/* DISTRIBUZIONE TEAM su ordine (A-48) */
+.split-section { margin-top:1.5rem; padding-top:1rem; border-top:1px dashed var(--border); }
+.split-head { font-family:'Orbitron',monospace; font-size:.62rem; font-weight:700; letter-spacing:.16em; color:var(--v); margin-bottom:.15rem; text-transform:uppercase; }
+.split-sub { font-family:'Share Tech Mono',monospace; font-size:.55rem; color:var(--muted); margin-bottom:.75rem; letter-spacing:.05em; }
+.split-rows { display:flex; flex-direction:column; gap:.4rem; margin-bottom:.6rem; }
+.split-rows:empty::before { content:'> nessun membro assegnato. Aggiungi almeno un agente.'; display:block; font-family:'Share Tech Mono',monospace; font-size:.55rem; color:var(--muted); opacity:.5; padding:.5rem 0; }
+.split-row { display:grid; grid-template-columns:1fr 64px auto 24px; align-items:center; gap:.55rem; padding:.45rem .6rem; background:var(--panel2); border:1px solid var(--border); border-radius:4px; }
+.split-row-name { font-family:'Share Tech Mono',monospace; font-size:.6rem; color:var(--text); overflow:hidden; min-width:0; }
+.split-row-name small { display:block; font-size:.5rem; color:var(--muted); letter-spacing:.06em; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.split-row-pct { padding:.25rem .35rem; font-family:'Orbitron',monospace; font-size:.65rem; font-weight:700; color:var(--v); background:var(--panel); border:1px solid var(--border2); border-radius:3px; text-align:right; -moz-appearance:textfield; }
+.split-row-pct::-webkit-outer-spin-button, .split-row-pct::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+.split-row-eur { font-family:'Share Tech Mono',monospace; font-size:.55rem; color:var(--muted); white-space:nowrap; min-width:74px; text-align:right; }
+.split-row-del { width:22px; height:22px; border:none; background:transparent; color:var(--muted); cursor:pointer; font-size:.8rem; line-height:1; padding:0; transition:color .15s; }
+.split-row-del:hover { color:#ff5d6c; }
+.split-actions { display:flex; gap:.5rem; margin-bottom:.6rem; flex-wrap:wrap; }
+.split-add-sel, .split-add-btn { font-family:'Share Tech Mono',monospace; font-size:.55rem; letter-spacing:.12em; padding:.4rem .7rem; background:transparent; color:var(--muted); border:1px dashed var(--border2); border-radius:3px; cursor:pointer; transition:color .15s, border-color .15s; text-transform:uppercase; }
+.split-add-sel:hover, .split-add-btn:hover { color:var(--v); border-color:var(--v); }
+.split-add-sel:disabled { opacity:.35; cursor:not-allowed; }
+.split-external-form { display:flex; gap:.4rem; margin-bottom:.6rem; padding:.55rem; background:var(--panel2); border:1px solid var(--border); border-radius:4px; flex-wrap:wrap; }
+.split-ext-input { flex:1; min-width:120px; font-family:'Share Tech Mono',monospace; font-size:.6rem; padding:.35rem .5rem; background:var(--panel); color:var(--text); border:1px solid var(--border2); border-radius:3px; }
+.split-ext-input:focus { outline:none; border-color:var(--v); }
+.split-total { font-family:'Share Tech Mono',monospace; font-size:.62rem; letter-spacing:.1em; padding:.55rem .7rem; border-radius:3px; text-align:center; transition:all .2s; background:rgba(232,160,32,.08); color:#e8a020; border:1px solid rgba(232,160,32,.3); }
+.split-total.ok { background:rgba(45,212,191,.1); color:#2dd4bf; border-color:rgba(45,212,191,.4); }
+.split-total.empty { background:transparent; color:var(--muted); border:1px dashed var(--border); }
+
 /* ══════════════════════════════════════
    EDITOR SECTION
    ══════════════════════════════════════ */
@@ -1868,6 +1893,25 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
         Gli articoli <span style="color:#00cfff">mensili/annuali</span> genereranno automaticamente un canone ricorrente.
       </div>
       <div id="ordine-items-list"></div>
+
+      <!-- DISTRIBUZIONE TEAM (A-48) -->
+      <div class="split-section">
+        <div class="split-head">DISTRIBUZIONE TEAM</div>
+        <div class="split-sub">Chi prende quanto su questo ordine — la somma deve fare 100%</div>
+        <div id="ordine-split-rows" class="split-rows"></div>
+        <div class="split-actions">
+          <select id="ordine-split-add-sel" class="split-add-sel" onchange="splitAddAgent(this)">
+            <option value="">+ agente del team</option>
+          </select>
+          <button type="button" class="split-add-btn" onclick="splitToggleExternalForm()">+ email esterna</button>
+        </div>
+        <div id="ordine-split-external-form" class="split-external-form" style="display:none">
+          <input id="ordine-split-ext-name" type="text" placeholder="Nome" class="split-ext-input">
+          <input id="ordine-split-ext-email" type="email" placeholder="email@…" class="split-ext-input">
+          <button type="button" class="split-add-btn" onclick="splitAddExternal()">Aggiungi</button>
+        </div>
+        <div class="split-total empty" id="ordine-split-total">Totale assegnato: <span id="ordine-split-total-pct">0%</span> / 100%</div>
+      </div>
     </div>
     <div class="ordine-foot">
       <div id="ordine-selected-count" style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted);margin-right:auto"></div>
@@ -3127,6 +3171,8 @@ async function riaprePv(id){
 
 // ── ORDINE OVERLAY ──
 let _ordineCurrentPvId = null;
+let _ordineTeamSplit = [];      // [{email, name, pct, external}] — A-48
+let _splitAgentsCache = null;
 
 function openOrdineOverlay(pvId){
   const pv = _preventiviMap[pvId];
@@ -3156,6 +3202,7 @@ function openOrdineOverlay(pvId){
     </div>`;
   }).join('');
   ordineUpdateCount();
+  splitInit(pv);
   document.getElementById('ordine-overlay').classList.add('open');
 }
 
@@ -3173,6 +3220,132 @@ function ordineUpdateCount(){
   const totalItems = document.querySelectorAll('#ordine-items-list input[type=checkbox]').length;
   const el = document.getElementById('ordine-selected-count');
   if(el) el.textContent = `${checked} / ${totalItems} articoli · totale ${runningTotal.toLocaleString('it-IT',{style:'currency',currency:'EUR'})}`;
+  splitUpdateTotals(runningTotal);
+}
+
+// ── DISTRIBUZIONE TEAM (A-48) ──
+async function splitLoadAgentsCache(){
+  if(_splitAgentsCache) return _splitAgentsCache;
+  if(!_sb){ _splitAgentsCache = []; return []; }
+  const { data } = await _sb.from('agenti').select('name,email').eq('active',true).order('name');
+  _splitAgentsCache = (data||[]).filter(a => a.email);
+  return _splitAgentsCache;
+}
+
+async function splitInit(pv){
+  // Pre-popola: se preventivo già con team_split usa quello, altrimenti 100% all'agente creatore
+  if(Array.isArray(pv.team_split) && pv.team_split.length){
+    _ordineTeamSplit = pv.team_split.map(m => ({...m}));
+  } else {
+    const creator = pv.agent_email;
+    let name = creator || 'Agente';
+    const cache = await splitLoadAgentsCache();
+    const found = cache.find(a => a.email === creator);
+    if(found) name = found.name;
+    _ordineTeamSplit = creator ? [{ email: creator, name, pct: 100, external: false }] : [];
+  }
+  await splitLoadAgentsCache();
+  splitRender();
+  const ef = document.getElementById('ordine-split-external-form');
+  if(ef) ef.style.display = 'none';
+  const eN = document.getElementById('ordine-split-ext-name');
+  const eE = document.getElementById('ordine-split-ext-email');
+  if(eN) eN.value = '';
+  if(eE) eE.value = '';
+}
+
+function splitRender(){
+  const rows = document.getElementById('ordine-split-rows');
+  if(!rows) return;
+  rows.innerHTML = _ordineTeamSplit.map((m,i) => {
+    const safeName = escHtml(m.name||'');
+    const safeEmail = escHtml(m.email||'');
+    const extTag = m.external ? ' · <em style="color:#e8a020;font-style:normal">esterno</em>' : '';
+    return `<div class="split-row">
+      <div class="split-row-name">${safeName}<small>${safeEmail}${extTag}</small></div>
+      <input type="number" class="split-row-pct" min="0" max="100" step="0.5" value="${m.pct}" oninput="splitUpdatePct(${i}, this.value)">
+      <div class="split-row-eur" id="split-eur-${i}">0,00 €</div>
+      <button type="button" class="split-row-del" onclick="splitRemove(${i})" title="Rimuovi">&#10005;</button>
+    </div>`;
+  }).join('');
+  splitRebuildDropdown();
+  ordineUpdateCount();
+}
+
+function splitRebuildDropdown(){
+  const sel = document.getElementById('ordine-split-add-sel');
+  if(!sel || !_splitAgentsCache) return;
+  const usedEmails = new Set(_ordineTeamSplit.map(m => m.email));
+  const available = _splitAgentsCache.filter(a => !usedEmails.has(a.email));
+  sel.innerHTML = '<option value="">+ agente del team</option>' +
+    available.map(a => `<option value="${escHtml(a.email)}|${escHtml(a.name)}">${escHtml(a.name)} · ${escHtml(a.email)}</option>`).join('');
+  sel.disabled = available.length === 0;
+}
+
+function splitAddAgent(selEl){
+  const v = selEl.value;
+  if(!v) return;
+  const [email, name] = v.split('|');
+  if(!email) { selEl.value=''; return; }
+  if(_ordineTeamSplit.some(m => m.email === email)){ selEl.value=''; return; }
+  _ordineTeamSplit.push({ email, name: name||email, pct: 0, external: false });
+  selEl.value = '';
+  splitRender();
+}
+
+function splitToggleExternalForm(){
+  const f = document.getElementById('ordine-split-external-form');
+  if(!f) return;
+  const opening = (f.style.display === 'none' || !f.style.display);
+  f.style.display = opening ? 'flex' : 'none';
+  if(opening) document.getElementById('ordine-split-ext-name')?.focus();
+}
+
+function splitAddExternal(){
+  const nameEl = document.getElementById('ordine-split-ext-name');
+  const emailEl = document.getElementById('ordine-split-ext-email');
+  const name = (nameEl?.value||'').trim();
+  const email = (emailEl?.value||'').trim().toLowerCase();
+  if(!email || !email.includes('@')){ emailEl.focus(); emailEl.style.borderColor='#ff5d6c'; setTimeout(()=>emailEl.style.borderColor='', 1200); return; }
+  if(!name){ nameEl.focus(); return; }
+  if(_ordineTeamSplit.some(m => m.email === email)){ alert('Email già presente nello split.'); return; }
+  _ordineTeamSplit.push({ email, name, pct: 0, external: true });
+  nameEl.value = ''; emailEl.value = '';
+  document.getElementById('ordine-split-external-form').style.display = 'none';
+  splitRender();
+}
+
+function splitRemove(idx){
+  _ordineTeamSplit.splice(idx, 1);
+  splitRender();
+}
+
+function splitUpdatePct(idx, val){
+  let v = parseFloat(val);
+  if(isNaN(v) || v < 0) v = 0;
+  if(v > 100) v = 100;
+  if(_ordineTeamSplit[idx]) _ordineTeamSplit[idx].pct = v;
+  ordineUpdateCount();
+}
+
+function splitUpdateTotals(orderTotal){
+  const totalEl = document.getElementById('ordine-split-total');
+  const pctEl = document.getElementById('ordine-split-total-pct');
+  if(!totalEl || !pctEl) return;
+  const sumPct = _ordineTeamSplit.reduce((s,m)=> s + (parseFloat(m.pct)||0), 0);
+  pctEl.textContent = (Math.round(sumPct*10)/10) + '%';
+  _ordineTeamSplit.forEach((m,i) => {
+    const eurEl = document.getElementById(`split-eur-${i}`);
+    if(!eurEl) return;
+    const eur = (orderTotal||0) * (parseFloat(m.pct)||0) / 100;
+    eurEl.textContent = eur.toLocaleString('it-IT',{style:'currency',currency:'EUR'});
+  });
+  totalEl.classList.remove('ok','empty');
+  if(_ordineTeamSplit.length === 0){
+    totalEl.classList.add('empty');
+  } else if(Math.abs(sumPct - 100) < 0.01){
+    totalEl.classList.add('ok');
+  }
 }
 
 async function confermaOrdine(){
